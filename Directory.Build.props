@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <RepositoryCommit></RepositoryCommit>
+    <Authors>Marcel Kummerow</Authors>
+    <Company>CScharf</Company>
+    <Product>Kiln Studio</Product>
+    <Copyright>Copyright © 2026 Marcel Kummerow</Copyright>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RepositoryUrl>https://github.com/PepperPix/Kiln-Studio</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.StaticAnalysis" Version="10.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

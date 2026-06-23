@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <StaticAnalysisCodeType>ProdLib</StaticAnalysisCodeType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Kiln.Abstractions" Version="0.1.*" />
+    <PackageReference Include="Kiln.Core" Version="0.1.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <StaticAnalysisCodeType>Test</StaticAnalysisCodeType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" Version="1.56.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kiln.Studio.ViewModels\Kiln.Studio.ViewModels.csproj" />
+    <ProjectReference Include="..\..\src\Kiln.Studio.Services\Kiln.Studio.Services.csproj" />
+  </ItemGroup>
+
+</Project>

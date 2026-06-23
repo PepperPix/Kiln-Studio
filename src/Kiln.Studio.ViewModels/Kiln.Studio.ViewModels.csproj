@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <StaticAnalysisCodeType>ProdLib</StaticAnalysisCodeType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kiln.Studio.Services\Kiln.Studio.Services.csproj" />
+  </ItemGroup>
+
+</Project>
