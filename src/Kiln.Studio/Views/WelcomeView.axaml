@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             x:Class="Kiln.Studio.Views.WelcomeView"
+             x:DataType="vm:ShellViewModel">
+
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="16">
+
+        <TextBlock Text="Kiln Studio"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center" />
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Spacing="8">
+            <Button Content="New Site" Command="{Binding NewSiteCommand}" />
+            <Button Content="Open Site" Command="{Binding OpenProjectCommand}" />
+        </StackPanel>
+
+        <TextBlock Text="Recent Projects"
+                   FontWeight="SemiBold" />
+
+        <ItemsControl ItemsSource="{Binding RecentProjects}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
+                    <Button Content="{Binding Name}"
+                            Command="{Binding OpenCommand}"
+                            HorizontalAlignment="Left"
+                            Margin="0,2" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+    </StackPanel>
+
+</UserControl>

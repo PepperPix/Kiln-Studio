@@ -62,9 +62,96 @@ public class ProjectServiceTests
     }
 }
 
+public class ProjectServiceCreateSiteTests
+{
+    private const string SiteName = "my-new-site";
+
+    [Test]
+    public async Task CreateSite_ValidArgs_ReturnsExistingPath()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var service = new ProjectService(new EngineHost());
+            var projectPath = service.CreateSite(tempDir, SiteName);
+
+            await Assert.That(Directory.Exists(projectPath)).IsTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CreateSite_ThenOpen_HasCollections()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var service = new ProjectService(new EngineHost());
+            var projectPath = service.CreateSite(tempDir, SiteName);
+            var opened = service.Open(projectPath);
+
+            await Assert.That(opened.Collections.Count).IsGreaterThan(0);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CreateSite_EmptySiteName_ThrowsArgumentException()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var service = new ProjectService(new EngineHost());
+
+            await Assert.That(() => service.CreateSite(tempDir, ""))
+                .Throws<ArgumentException>();
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CreateSite_NonExistentParent_ThrowsArgumentException()
+    {
+        var service = new ProjectService(new EngineHost());
+
+        await Assert.That(() => service.CreateSite("/no/such/directory", SiteName))
+            .Throws<ArgumentException>();
+    }
+}
+
 public class ShellViewModelOpenTests
 {
     private const string ReadyStatus = "Ready";
+
+    private static ShellViewModel MakeVm(
+        IFolderPicker folderPicker,
+        ProjectExplorerViewModel explorer,
+        IRecentProjectsStore? store = null)
+    {
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        return new ShellViewModel(
+            new ProjectService(new EngineHost()),
+            folderPicker,
+            new NullInputDialog(),
+            store ?? new RecentProjectsStore(storeDir),
+            explorer);
+    }
 
     [Test]
     public async Task OpenProject_ValidSite_FillsExplorerAndSetsStatus()
@@ -81,7 +168,7 @@ public class ShellViewModelOpenTests
 
             var explorer = new ProjectExplorerViewModel();
             var picker = new FixedFolderPicker(projectPath);
-            var vm = new ShellViewModel(new ProjectService(new EngineHost()), picker, explorer);
+            var vm = MakeVm(picker, explorer);
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
 
@@ -99,10 +186,7 @@ public class ShellViewModelOpenTests
     public async Task OpenProject_NullFromPicker_NoStatusChange()
     {
         var explorer = new ProjectExplorerViewModel();
-        var vm = new ShellViewModel(
-            new ProjectService(new EngineHost()),
-            new NullFolderPicker(),
-            explorer);
+        var vm = MakeVm(new NullFolderPicker(), explorer);
 
         await vm.OpenProjectCommand.ExecuteAsync(null);
 
@@ -120,3 +204,9 @@ file sealed class FixedFolderPicker(string path) : IFolderPicker
 {
     public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(path);
 }
+
+file sealed class NullInputDialog : IInputDialog
+{
+    public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
+}
+

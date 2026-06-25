@@ -40,4 +40,16 @@ public sealed class ProjectService : IProjectService
 
         return new OpenedProject(projectPath, config.Title, collections);
     }
+
+    public string CreateSite(string parentDirectory, string siteName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(siteName);
+        if (!Directory.Exists(parentDirectory))
+            throw new ArgumentException($"Directory does not exist: {parentDirectory}", nameof(parentDirectory));
+
+        using var provider = _engineHost.CreateProvider(parentDirectory);
+        var scaffolder = provider.GetRequiredService<IScaffolder>();
+        var result = scaffolder.CreateSite(siteName, parentDirectory);
+        return result.ProjectPath;
+    }
 }

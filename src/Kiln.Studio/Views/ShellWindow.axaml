@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Kiln.Studio.ViewModels"
+        xmlns:views="using:Kiln.Studio.Views"
         x:Class="Kiln.Studio.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         Title="{Binding Title}"
@@ -23,8 +24,12 @@
             <TextBlock Text="{Binding StatusMessage}" />
         </Border>
 
-        <!-- Three-pane content area -->
-        <Grid>
+        <!-- Welcome view (no project open) -->
+        <views:WelcomeView IsVisible="{Binding !IsProjectOpen}"
+                           DataContext="{Binding}" />
+
+        <!-- Three-pane content area (project open) -->
+        <Grid IsVisible="{Binding IsProjectOpen}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" MinWidth="120" />
                 <ColumnDefinition Width="Auto" />

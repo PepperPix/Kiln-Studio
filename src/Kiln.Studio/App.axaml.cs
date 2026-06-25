@@ -38,6 +38,15 @@ public partial class App : Application
         services.AddSingleton<ProjectSession>();
         services.AddSingleton<IProjectService, ProjectService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
+        services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
+        services.AddSingleton<IRecentProjectsStore>(_ =>
+        {
+            var baseDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "KilnStudio");
+            Directory.CreateDirectory(baseDir);
+            return new RecentProjectsStore(baseDir);
+        });
         services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<ShellViewModel>();
 
