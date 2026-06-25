@@ -6,12 +6,14 @@ using Kiln.Studio.Services;
 public sealed class ContentCollectionViewModel : ViewModelBase
 {
     public string Name { get; }
+    public string ContentDirectory { get; }
     public ObservableCollection<ContentEntryViewModel> Entries { get; } = [];
 
     public ContentCollectionViewModel(ContentCollectionDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto);
         Name = dto.Name;
+        ContentDirectory = dto.ContentDirectory;
         foreach (var entry in dto.Entries)
             Entries.Add(new ContentEntryViewModel(entry));
     }

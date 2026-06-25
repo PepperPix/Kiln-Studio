@@ -150,7 +150,10 @@ public class ShellViewModelOpenTests
             folderPicker,
             new NullInputDialog(),
             store ?? new RecentProjectsStore(storeDir),
-            explorer);
+            new ContentService(),
+            new NullNewPageDialog(),
+            explorer,
+            new EditorViewModel(new ContentService()));
     }
 
     [Test]
@@ -208,5 +211,10 @@ file sealed class FixedFolderPicker(string path) : IFolderPicker
 file sealed class NullInputDialog : IInputDialog
 {
     public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
+}
+
+file sealed class NullNewPageDialog : INewPageDialog
+{
+    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames) => Task.FromResult<NewPageRequest?>(null);
 }
 

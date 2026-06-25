@@ -13,7 +13,8 @@
         <!-- Toolbar -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
             <Button Content="Open" Command="{Binding OpenProjectCommand}" />
-            <Button Content="Save" IsEnabled="False" />
+            <Button Content="New Page" Command="{Binding NewPageCommand}" />
+            <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
             <Button Content="Build" IsEnabled="False" />
             <Button Content="Serve" IsEnabled="False" />
             <Button Content="Deploy" IsEnabled="False" />
@@ -59,13 +60,8 @@
 
             <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns" />
 
-            <!-- Editor placeholder -->
-            <Border Grid.Column="2" Background="#1A1A1A">
-                <TextBlock Text="Select a file to edit"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Foreground="Gray" />
-            </Border>
+            <!-- Editor (middle) -->
+            <views:EditorView Grid.Column="2" DataContext="{Binding Editor}" />
 
             <GridSplitter Grid.Column="3" Width="4" ResizeDirection="Columns" />
 

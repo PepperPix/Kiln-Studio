@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             xmlns:aedit="using:AvaloniaEdit"
+             x:Class="Kiln.Studio.Views.EditorView"
+             x:DataType="vm:EditorViewModel">
+
+    <Grid>
+        <!-- Placeholder when no document -->
+        <TextBlock Text="Select a file to edit"
+                   IsVisible="{Binding !HasDocument}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="Gray" />
+
+        <!-- Editor area when document is loaded -->
+        <Grid IsVisible="{Binding HasDocument}"
+              RowDefinitions="Auto,4,*">
+
+            <!-- Frontmatter TextBox -->
+            <TextBox Grid.Row="0"
+                     x:Name="FrontMatterBox"
+                     Text="{Binding FrontMatter}"
+                     AcceptsReturn="True"
+                     Height="120"
+                     FontFamily="Courier New,Consolas,monospace"
+                     FontSize="13"
+                     BorderThickness="0,0,0,1"
+                     Padding="4"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     TextWrapping="NoWrap" />
+
+            <GridSplitter Grid.Row="1" ResizeDirection="Rows" Height="4" />
+
+            <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
+            <aedit:TextEditor Grid.Row="2"
+                              x:Name="BodyEditor"
+                              FontFamily="Courier New,Consolas,monospace"
+                              FontSize="13"
+                              ShowLineNumbers="True"
+                              WordWrap="True" />
+
+        </Grid>
+    </Grid>
+
+</UserControl>
+

@@ -1,6 +1,7 @@
 namespace Kiln.Studio.ViewModels;
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
@@ -11,6 +12,8 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IFolderPicker _folderPicker;
     private readonly IInputDialog _inputDialog;
     private readonly IRecentProjectsStore _recentProjectsStore;
+    private readonly IContentService _contentService;
+    private readonly INewPageDialog _newPageDialog;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -25,23 +28,46 @@ public partial class ShellViewModel : ViewModelBase
     private bool _isProjectOpen;
 
     public ProjectExplorerViewModel Explorer { get; }
+    public EditorViewModel Editor { get; }
 
     public ObservableCollection<RecentProjectViewModel> RecentProjects { get; } = [];
 
+#pragma warning disable S107
     public ShellViewModel(
         IProjectService projectService,
         IFolderPicker folderPicker,
         IInputDialog inputDialog,
         IRecentProjectsStore recentProjectsStore,
-        ProjectExplorerViewModel explorer)
+        IContentService contentService,
+        INewPageDialog newPageDialog,
+        ProjectExplorerViewModel explorer,
+        EditorViewModel editor)
+#pragma warning restore S107
     {
         _projectService = projectService;
         _folderPicker = folderPicker;
         _inputDialog = inputDialog;
         _recentProjectsStore = recentProjectsStore;
+        _contentService = contentService;
+        _newPageDialog = newPageDialog;
         Explorer = explorer;
+        Editor = editor;
 
+        Explorer.PropertyChanged += OnExplorerPropertyChanged;
         RefreshRecentProjects();
+    }
+
+    private void OnExplorerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ProjectExplorerViewModel.SelectedEntry))
+            return;
+        if (Explorer.SelectedEntry is null)
+            return;
+
+        if (Editor.IsDirty)
+            StatusMessage = "Unsaved changes were discarded.";
+
+        Editor.Load(Explorer.SelectedEntry.SourcePath);
     }
 
     [RelayCommand]
@@ -74,6 +100,38 @@ public partial class ShellViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Failed to create site: {ex.Message}";
+        }
+#pragma warning restore CA1031
+    }
+
+    [RelayCommand]
+    private async Task NewPageAsync()
+    {
+        if (!IsProjectOpen || Explorer.Collections.Count == 0)
+            return;
+
+        var collectionNames = Explorer.Collections.Select(c => c.Name).ToList();
+        var req = await _newPageDialog.ShowAsync(collectionNames).ConfigureAwait(true);
+        if (req is null)
+            return;
+
+        var collection = Explorer.Collections.FirstOrDefault(c => c.Name == req.CollectionName);
+        if (collection is null)
+            return;
+
+        var contentDir = collection.ContentDirectory;
+
+        try
+        {
+            var path = await Task.Run(() => _contentService.CreatePage(contentDir, req.Title)).ConfigureAwait(true);
+            await OpenPathAsync(CurrentProjectPath!).ConfigureAwait(true);
+            Editor.Load(path);
+            StatusMessage = $"Created {Path.GetFileName(path)}";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to create page: {ex.Message}";
         }
 #pragma warning restore CA1031
     }

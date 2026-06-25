@@ -25,6 +25,17 @@ file sealed class FixedInputDialog(string response) : IInputDialog
     public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(response);
 }
 
+file sealed class NullNewPageDialog : INewPageDialog
+{
+    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames) => Task.FromResult<NewPageRequest?>(null);
+}
+
+file sealed class FixedNewPageDialog(string collectionName, string title) : INewPageDialog
+{
+    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames)
+        => Task.FromResult<NewPageRequest?>(new NewPageRequest(collectionName, title));
+}
+
 public class ShellViewModelTests
 {
     private const string SiteTitle = "Kiln Studio";
@@ -41,7 +52,10 @@ public class ShellViewModelTests
             folderPicker,
             inputDialog,
             new RecentProjectsStore(storeDir),
-            explorer ?? new ProjectExplorerViewModel());
+            new ContentService(),
+            new NullNewPageDialog(),
+            explorer ?? new ProjectExplorerViewModel(),
+            new EditorViewModel(new ContentService()));
         return (vm, storeDir);
     }
 
@@ -110,7 +124,10 @@ public class ShellViewModelNewSiteTests
                 new FixedFolderPicker(tempParent),
                 new FixedInputDialog(NewSiteName),
                 store,
-                explorer);
+                new ContentService(),
+                new NullNewPageDialog(),
+                explorer,
+                new EditorViewModel(new ContentService()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -137,7 +154,10 @@ public class ShellViewModelNewSiteTests
                 new NullFolderPicker(),
                 new FixedInputDialog(NewSiteName),
                 new RecentProjectsStore(storeDir),
-                new ProjectExplorerViewModel());
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -164,7 +184,10 @@ public class ShellViewModelNewSiteTests
                 new FixedFolderPicker(tempParent),
                 new NullInputDialog(),
                 new RecentProjectsStore(storeDir),
-                new ProjectExplorerViewModel());
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -194,7 +217,10 @@ public class ShellViewModelNewSiteTests
                 new FixedFolderPicker(tempParent),
                 new FixedInputDialog(NewSiteName),
                 store,
-                explorer);
+                new ContentService(),
+                new NullNewPageDialog(),
+                explorer,
+                new EditorViewModel(new ContentService()));
 
             // Create the site first
             await vm.NewSiteCommand.ExecuteAsync(null);
@@ -208,7 +234,10 @@ public class ShellViewModelNewSiteTests
                 new NullFolderPicker(),
                 new NullInputDialog(),
                 store2,
-                explorer2);
+                new ContentService(),
+                new NullNewPageDialog(),
+                explorer2,
+                new EditorViewModel(new ContentService()));
 
             await Assert.That(vm2.RecentProjects.Count).IsEqualTo(1);
 

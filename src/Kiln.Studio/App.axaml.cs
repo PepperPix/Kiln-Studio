@@ -37,8 +37,10 @@ public partial class App : Application
         services.AddSingleton<EngineHost>();
         services.AddSingleton<ProjectSession>();
         services.AddSingleton<IProjectService, ProjectService>();
+        services.AddSingleton<IContentService, ContentService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
+        services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
         services.AddSingleton<IRecentProjectsStore>(_ =>
         {
             var baseDir = Path.Combine(
@@ -48,6 +50,7 @@ public partial class App : Application
             return new RecentProjectsStore(baseDir);
         });
         services.AddSingleton<ProjectExplorerViewModel>();
+        services.AddSingleton<EditorViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         return services.BuildServiceProvider();

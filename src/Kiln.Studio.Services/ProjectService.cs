@@ -34,7 +34,12 @@ public sealed class ProjectService : IProjectService
                         item.Draft,
                         item.Date))
                     .ToList();
-                return new ContentCollectionDto(kv.Key, entries);
+
+                var contentDir = Path.IsPathRooted(kv.Value.Directory)
+                    ? kv.Value.Directory
+                    : Path.Combine(projectPath, kv.Value.Directory);
+
+                return new ContentCollectionDto(kv.Key, entries, contentDir);
             })
             .ToList();
 
