@@ -4,19 +4,75 @@
         x:Class="Kiln.Studio.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         Title="{Binding Title}"
-        Width="1024"
-        Height="768">
+        Width="1200"
+        Height="800">
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Open Project..." Command="{Binding OpenProjectCommand}" />
-            </MenuItem>
-        </Menu>
-        <TextBlock HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Text="{Binding Title}"
-                   FontSize="24" />
+
+        <!-- Toolbar -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
+            <Button Content="Open" Command="{Binding OpenProjectCommand}" />
+            <Button Content="Save" IsEnabled="False" />
+            <Button Content="Build" IsEnabled="False" />
+            <Button Content="Serve" IsEnabled="False" />
+            <Button Content="Deploy" IsEnabled="False" />
+        </StackPanel>
+
+        <!-- Status bar -->
+        <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" Padding="4,2">
+            <TextBlock Text="{Binding StatusMessage}" />
+        </Border>
+
+        <!-- Three-pane content area -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" MinWidth="120" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="200" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="280" MinWidth="120" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Explorer -->
+            <TreeView Grid.Column="0"
+                      x:Name="ExplorerTree"
+                      ItemsSource="{Binding Explorer.Collections}">
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
+                                      ItemsSource="{Binding Entries}">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    </TreeDataTemplate>
+                    <DataTemplate DataType="vm:ContentEntryViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding Title}" />
+                            <TextBlock Text="(draft)" IsVisible="{Binding Draft}"
+                                       Foreground="Gray" FontStyle="Italic" />
+                        </StackPanel>
+                    </DataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+
+            <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns" />
+
+            <!-- Editor placeholder -->
+            <Border Grid.Column="2" Background="#1A1A1A">
+                <TextBlock Text="Select a file to edit"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="Gray" />
+            </Border>
+
+            <GridSplitter Grid.Column="3" Width="4" ResizeDirection="Columns" />
+
+            <!-- Preview placeholder -->
+            <Border Grid.Column="4" Background="#111111">
+                <TextBlock Text="Preview"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="Gray" />
+            </Border>
+        </Grid>
+
     </DockPanel>
 
 </Window>

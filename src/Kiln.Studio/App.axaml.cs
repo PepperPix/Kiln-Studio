@@ -36,6 +36,9 @@ public partial class App : Application
 
         services.AddSingleton<EngineHost>();
         services.AddSingleton<ProjectSession>();
+        services.AddSingleton<IProjectService, ProjectService>();
+        services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
+        services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         return services.BuildServiceProvider();
