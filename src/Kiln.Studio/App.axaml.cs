@@ -39,6 +39,8 @@ public partial class App : Application
         services.AddSingleton<ProjectSession>();
         services.AddSingleton<IProjectService, ProjectService>();
         services.AddSingleton<IContentService, ContentService>();
+        services.AddSingleton<IBuildService, BuildService>();
+        services.AddSingleton<IDeploymentService, DeploymentService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();

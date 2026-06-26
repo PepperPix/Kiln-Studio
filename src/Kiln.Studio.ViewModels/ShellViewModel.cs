@@ -5,6 +5,7 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
+using Kiln.Studio.Services.Dto;
 
 public partial class ShellViewModel : ViewModelBase
 {
@@ -16,6 +17,8 @@ public partial class ShellViewModel : ViewModelBase
     private readonly INewPageDialog _newPageDialog;
     private readonly IPreviewServer _previewServer;
     private readonly IBrowserLauncher _browserLauncher;
+    private readonly IBuildService _buildService;
+    private readonly IDeploymentService _deploymentService;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -29,6 +32,15 @@ public partial class ShellViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
     private bool _isProjectOpen;
+
+    [ObservableProperty]
+    private bool _releaseBuild;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(BuildCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SetUpGitHubPagesCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SetUpAzureStaticWebAppsCommand))]
+    private bool _isBusy;
 
     public ProjectExplorerViewModel Explorer { get; }
     public EditorViewModel Editor { get; }
@@ -48,7 +60,9 @@ public partial class ShellViewModel : ViewModelBase
         EditorViewModel editor,
         IPreviewServer previewServer,
         IBrowserLauncher browserLauncher,
-        PreviewViewModel preview)
+        PreviewViewModel preview,
+        IBuildService buildService,
+        IDeploymentService deploymentService)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -59,6 +73,8 @@ public partial class ShellViewModel : ViewModelBase
         _newPageDialog = newPageDialog;
         _previewServer = previewServer;
         _browserLauncher = browserLauncher;
+        _buildService = buildService;
+        _deploymentService = deploymentService;
         Explorer = explorer;
         Editor = editor;
         Preview = preview;
@@ -194,6 +210,41 @@ public partial class ShellViewModel : ViewModelBase
 
     private bool CanServe() => IsProjectOpen && !Preview.IsServing;
 
+    [RelayCommand(CanExecute = nameof(CanBuild))]
+    private async Task BuildAsync()
+    {
+        IsBusy = true;
+        StatusMessage = ReleaseBuild ? "Building (release)..." : "Building (debug)...";
+
+        try
+        {
+            var summary = await _buildService.BuildAsync(CurrentProjectPath!, ReleaseBuild).ConfigureAwait(true);
+            StatusMessage = summary.Success
+                ? $"Built {summary.RenderedFiles}/{summary.TotalFiles} files in {summary.DurationMs:F0} ms -> {summary.OutputDirectory}{FormatWarnings(summary.Warnings.Count)}"
+                : $"Build failed: {GetFirstOrDefault(summary.Errors, "unknown error")}";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Build failed: {ex.Message}";
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeploy))]
+    private async Task SetUpGitHubPagesAsync() => await SetUpDeploymentAsync(DeployTarget.GitHubPages).ConfigureAwait(true);
+
+    [RelayCommand(CanExecute = nameof(CanDeploy))]
+    private async Task SetUpAzureStaticWebAppsAsync() => await SetUpDeploymentAsync(DeployTarget.AzureStaticWebApps).ConfigureAwait(true);
+
+    private bool CanBuild() => IsProjectOpen && !IsBusy;
+
+    private bool CanDeploy() => IsProjectOpen && !IsBusy;
+
     [RelayCommand]
     private void StopFullPreview()
     {
@@ -203,6 +254,39 @@ public partial class ShellViewModel : ViewModelBase
         StatusMessage = Preview.ServeStatus;
         StartFullPreviewCommand.NotifyCanExecuteChanged();
     }
+
+    private async Task SetUpDeploymentAsync(DeployTarget target)
+    {
+        IsBusy = true;
+        StatusMessage = $"Setting up deployment ({FormatTarget(target)})...";
+
+        try
+        {
+            var summary = await Task.Run(() => _deploymentService.SetUp(CurrentProjectPath!, target)).ConfigureAwait(true);
+            StatusMessage = $"Deployment configured ({FormatTarget(summary.Target)}): {string.Join(", ", summary.CreatedFiles)} - commit & push to deploy.";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Deployment setup failed: {ex.Message}";
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private static string FormatWarnings(int count) => count > 0 ? $" ({count} warning(s))" : string.Empty;
+
+    private static string GetFirstOrDefault(IReadOnlyList<string> items, string fallback) => items.Count > 0 ? items[0] : fallback;
+
+    private static string FormatTarget(DeployTarget target) => target switch
+    {
+        DeployTarget.GitHubPages => "GitHub Pages",
+        DeployTarget.AzureStaticWebApps => "Azure Static Web Apps",
+        _ => target.ToString(),
+    };
 
     private void RefreshRecentProjects()
     {

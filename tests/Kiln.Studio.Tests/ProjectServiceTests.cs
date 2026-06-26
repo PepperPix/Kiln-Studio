@@ -156,7 +156,9 @@ public class ShellViewModelOpenTests
             new EditorViewModel(new ContentService()),
             new FakePreviewServer(),
             new FakeBrowserLauncher(),
-            new PreviewViewModel());
+            new PreviewViewModel(),
+            new FakeBuildService(),
+            new FakeDeploymentService());
     }
 
     [Test]

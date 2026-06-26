@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Kiln.Studio.App"
              xmlns:local="using:Kiln.Studio"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
 
     <Application.DataTemplates>
         <local:ViewLocator />
@@ -12,5 +12,6 @@
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Markdown.Avalonia/StyleCollections/MarkdownStyleFluentTheme.axaml" />
+        <StyleInclude Source="avares://Kiln.Studio/Styles/Tokens.axaml" />
     </Application.Styles>
 </Application>

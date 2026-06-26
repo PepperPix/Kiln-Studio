@@ -12,19 +12,35 @@
     <DockPanel>
 
         <!-- Toolbar -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
-            <Button Content="Open" Command="{Binding OpenProjectCommand}" />
-            <Button Content="New Page" Command="{Binding NewPageCommand}" />
-            <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
-            <Button Content="Build" IsEnabled="False" />
-            <Button Content="Preview" Command="{Binding StartFullPreviewCommand}" />
-            <Button Content="Stop" Command="{Binding StopFullPreviewCommand}" IsEnabled="{Binding Preview.IsServing}" />
-            <Button Content="Deploy" IsEnabled="False" />
-        </StackPanel>
+        <Border DockPanel.Dock="Top" Classes="toolbar-host">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Open" Command="{Binding OpenProjectCommand}" />
+                <Button Content="New Page" Command="{Binding NewPageCommand}" />
+                <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
+                <Button Content="Build" Command="{Binding BuildCommand}" Classes="primary-action" />
+                <CheckBox Content="Release" IsChecked="{Binding ReleaseBuild}" VerticalAlignment="Center" />
+                <Button Content="Preview" Command="{Binding StartFullPreviewCommand}" />
+                <Button Content="Stop" Command="{Binding StopFullPreviewCommand}" IsEnabled="{Binding Preview.IsServing}" />
+                <Button Content="Deploy">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Set up GitHub Pages" Command="{Binding SetUpGitHubPagesCommand}" />
+                            <MenuItem Header="Set up Azure Static Web Apps" Command="{Binding SetUpAzureStaticWebAppsCommand}" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+        </Border>
 
         <!-- Status bar -->
-        <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" Padding="4,2">
-            <TextBlock Text="{Binding StatusMessage}" />
+        <Border DockPanel.Dock="Bottom" Classes="status-host">
+            <DockPanel>
+                <ProgressBar DockPanel.Dock="Right"
+                             Classes="busy-indicator"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}" />
+                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
         </Border>
 
         <!-- Welcome view (no project open) -->
@@ -32,7 +48,7 @@
                            DataContext="{Binding}" />
 
         <!-- Three-pane content area (project open) -->
-        <Grid IsVisible="{Binding IsProjectOpen}">
+        <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" MinWidth="120" />
                 <ColumnDefinition Width="Auto" />
@@ -72,11 +88,11 @@
                 <!-- Serve status strip -->
                 <Border DockPanel.Dock="Bottom"
                         IsVisible="{Binding Preview.IsServing}"
-                        BorderThickness="0,1,0,0"
+                        Classes="preview-status-host"
                         Padding="4,2">
                     <TextBlock Text="{Binding Preview.ServeStatus}"
+                               Classes="muted"
                                FontSize="11"
-                               Foreground="Gray"
                                TextTrimming="CharacterEllipsis" />
                 </Border>
 
@@ -88,9 +104,10 @@
                 <!-- Placeholder when no document -->
                 <TextBlock Text="Preview"
                            IsVisible="{Binding !Editor.HasDocument}"
+                           Classes="muted"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           Foreground="Gray" />
+                           />
             </DockPanel>
         </Grid>
 

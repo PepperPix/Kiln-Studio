@@ -326,7 +326,9 @@ public class ShellViewModelEditorTests
                 editor,
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -375,7 +377,9 @@ public class ShellViewModelEditorTests
                 editor,
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -419,7 +423,9 @@ public class ShellViewModelEditorTests
                 editor,
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);

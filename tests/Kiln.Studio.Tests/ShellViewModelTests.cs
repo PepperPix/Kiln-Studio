@@ -2,6 +2,7 @@ namespace Kiln.Studio.Tests;
 
 using Kiln.Services;
 using Kiln.Studio.Services;
+using Kiln.Studio.Services.Dto;
 using Kiln.Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -73,7 +74,9 @@ public class ShellViewModelTests
         IInputDialog inputDialog,
         ProjectExplorerViewModel? explorer = null,
         IPreviewServer? previewServer = null,
-        IBrowserLauncher? browserLauncher = null)
+        IBrowserLauncher? browserLauncher = null,
+        IBuildService? buildService = null,
+        IDeploymentService? deploymentService = null)
     {
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(storeDir);
@@ -88,7 +91,9 @@ public class ShellViewModelTests
             new EditorViewModel(new ContentService()),
             previewServer ?? new FakePreviewServer(),
             browserLauncher ?? new FakeBrowserLauncher(),
-            new PreviewViewModel());
+            new PreviewViewModel(),
+            buildService ?? new FakeBuildService(),
+            deploymentService ?? new FakeDeploymentService());
         return (vm, storeDir);
     }
 
@@ -163,7 +168,9 @@ public class ShellViewModelNewSiteTests
                 new EditorViewModel(new ContentService()),
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -196,7 +203,9 @@ public class ShellViewModelNewSiteTests
                 new EditorViewModel(new ContentService()),
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -229,7 +238,9 @@ public class ShellViewModelNewSiteTests
                 new EditorViewModel(new ContentService()),
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -265,7 +276,9 @@ public class ShellViewModelNewSiteTests
                 new EditorViewModel(new ContentService()),
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             // Create the site first
             await vm.NewSiteCommand.ExecuteAsync(null);
@@ -285,7 +298,9 @@ public class ShellViewModelNewSiteTests
                 new EditorViewModel(new ContentService()),
                 new FakePreviewServer(),
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await Assert.That(vm2.RecentProjects.Count).IsEqualTo(1);
 
@@ -324,7 +339,9 @@ public class ShellViewModelPreviewTests
                 new EditorViewModel(new ContentService()),
                 server,
                 new FakeBrowserLauncher(),
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await Assert.That(vm.StartFullPreviewCommand.CanExecute(null)).IsFalse();
         }
@@ -357,7 +374,9 @@ public class ShellViewModelPreviewTests
                 new EditorViewModel(new ContentService()),
                 server,
                 browser,
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm2.IsProjectOpen).IsTrue();
@@ -400,7 +419,9 @@ public class ShellViewModelPreviewTests
                 new EditorViewModel(new ContentService()),
                 server,
                 browser,
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await vm2.StartFullPreviewCommand.ExecuteAsync(null);
@@ -440,7 +461,9 @@ public class ShellViewModelPreviewTests
                 new EditorViewModel(new ContentService()),
                 server,
                 browser,
-                new PreviewViewModel());
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.StartFullPreviewCommand.ExecuteAsync(null);
@@ -457,5 +480,190 @@ public class ShellViewModelPreviewTests
             if (Directory.Exists(tempDir)) Directory.Delete(tempDir, recursive: true);
             if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
         }
+    }
+}
+
+public class ShellViewModelBuildDeployTests
+{
+    [Test]
+    public async Task CanBuild_And_CanDeploy_AreFalseWhenNoProjectOpen()
+    {
+        var (vm, storeDir) = ShellViewModelTestsAccessor.MakeVm();
+        try
+        {
+            await Assert.That(vm.BuildCommand.CanExecute(null)).IsFalse();
+            await Assert.That(vm.SetUpGitHubPagesCommand.CanExecute(null)).IsFalse();
+            await Assert.That(vm.SetUpAzureStaticWebAppsCommand.CanExecute(null)).IsFalse();
+        }
+        finally
+        {
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task BuildCommand_SetsSuccessStatus_And_TogglesBusy()
+    {
+        var gate = new TaskCompletionSource();
+        var buildService = new FakeBuildService
+        {
+            OnBuildAsync = async (_, _, cancellationToken) =>
+            {
+                await gate.Task.WaitAsync(cancellationToken);
+                return new BuildSummary(true, 5, 5, 0, 42, "/tmp/site-out", ["warn"], []);
+            }
+        };
+
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("build-test"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                buildService,
+                new FakeDeploymentService());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+
+            var buildTask = vm.BuildCommand.ExecuteAsync(null);
+            await Task.Yield();
+
+            await Assert.That(vm.IsBusy).IsTrue();
+
+            gate.SetResult();
+            await buildTask;
+
+            await Assert.That(vm.IsBusy).IsFalse();
+            await Assert.That(vm.StatusMessage).Contains("Built 5/5 files in 42 ms -> /tmp/site-out");
+            await Assert.That(vm.StatusMessage).Contains("1 warning(s)");
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task BuildCommand_SetsFailureStatus()
+    {
+        var buildService = new FakeBuildService
+        {
+            OnBuildAsync = (_, _, _) => Task.FromResult(new BuildSummary(false, 0, 0, 0, 3, "/tmp/site-out", [], ["first error"]))
+        };
+
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("build-fail"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                buildService,
+                new FakeDeploymentService());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await vm.BuildCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.StatusMessage).IsEqualTo("Build failed: first error");
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task DeploymentCommands_SetStatusWithCreatedFiles()
+    {
+        var deploymentService = new FakeDeploymentService
+        {
+            OnSetUp = (_, target, _) => new DeploymentSetupSummary(target, [".github/workflows/deploy.yml", "staticwebapp.config.json"])
+        };
+
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("deploy-test"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                deploymentService);
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await vm.SetUpGitHubPagesCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.StatusMessage).Contains("Deployment configured (GitHub Pages)");
+            await Assert.That(vm.StatusMessage).Contains(".github/workflows/deploy.yml");
+            await Assert.That(vm.StatusMessage).Contains("commit & push to deploy");
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+}
+
+file static class ShellViewModelTestsAccessor
+{
+    public static (ShellViewModel vm, string storeDir) MakeVm()
+    {
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var vm = new ShellViewModel(
+            new ProjectService(new EngineHost()),
+            new NullFolderPicker(),
+            new NullInputDialog(),
+            new RecentProjectsStore(storeDir),
+            new ContentService(),
+            new NullNewPageDialog(),
+            new ProjectExplorerViewModel(),
+            new EditorViewModel(new ContentService()),
+            new FakePreviewServer(),
+            new FakeBrowserLauncher(),
+            new PreviewViewModel(),
+            new FakeBuildService(),
+            new FakeDeploymentService());
+        return (vm, storeDir);
     }
 }
