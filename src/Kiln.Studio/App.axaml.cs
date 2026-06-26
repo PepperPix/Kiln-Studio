@@ -25,6 +25,7 @@ public partial class App : Application
                 DataContext = _serviceProvider.GetRequiredService<ShellViewModel>()
             };
             desktop.MainWindow = window;
+            desktop.Exit += (_, _) => _serviceProvider.GetRequiredService<IPreviewServer>().StopServer();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -49,6 +50,9 @@ public partial class App : Application
             Directory.CreateDirectory(baseDir);
             return new RecentProjectsStore(baseDir);
         });
+        services.AddSingleton<IPreviewServer, PreviewServer>();
+        services.AddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
+        services.AddSingleton<PreviewViewModel>();
         services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<EditorViewModel>();
         services.AddSingleton<ShellViewModel>();

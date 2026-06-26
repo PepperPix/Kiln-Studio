@@ -153,7 +153,10 @@ public class ShellViewModelOpenTests
             new ContentService(),
             new NullNewPageDialog(),
             explorer,
-            new EditorViewModel(new ContentService()));
+            new EditorViewModel(new ContentService()),
+            new FakePreviewServer(),
+            new FakeBrowserLauncher(),
+            new PreviewViewModel());
     }
 
     [Test]

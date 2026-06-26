@@ -323,7 +323,10 @@ public class ShellViewModelEditorTests
                 new ContentService(),
                 new FixedNewPageDialog("posts", NewPostTitle),
                 explorer,
-                editor);
+                editor,
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -369,7 +372,10 @@ public class ShellViewModelEditorTests
                 new ContentService(),
                 new NullNewPageDialog(),
                 new ProjectExplorerViewModel(),
-                editor);
+                editor,
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -410,7 +416,10 @@ public class ShellViewModelEditorTests
                 new ContentService(),
                 new NullNewPageDialog(),
                 explorer,
-                editor);
+                editor,
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);

@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Kiln.Studio.ViewModels"
         xmlns:views="using:Kiln.Studio.Views"
+        xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
         x:Class="Kiln.Studio.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         Title="{Binding Title}"
@@ -16,7 +17,8 @@
             <Button Content="New Page" Command="{Binding NewPageCommand}" />
             <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
             <Button Content="Build" IsEnabled="False" />
-            <Button Content="Serve" IsEnabled="False" />
+            <Button Content="Preview" Command="{Binding StartFullPreviewCommand}" />
+            <Button Content="Stop" Command="{Binding StopFullPreviewCommand}" IsEnabled="{Binding Preview.IsServing}" />
             <Button Content="Deploy" IsEnabled="False" />
         </StackPanel>
 
@@ -65,13 +67,31 @@
 
             <GridSplitter Grid.Column="3" Width="4" ResizeDirection="Columns" />
 
-            <!-- Preview placeholder -->
-            <Border Grid.Column="4" Background="#111111">
+            <!-- Preview pane (right) -->
+            <DockPanel Grid.Column="4">
+                <!-- Serve status strip -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding Preview.IsServing}"
+                        BorderThickness="0,1,0,0"
+                        Padding="4,2">
+                    <TextBlock Text="{Binding Preview.ServeStatus}"
+                               FontSize="11"
+                               Foreground="Gray"
+                               TextTrimming="CharacterEllipsis" />
+                </Border>
+
+                <!-- Markdown body preview -->
+                <md:MarkdownScrollViewer
+                    IsVisible="{Binding Editor.HasDocument}"
+                    Markdown="{Binding Editor.Body}" />
+
+                <!-- Placeholder when no document -->
                 <TextBlock Text="Preview"
+                           IsVisible="{Binding !Editor.HasDocument}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Foreground="Gray" />
-            </Border>
+            </DockPanel>
         </Grid>
 
     </DockPanel>

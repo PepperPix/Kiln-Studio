@@ -14,6 +14,8 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IRecentProjectsStore _recentProjectsStore;
     private readonly IContentService _contentService;
     private readonly INewPageDialog _newPageDialog;
+    private readonly IPreviewServer _previewServer;
+    private readonly IBrowserLauncher _browserLauncher;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -25,10 +27,12 @@ public partial class ShellViewModel : ViewModelBase
     private string? _currentProjectPath;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
     private bool _isProjectOpen;
 
     public ProjectExplorerViewModel Explorer { get; }
     public EditorViewModel Editor { get; }
+    public PreviewViewModel Preview { get; }
 
     public ObservableCollection<RecentProjectViewModel> RecentProjects { get; } = [];
 
@@ -41,7 +45,10 @@ public partial class ShellViewModel : ViewModelBase
         IContentService contentService,
         INewPageDialog newPageDialog,
         ProjectExplorerViewModel explorer,
-        EditorViewModel editor)
+        EditorViewModel editor,
+        IPreviewServer previewServer,
+        IBrowserLauncher browserLauncher,
+        PreviewViewModel preview)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -50,8 +57,11 @@ public partial class ShellViewModel : ViewModelBase
         _recentProjectsStore = recentProjectsStore;
         _contentService = contentService;
         _newPageDialog = newPageDialog;
+        _previewServer = previewServer;
+        _browserLauncher = browserLauncher;
         Explorer = explorer;
         Editor = editor;
+        Preview = preview;
 
         Explorer.PropertyChanged += OnExplorerPropertyChanged;
         RefreshRecentProjects();
@@ -138,6 +148,7 @@ public partial class ShellViewModel : ViewModelBase
 
     internal async Task OpenPathAsync(string path)
     {
+        StopFullPreview();
         try
         {
             var project = await Task.Run(() => _projectService.Open(path)).ConfigureAwait(true);
@@ -158,6 +169,39 @@ public partial class ShellViewModel : ViewModelBase
             StatusMessage = $"Failed to open project: {ex.Message}";
         }
 #pragma warning restore CA1031
+    }
+
+    [RelayCommand(CanExecute = nameof(CanServe))]
+    private async Task StartFullPreviewAsync()
+    {
+        try
+        {
+            var url = await _previewServer.StartAsync(CurrentProjectPath!).ConfigureAwait(true);
+            _browserLauncher.Open(url);
+            Preview.IsServing = true;
+            Preview.ServeStatus = $"Serving at {url}";
+            StatusMessage = Preview.ServeStatus;
+            StartFullPreviewCommand.NotifyCanExecuteChanged();
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            Preview.ServeStatus = $"Preview failed: {ex.Message}";
+            StatusMessage = Preview.ServeStatus;
+        }
+#pragma warning restore CA1031
+    }
+
+    private bool CanServe() => IsProjectOpen && !Preview.IsServing;
+
+    [RelayCommand]
+    private void StopFullPreview()
+    {
+        _previewServer.StopServer();
+        Preview.IsServing = false;
+        Preview.ServeStatus = "Preview stopped";
+        StatusMessage = Preview.ServeStatus;
+        StartFullPreviewCommand.NotifyCanExecuteChanged();
     }
 
     private void RefreshRecentProjects()
