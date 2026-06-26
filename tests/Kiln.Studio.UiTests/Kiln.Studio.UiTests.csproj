@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <StaticAnalysisCodeType>Test</StaticAnalysisCodeType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" Version="1.56.0" />
+    <PackageReference Include="Avalonia.Headless" Version="11.*" />
+    <PackageReference Include="Avalonia.Skia" Version="11.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kiln.Studio\Kiln.Studio.csproj" />
+  </ItemGroup>
+
+</Project>

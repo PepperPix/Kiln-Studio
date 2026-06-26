@@ -1,0 +1,16 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Kiln.Studio.UiTests.UiTestApp">
+
+    <!--
+        Sync note: these style includes must match Application.Styles in
+        src/Kiln.Studio/App.axaml. Update both files when styles change.
+    -->
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://Markdown.Avalonia/StyleCollections/MarkdownStyleFluentTheme.axaml" />
+        <StyleInclude Source="avares://Kiln.Studio/Styles/Tokens.axaml" />
+    </Application.Styles>
+
+</Application>
