@@ -1,8 +1,5 @@
 // Vendored from AvaloniaUI/Avalonia (fork JohnCampionJr/Avalonia, branch "tunit", commit ed86219).
 // Licensed under the MIT License. See THIRD-PARTY-NOTICES.md for details.
-#pragma warning disable VSTHRD003  // Vendored: awaiting cross-context task is intentional
-#pragma warning disable CA1031     // Vendored: catch-all is intentional for task exception routing
-#pragma warning disable S108       // Vendored: empty catch after OperationCanceledException is intentional
 using System;
 using System.Threading;
 using System.Threading.Tasks;

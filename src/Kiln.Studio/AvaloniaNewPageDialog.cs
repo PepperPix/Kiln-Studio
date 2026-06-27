@@ -21,7 +21,7 @@ internal sealed class AvaloniaNewPageDialog : INewPageDialog
             MinWidth = 200
         };
 
-        var titleBox = new TextBox { MinWidth = 200, Watermark = "Page title" };
+        var titleBox = new TextBox { MinWidth = 200, PlaceholderText = "Page title" };
 
         var okButton = new Button { Content = "OK", HorizontalAlignment = HorizontalAlignment.Stretch };
         var cancelButton = new Button { Content = "Cancel", HorizontalAlignment = HorizontalAlignment.Stretch };

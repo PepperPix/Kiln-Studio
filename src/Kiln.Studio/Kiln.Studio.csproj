@@ -7,13 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.*" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.*" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.*" />
-    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.4.*" />
+    <PackageReference Include="Avalonia" Version="12.*" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.*" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.*" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.*" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.*" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
-    <PackageReference Include="Markdown.Avalonia" Version="11.*" />
+    <PackageReference Include="Markdown.Avalonia" Version="12.0.0-a3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
   </ItemGroup>
 

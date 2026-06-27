@@ -1,6 +1,5 @@
 // Vendored from AvaloniaUI/Avalonia (fork JohnCampionJr/Avalonia, branch "tunit", commit ed86219).
 // Licensed under the MIT License. See THIRD-PARTY-NOTICES.md for details.
-#pragma warning disable CA1822  // Vendored: Order property matches ITestExecutor interface expectation
 using System;
 using System.Threading.Tasks;
 using TUnit.Core;

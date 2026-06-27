@@ -7,3 +7,13 @@ dotnet_diagnostic.CA1501.severity = none
 # Avalonia XAML code-behind types require partial for generated companion types.
 [src/Kiln.Studio/App.axaml.cs]
 dotnet_diagnostic.S2333.severity = none
+
+# Vendored third-party files: suppress all analyzer diagnostics verbatim.
+[tests/Kiln.Studio.UiTests/Vendor/**]
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1031.severity = none
+dotnet_diagnostic.VSTHRD003.severity = none
+dotnet_diagnostic.S108.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA2016.severity = none
