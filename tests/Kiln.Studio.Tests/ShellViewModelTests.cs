@@ -3,67 +3,9 @@ namespace Kiln.Studio.Tests;
 using Kiln.Services;
 using Kiln.Studio.Services;
 using Kiln.Studio.Services.Dto;
+using Kiln.Studio.TestSupport;
 using Kiln.Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
-
-file sealed class NullFolderPicker : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(null);
-}
-
-file sealed class FixedFolderPicker(string path) : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(path);
-}
-
-file sealed class NullInputDialog : IInputDialog
-{
-    public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
-}
-
-file sealed class FixedInputDialog(string response) : IInputDialog
-{
-    public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(response);
-}
-
-file sealed class NullNewPageDialog : INewPageDialog
-{
-    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames) => Task.FromResult<NewPageRequest?>(null);
-}
-
-file sealed class FixedNewPageDialog(string collectionName, string title) : INewPageDialog
-{
-    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames)
-        => Task.FromResult<NewPageRequest?>(new NewPageRequest(collectionName, title));
-}
-
-sealed class FakePreviewServer : IPreviewServer
-{
-    public static readonly Uri FakeUri = new UriBuilder(Uri.UriSchemeHttp, "localhost", 1234).Uri;
-    public bool IsRunning { get; private set; }
-    public Uri? Url { get; private set; }
-    public bool StopCalled { get; private set; }
-
-    public Task<Uri> StartAsync(string projectPath)
-    {
-        IsRunning = true;
-        Url = FakeUri;
-        return Task.FromResult(Url);
-    }
-
-    public void StopServer()
-    {
-        StopCalled = true;
-        IsRunning = false;
-        Url = null;
-    }
-}
-
-sealed class FakeBrowserLauncher : IBrowserLauncher
-{
-    public Uri? LastOpened { get; private set; }
-    public void Open(Uri url) => LastOpened = url;
-}
 
 public class ShellViewModelTests
 {

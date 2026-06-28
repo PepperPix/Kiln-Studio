@@ -3,6 +3,7 @@ namespace Kiln.Studio.Tests;
 using Kiln.Models;
 using Kiln.Services;
 using Kiln.Studio.Services;
+using Kiln.Studio.TestSupport;
 using Kiln.Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -447,28 +448,3 @@ public class ShellViewModelEditorTests
     }
 }
 
-file sealed class NullFolderPicker : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(null);
-}
-
-file sealed class FixedFolderPicker(string path) : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(path);
-}
-
-file sealed class NullInputDialog : IInputDialog
-{
-    public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
-}
-
-file sealed class NullNewPageDialog : INewPageDialog
-{
-    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames) => Task.FromResult<NewPageRequest?>(null);
-}
-
-file sealed class FixedNewPageDialog(string collectionName, string title) : INewPageDialog
-{
-    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames)
-        => Task.FromResult<NewPageRequest?>(new NewPageRequest(collectionName, title));
-}

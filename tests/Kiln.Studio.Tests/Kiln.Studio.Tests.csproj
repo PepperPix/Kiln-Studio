@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kiln.Studio.TestSupport\Kiln.Studio.TestSupport.csproj" />
     <ProjectReference Include="..\..\src\Kiln.Studio.ViewModels\Kiln.Studio.ViewModels.csproj" />
     <ProjectReference Include="..\..\src\Kiln.Studio.Services\Kiln.Studio.Services.csproj" />
   </ItemGroup>

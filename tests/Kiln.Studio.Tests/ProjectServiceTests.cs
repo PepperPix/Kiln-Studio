@@ -2,6 +2,7 @@ namespace Kiln.Studio.Tests;
 
 using Kiln.Services;
 using Kiln.Studio.Services;
+using Kiln.Studio.TestSupport;
 using Kiln.Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -201,25 +202,5 @@ public class ShellViewModelOpenTests
         await Assert.That(vm.StatusMessage).IsEqualTo(ReadyStatus);
         await Assert.That(explorer.Collections.Count).IsEqualTo(0);
     }
-}
-
-file sealed class NullFolderPicker : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(null);
-}
-
-file sealed class FixedFolderPicker(string path) : IFolderPicker
-{
-    public Task<string?> PickFolderAsync(string title) => Task.FromResult<string?>(path);
-}
-
-file sealed class NullInputDialog : IInputDialog
-{
-    public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
-}
-
-file sealed class NullNewPageDialog : INewPageDialog
-{
-    public Task<NewPageRequest?> ShowAsync(IReadOnlyList<string> collectionNames) => Task.FromResult<NewPageRequest?>(null);
 }
 

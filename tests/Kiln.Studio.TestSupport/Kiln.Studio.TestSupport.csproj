@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StaticAnalysisCodeType>Test</StaticAnalysisCodeType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kiln.Studio.Services\Kiln.Studio.Services.csproj" />
+    <ProjectReference Include="..\..\src\Kiln.Studio.ViewModels\Kiln.Studio.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

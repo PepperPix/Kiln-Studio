@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kiln.Studio\Kiln.Studio.csproj" />
+    <ProjectReference Include="..\Kiln.Studio.TestSupport\Kiln.Studio.TestSupport.csproj" />
   </ItemGroup>
 
 </Project>

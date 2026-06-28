@@ -5,6 +5,7 @@
     <Project Path="src/Kiln.Studio.Services/Kiln.Studio.Services.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Kiln.Studio.TestSupport/Kiln.Studio.TestSupport.csproj" />
     <Project Path="tests/Kiln.Studio.Tests/Kiln.Studio.Tests.csproj" />
     <Project Path="tests/Kiln.Studio.UiTests/Kiln.Studio.UiTests.csproj" />
   </Folder>
