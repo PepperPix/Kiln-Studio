@@ -51,6 +51,16 @@ public partial class SettingsViewModel : ViewModelBase
 
     public bool IsDeploymentFilesystem => DeploymentVariant == DeploymentVariant.Filesystem;
 
+    public IReadOnlyList<DeploymentVariant> DeploymentVariants { get; } =
+        Enum.GetValues<DeploymentVariant>();
+
+    public IReadOnlyList<FilesystemMode> FilesystemModes { get; } =
+        Enum.GetValues<FilesystemMode>();
+
+    public string? LanguageWarning { get; private set; }
+
+    public bool HasLanguageWarning => !string.IsNullOrEmpty(LanguageWarning);
+
     public SettingsViewModel(ISiteSettingsService settings, IDeploymentConfigStore deploymentConfigStore)
     {
         _settings = settings;
@@ -84,6 +94,13 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnDeploymentVariantChanged(DeploymentVariant value)
     {
         OnPropertyChanged(nameof(IsDeploymentFilesystem));
+    }
+
+    partial void OnLanguageChanged(string value)
+    {
+        LanguageWarning = LanguageCode.IsValid(value) ? null : "Not a valid language code (e.g. en, de-DE).";
+        OnPropertyChanged(nameof(LanguageWarning));
+        OnPropertyChanged(nameof(HasLanguageWarning));
     }
 
     partial void OnIsAdvancedChanged(bool value)

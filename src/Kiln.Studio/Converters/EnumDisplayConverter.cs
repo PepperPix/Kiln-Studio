@@ -21,6 +21,12 @@ public sealed class EnumDisplayConverter : IValueConverter
             ContentSortMode.DateOldest => "Date (oldest)",
             ContentSortMode.TitleAscending => "Title A-Z",
             ContentSortMode.TitleDescending => "Title Z-A",
+            DeploymentVariant.None => "None",
+            DeploymentVariant.GitHubPages => "GitHub Pages",
+            DeploymentVariant.AzureStaticWebApps => "Azure Static Web Apps",
+            DeploymentVariant.Filesystem => "Filesystem",
+            FilesystemMode.PlainCopy => "Plain copy",
+            FilesystemMode.Zip => "Zip (.zip)",
             _ => value.ToString()!
         };
     }

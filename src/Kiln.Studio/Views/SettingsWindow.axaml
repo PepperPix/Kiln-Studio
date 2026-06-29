@@ -28,6 +28,10 @@
 
             <TextBlock Text="Language" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding Language}" />
+            <TextBlock Text="{Binding LanguageWarning}"
+                       IsVisible="{Binding HasLanguageWarning}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource KilnErrorBrush}" />
 
             <TextBlock Text="Theme" Classes="section-header" Margin="0,4,0,2" />
             <ComboBox ItemsSource="{Binding AvailableThemes}"
@@ -50,14 +54,14 @@
                 <TextBlock Text="Deployment" Classes="section-header" Margin="0,4,0,2" />
 
                 <TextBlock Text="Variant" Classes="muted" />
-                <ComboBox SelectedItem="{Binding DeploymentVariant}"
+                <ComboBox ItemsSource="{Binding DeploymentVariants}"
+                          SelectedItem="{Binding DeploymentVariant}"
                           HorizontalAlignment="Stretch">
-                    <ComboBox.Items>
-                        <ComboBoxItem>None</ComboBoxItem>
-                        <ComboBoxItem>GitHubPages</ComboBoxItem>
-                        <ComboBoxItem>AzureStaticWebApps</ComboBoxItem>
-                        <ComboBoxItem>Filesystem</ComboBoxItem>
-                    </ComboBox.Items>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
                 </ComboBox>
 
                 <StackPanel IsVisible="{Binding IsDeploymentFilesystem}" Spacing="6">
@@ -66,12 +70,14 @@
                              PlaceholderText="/path/to/output" />
 
                     <TextBlock Text="Mode" Classes="muted" />
-                    <ComboBox SelectedItem="{Binding DeploymentFilesystemMode}"
+                    <ComboBox ItemsSource="{Binding FilesystemModes}"
+                              SelectedItem="{Binding DeploymentFilesystemMode}"
                               HorizontalAlignment="Stretch">
-                        <ComboBox.Items>
-                            <ComboBoxItem>PlainCopy</ComboBoxItem>
-                            <ComboBoxItem>Zip</ComboBoxItem>
-                        </ComboBox.Items>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
             </StackPanel>
