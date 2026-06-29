@@ -35,7 +35,8 @@ public class ShellViewModelTests
             browserLauncher ?? new FakeBrowserLauncher(),
             new PreviewViewModel(),
             buildService ?? new FakeBuildService(),
-            deploymentService ?? new FakeDeploymentService());
+            deploymentService ?? new FakeDeploymentService(),
+            new NullSettingsDialog());
         return (vm, storeDir);
     }
 
@@ -112,7 +113,8 @@ public class ShellViewModelNewSiteTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -147,7 +149,8 @@ public class ShellViewModelNewSiteTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -182,7 +185,8 @@ public class ShellViewModelNewSiteTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -220,7 +224,8 @@ public class ShellViewModelNewSiteTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             // Create the site first
             await vm.NewSiteCommand.ExecuteAsync(null);
@@ -242,7 +247,8 @@ public class ShellViewModelNewSiteTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await Assert.That(vm2.RecentProjects.Count).IsEqualTo(1);
 
@@ -283,7 +289,8 @@ public class ShellViewModelPreviewTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await Assert.That(vm.StartFullPreviewCommand.CanExecute(null)).IsFalse();
         }
@@ -318,7 +325,8 @@ public class ShellViewModelPreviewTests
                 browser,
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm2.IsProjectOpen).IsTrue();
@@ -363,7 +371,8 @@ public class ShellViewModelPreviewTests
                 browser,
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await vm2.StartFullPreviewCommand.ExecuteAsync(null);
@@ -405,7 +414,8 @@ public class ShellViewModelPreviewTests
                 browser,
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.StartFullPreviewCommand.ExecuteAsync(null);
@@ -476,7 +486,8 @@ public class ShellViewModelBuildDeployTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 buildService,
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -527,7 +538,8 @@ public class ShellViewModelBuildDeployTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 buildService,
-                new FakeDeploymentService());
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.BuildCommand.ExecuteAsync(null);
@@ -569,7 +581,8 @@ public class ShellViewModelBuildDeployTests
                 new FakeBrowserLauncher(),
                 new PreviewViewModel(),
                 new FakeBuildService(),
-                deploymentService);
+                deploymentService,
+                new NullSettingsDialog());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.SetUpGitHubPagesCommand.ExecuteAsync(null);
@@ -605,7 +618,8 @@ file static class ShellViewModelTestsAccessor
             new FakeBrowserLauncher(),
             new PreviewViewModel(),
             new FakeBuildService(),
-            new FakeDeploymentService());
+            new FakeDeploymentService(),
+            new NullSettingsDialog());
         return (vm, storeDir);
     }
 }

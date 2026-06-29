@@ -19,6 +19,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IBrowserLauncher _browserLauncher;
     private readonly IBuildService _buildService;
     private readonly IDeploymentService _deploymentService;
+    private readonly ISettingsDialog _settingsDialog;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -31,6 +32,7 @@ public partial class ShellViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenSettingsCommand))]
     private bool _isProjectOpen;
 
     [ObservableProperty]
@@ -62,7 +64,8 @@ public partial class ShellViewModel : ViewModelBase
         IBrowserLauncher browserLauncher,
         PreviewViewModel preview,
         IBuildService buildService,
-        IDeploymentService deploymentService)
+        IDeploymentService deploymentService,
+        ISettingsDialog settingsDialog)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -75,6 +78,7 @@ public partial class ShellViewModel : ViewModelBase
         _browserLauncher = browserLauncher;
         _buildService = buildService;
         _deploymentService = deploymentService;
+        _settingsDialog = settingsDialog;
         Explorer = explorer;
         Editor = editor;
         Preview = preview;
@@ -244,6 +248,14 @@ public partial class ShellViewModel : ViewModelBase
     private bool CanBuild() => IsProjectOpen && !IsBusy;
 
     private bool CanDeploy() => IsProjectOpen && !IsBusy;
+
+    [RelayCommand(CanExecute = nameof(CanOpenSettings))]
+    private async Task OpenSettingsAsync()
+    {
+        await _settingsDialog.ShowAsync(CurrentProjectPath!).ConfigureAwait(true);
+    }
+
+    private bool CanOpenSettings() => IsProjectOpen;
 
     [RelayCommand]
     private void StopFullPreview()

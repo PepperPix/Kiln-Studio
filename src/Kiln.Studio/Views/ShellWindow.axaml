@@ -17,6 +17,7 @@
                 <Button Content="Open" Command="{Binding OpenProjectCommand}" />
                 <Button Content="New Page" Command="{Binding NewPageCommand}" />
                 <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
+                <Button Content="Settings" Command="{Binding OpenSettingsCommand}" />
                 <Button Content="Build" Command="{Binding BuildCommand}" Classes="primary-action" />
                 <CheckBox Content="Release" IsChecked="{Binding ReleaseBuild}" VerticalAlignment="Center" />
                 <Button Content="Preview" Command="{Binding StartFullPreviewCommand}" />

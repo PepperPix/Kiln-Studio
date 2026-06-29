@@ -29,7 +29,8 @@ public sealed class ShellWindowUiTests
                 new NullBrowserLauncher(),
                 new PreviewViewModel(),
                 new NullBuildService(),
-                new NullDeploymentService());
+                new NullDeploymentService(),
+                new NullSettingsDialog());
 
             var window = new ShellWindow { DataContext = vm };
             window.Show();

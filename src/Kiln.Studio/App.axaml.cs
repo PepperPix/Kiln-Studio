@@ -41,9 +41,11 @@ public partial class App : Application
         services.AddSingleton<IContentService, ContentService>();
         services.AddSingleton<IBuildService, BuildService>();
         services.AddSingleton<IDeploymentService, DeploymentService>();
+        services.AddSingleton<ISiteSettingsService, SiteSettingsService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
+        services.AddSingleton<ISettingsDialog, AvaloniaSettingsDialog>();
         services.AddSingleton<IRecentProjectsStore>(_ =>
         {
             var baseDir = Path.Combine(

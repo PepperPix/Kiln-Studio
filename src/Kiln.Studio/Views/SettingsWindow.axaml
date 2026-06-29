@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kiln.Studio.ViewModels"
+        x:Class="Kiln.Studio.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Site Settings"
+        Width="520"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="16" Spacing="8">
+
+        <CheckBox IsChecked="{Binding IsAdvanced}"
+                  Content="Advanced (raw site.yaml)" />
+
+        <!-- Basic form (shown when not in advanced mode) -->
+        <StackPanel IsVisible="{Binding !IsAdvanced}" Spacing="4">
+            <TextBlock Text="Title" />
+            <TextBox Text="{Binding Title}" />
+
+            <TextBlock Text="Description" Margin="0,4,0,0" />
+            <TextBox Text="{Binding Description}" />
+
+            <TextBlock Text="Base URL" Margin="0,4,0,0" />
+            <TextBox Text="{Binding BaseUrl}" />
+
+            <TextBlock Text="Language" Margin="0,4,0,0" />
+            <TextBox Text="{Binding Language}" />
+
+            <TextBlock Text="Theme" Margin="0,4,0,0" />
+            <ComboBox ItemsSource="{Binding AvailableThemes}"
+                      SelectedItem="{Binding SelectedTheme}"
+                      HorizontalAlignment="Stretch" />
+        </StackPanel>
+
+        <!-- Raw YAML editor (shown in advanced mode) -->
+        <TextBox IsVisible="{Binding IsAdvanced}"
+                 Text="{Binding RawYaml}"
+                 AcceptsReturn="True"
+                 FontFamily="Consolas,Menlo,Courier New"
+                 Height="320"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Visible" />
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="8"
+                    Margin="0,4,0,0">
+            <Button Content="Save" Command="{Binding SaveCommand}" Classes="primary-action" />
+            <Button Content="Close" Click="OnCloseButtonClick" />
+        </StackPanel>
+
+        <!-- Status message -->
+        <TextBlock Text="{Binding StatusMessage}"
+                   IsVisible="{Binding HasStatusMessage}"
+                   Foreground="Gray"
+                   TextTrimming="CharacterEllipsis"
+                   FontSize="11" />
+
+    </StackPanel>
+
+</Window>

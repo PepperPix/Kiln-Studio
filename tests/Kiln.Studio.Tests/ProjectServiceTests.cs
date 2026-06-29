@@ -159,7 +159,8 @@ public class ShellViewModelOpenTests
             new FakeBrowserLauncher(),
             new PreviewViewModel(),
             new FakeBuildService(),
-            new FakeDeploymentService());
+            new FakeDeploymentService(),
+            new NullSettingsDialog());
     }
 
     [Test]
