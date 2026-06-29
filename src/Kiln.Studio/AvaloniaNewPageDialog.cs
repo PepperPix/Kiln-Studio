@@ -21,7 +21,7 @@ internal sealed class AvaloniaNewPageDialog : INewPageDialog
             MinWidth = 200
         };
 
-        var titleBox = new TextBox { MinWidth = 200, PlaceholderText = "Page title" };
+        var titleBox = new TextBox { MinWidth = 200, PlaceholderText = "Content title" };
 
         var okButton = new Button { Content = "OK", HorizontalAlignment = HorizontalAlignment.Stretch };
         var cancelButton = new Button { Content = "Cancel", HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -50,7 +50,7 @@ internal sealed class AvaloniaNewPageDialog : INewPageDialog
 
         var dialog = new Window
         {
-            Title = "New Page",
+            Title = "New Content",
             Width = 360,
             SizeToContent = SizeToContent.Height,
             CanResize = false,

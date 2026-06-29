@@ -56,6 +56,7 @@ public partial class App : Application
         });
         services.AddSingleton<IPreviewServer, PreviewServer>();
         services.AddSingleton<IBrowserLauncher, SystemBrowserLauncher>();
+        services.AddSingleton<IFolderRevealer, SystemFolderRevealer>();
         services.AddSingleton<PreviewViewModel>();
         services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<EditorViewModel>();

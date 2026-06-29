@@ -73,9 +73,15 @@
                         Margin="4,4" />
 
                 <!-- Navigation group -->
-                <Button Content="New Page"
+                <Button Content="New Content"
                         Command="{Binding NewPageCommand}"
                         Classes="secondary" />
+                <Button Content="Open Folder"
+                    Command="{Binding OpenInFileManagerCommand}"
+                    Classes="secondary" />
+                <Button Content="Refresh"
+                    Command="{Binding RefreshCommand}"
+                    Classes="secondary" />
 
                 <!-- Separator -->
                 <Border Width="1"

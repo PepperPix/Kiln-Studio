@@ -17,6 +17,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly INewPageDialog _newPageDialog;
     private readonly IPreviewServer _previewServer;
     private readonly IBrowserLauncher _browserLauncher;
+    private readonly IFolderRevealer _folderRevealer;
     private readonly IBuildService _buildService;
     private readonly IDeploymentService _deploymentService;
     private readonly ISettingsDialog _settingsDialog;
@@ -28,6 +29,8 @@ public partial class ShellViewModel : ViewModelBase
     private string _statusMessage = "Ready";
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenInFileManagerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private string? _currentProjectPath;
 
     [ObservableProperty]
@@ -37,6 +40,8 @@ public partial class ShellViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenSettingsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CloseProjectCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenInFileManagerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private bool _isProjectOpen;
 
     [ObservableProperty]
@@ -46,6 +51,8 @@ public partial class ShellViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(BuildCommand))]
     [NotifyCanExecuteChangedFor(nameof(SetUpGitHubPagesCommand))]
     [NotifyCanExecuteChangedFor(nameof(SetUpAzureStaticWebAppsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenInFileManagerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private bool _isBusy;
 
     public ProjectExplorerViewModel Explorer { get; }
@@ -69,7 +76,8 @@ public partial class ShellViewModel : ViewModelBase
         PreviewViewModel preview,
         IBuildService buildService,
         IDeploymentService deploymentService,
-        ISettingsDialog settingsDialog)
+        ISettingsDialog settingsDialog,
+        IFolderRevealer? folderRevealer = null)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -80,6 +88,7 @@ public partial class ShellViewModel : ViewModelBase
         _newPageDialog = newPageDialog;
         _previewServer = previewServer;
         _browserLauncher = browserLauncher;
+        _folderRevealer = folderRevealer ?? new NullFolderRevealer();
         _buildService = buildService;
         _deploymentService = deploymentService;
         _settingsDialog = settingsDialog;
@@ -192,6 +201,36 @@ public partial class ShellViewModel : ViewModelBase
         }
 #pragma warning restore CA1031
     }
+
+    [RelayCommand(CanExecute = nameof(CanUseCurrentProjectPath))]
+    private void OpenInFileManager()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentProjectPath))
+            return;
+
+        try
+        {
+            _folderRevealer.Reveal(CurrentProjectPath);
+            StatusMessage = "Opened project folder.";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to open folder: {ex.Message}";
+        }
+#pragma warning restore CA1031
+    }
+
+    [RelayCommand(CanExecute = nameof(CanUseCurrentProjectPath))]
+    private async Task RefreshAsync()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentProjectPath))
+            return;
+
+        await OpenPathAsync(CurrentProjectPath).ConfigureAwait(true);
+    }
+
+    private bool CanUseCurrentProjectPath() => IsProjectOpen && !IsBusy && !string.IsNullOrWhiteSpace(CurrentProjectPath);
 
     internal async Task OpenPathAsync(string path)
     {
@@ -336,5 +375,12 @@ public partial class ShellViewModel : ViewModelBase
                 rp.Name,
                 rp.Path,
                 new AsyncRelayCommand(() => OpenPathAsync(rp.Path))));
+    }
+
+    private sealed class NullFolderRevealer : IFolderRevealer
+    {
+        public void Reveal(string path)
+        {
+        }
     }
 }

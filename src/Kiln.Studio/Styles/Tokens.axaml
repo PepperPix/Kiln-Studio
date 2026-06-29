@@ -72,11 +72,38 @@
         <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
-        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
     </Style>
 
     <Style Selector="UserControl">
         <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
+    </Style>
+
+    <!-- Keep Inter for textual controls only so symbol/icon glyph fonts remain intact. -->
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="CheckBox">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+    </Style>
+
+    <Style Selector="MenuItem">
         <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
     </Style>
 
