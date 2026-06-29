@@ -183,6 +183,7 @@
                 <!-- Explorer -->
                 <TreeView Grid.Column="0"
                           x:Name="ExplorerTree"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           ItemsSource="{Binding Explorer.Collections}">
                     <TreeView.DataTemplates>
                         <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
@@ -193,7 +194,8 @@
                         </TreeDataTemplate>
                         <DataTemplate DataType="vm:ContentEntryViewModel">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="{Binding Title}" />
+                                <TextBlock Text="{Binding Title}"
+                                           TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="draft"
                                            IsVisible="{Binding Draft}"
                                            Classes="draft-badge" />
