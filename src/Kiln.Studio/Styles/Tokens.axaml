@@ -72,12 +72,12 @@
         <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
-        <Setter Property="FontFamily" Value="Inter,Segoe UI,SF Pro Text,system-ui,sans-serif" />
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
     </Style>
 
     <Style Selector="UserControl">
         <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
-        <Setter Property="FontFamily" Value="Inter,Segoe UI,SF Pro Text,system-ui,sans-serif" />
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
     </Style>
 
     <!-- Structural region borders -->

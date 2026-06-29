@@ -67,6 +67,57 @@ public sealed class ShellWindowUiTests
         }
     }
 
+    /// <summary>
+    /// Snapshot baseline: Shell with an open project (editor/explorer visible).
+    /// Platform-gated — reference platform is macOS arm64 (ADR-030).
+    /// On first run (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
+    /// runs compare against it with ≤0.1 % tolerance.
+    /// </summary>
+    [Test]
+    public async Task Snapshot_ShellWithOpenProject_MatchesBaseline()
+    {
+        if (!IsMacOsArm64()) return;
+
+        var projectParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(projectParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(projectParent),
+                new FixedInputDialog("my-site"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new NullPreviewServer(),
+                new NullBrowserLauncher(),
+                new PreviewViewModel(),
+                new NullBuildService(),
+                new NullDeploymentService(),
+                new NullSettingsDialog());
+
+            var window = new ShellWindow { DataContext = vm };
+            window.Show();
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+
+            await SnapshotComparer.AssertMatchesBaseline(window, "ShellWindow_WithOpenProject");
+
+            window.Close();
+        }
+        finally
+        {
+            if (Directory.Exists(projectParent)) Directory.Delete(projectParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private static ShellWindow BuildShellWindow(string storeDir)

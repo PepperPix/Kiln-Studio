@@ -11,5 +11,6 @@ internal sealed class UiTestApp : Application
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<UiTestApp>()
             .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
-            .UseSkia();
+            .UseSkia()
+            .WithInterFont();
 }

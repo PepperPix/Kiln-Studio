@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
@@ -150,19 +151,24 @@ internal static class SnapshotComparer
         return ((double)diffCount / totalPixels, diffMask);
     }
 
-    private static unsafe void ExtractPixels(Bitmap bitmap, byte[] dest, int width, int height, int stride)
+    private static void ExtractPixels(Bitmap bitmap, byte[] dest, int width, int height, int stride)
     {
-        fixed (byte* ptr = dest)
+        var handle = GCHandle.Alloc(dest, GCHandleType.Pinned);
+        try
         {
             bitmap.CopyPixels(
                 new Avalonia.PixelRect(0, 0, width, height),
-                (nint)ptr,
+                handle.AddrOfPinnedObject(),
                 dest.Length,
                 stride);
         }
+        finally
+        {
+            handle.Free();
+        }
     }
 
-    private static unsafe void WriteDiffImage(bool[] diffMask, int width, int height, string path)
+    private static void WriteDiffImage(bool[] diffMask, int width, int height, string path)
     {
         using var wb = new WriteableBitmap(
             new Avalonia.PixelSize(width, height),
@@ -174,7 +180,9 @@ internal static class SnapshotComparer
         {
             const int bytesPerPixel = BytesPerPixel;
             int stride = locked.RowBytes;
-            var ptr = (byte*)locked.Address.ToPointer();
+            int bufSize = height * stride;
+            var buffer = new byte[bufSize];
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -183,20 +191,22 @@ internal static class SnapshotComparer
                     int byteIdx = y * stride + x * bytesPerPixel;
                     if (diffMask[pixIdx])
                     {
-                        ptr[byteIdx + ChannelB] = DiffHighlightB;
-                        ptr[byteIdx + ChannelG] = DiffHighlightG;
-                        ptr[byteIdx + ChannelR] = DiffHighlightR;
-                        ptr[byteIdx + ChannelA] = DiffAlpha;
+                        buffer[byteIdx + ChannelB] = DiffHighlightB;
+                        buffer[byteIdx + ChannelG] = DiffHighlightG;
+                        buffer[byteIdx + ChannelR] = DiffHighlightR;
+                        buffer[byteIdx + ChannelA] = DiffAlpha;
                     }
                     else
                     {
-                        ptr[byteIdx + ChannelB] = DiffBgB;
-                        ptr[byteIdx + ChannelG] = DiffBgG;
-                        ptr[byteIdx + ChannelR] = DiffBgR;
-                        ptr[byteIdx + ChannelA] = DiffAlpha;
+                        buffer[byteIdx + ChannelB] = DiffBgB;
+                        buffer[byteIdx + ChannelG] = DiffBgG;
+                        buffer[byteIdx + ChannelR] = DiffBgR;
+                        buffer[byteIdx + ChannelA] = DiffAlpha;
                     }
                 }
             }
+
+            Marshal.Copy(buffer, 0, locked.Address, bufSize);
         }
 
         using var stream = File.Open(path, FileMode.Create, FileAccess.Write);

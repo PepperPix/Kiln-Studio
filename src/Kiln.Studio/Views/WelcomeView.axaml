@@ -1,54 +1,105 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Kiln.Studio.ViewModels"
+             xmlns:local="using:Kiln.Studio"
              x:Class="Kiln.Studio.Views.WelcomeView"
              x:DataType="vm:ShellViewModel">
 
-    <StackPanel HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Spacing="16"
-                MaxWidth="400">
+    <UserControl.Styles>
+        <Style Selector="Button.recent-item">
+            <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Button.recent-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        </Style>
+    </UserControl.Styles>
 
-        <!-- Heading -->
-        <TextBlock Text="Kiln Studio"
-                   FontSize="24"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Center" />
-
-        <TextBlock Text="A static site builder — dark, warm, focused."
-                   Classes="muted"
-                   HorizontalAlignment="Center" />
-
-        <!-- Primary actions -->
-        <StackPanel Orientation="Horizontal"
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Spacing="8">
-            <Button Content="New Site"
-                    Command="{Binding NewSiteCommand}"
-                    Classes="primary" />
-            <Button Content="Open Site"
-                    Command="{Binding OpenProjectCommand}"
-                    Classes="secondary" />
+                    MaxWidth="520"
+                    Margin="24"
+                    Spacing="24">
+
+            <!-- Hero: branding + ember accent glyph -->
+            <Border Background="{StaticResource KilnSurfaceBrush}"
+                    CornerRadius="{StaticResource CornerRadiusCard}"
+                    Padding="32,28">
+                <Grid ColumnDefinitions="Auto,*">
+                    <!-- Ember flame glyph (vector, no emoji) -->
+                    <Path Grid.Column="0"
+                          Width="32" Height="40"
+                          Stretch="Uniform"
+                          Fill="{StaticResource KilnPrimaryBrush}"
+                          Data="M 12,0 C 16,4 24,12 24,20 C 24,26 18,32 12,32 C 6,32 0,26 0,20 C 0,12 4,4 8,2 C 8,8 12,12 14,10 C 14,6 10,2 12,0 Z"
+                          Margin="0,0,20,0"
+                          VerticalAlignment="Center" />
+                    <!-- Brand copy -->
+                    <StackPanel Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="4">
+                        <TextBlock Text="Kiln Studio"
+                                   FontSize="{StaticResource FontSizeH}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="A static site builder — dark, warm, focused."
+                                   Classes="muted" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Primary actions -->
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8">
+                <Button Content="New Site"
+                        Command="{Binding NewSiteCommand}"
+                        Classes="primary"
+                        MinWidth="120" />
+                <Button Content="Open Site"
+                        Command="{Binding OpenProjectCommand}"
+                        Classes="secondary" />
+            </StackPanel>
+
+            <!-- Recent projects section -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Recent Projects"
+                           Classes="section-header" />
+
+                <!-- Empty state -->
+                <TextBlock Text="No recent projects — create your first site"
+                           Classes="muted"
+                           HorizontalAlignment="Center"
+                           Margin="0,8"
+                           IsVisible="{Binding RecentProjects.Count,
+                               Converter={x:Static local:AppConverters.IsCountZero}}" />
+
+                <!-- Project cards -->
+                <ItemsControl ItemsSource="{Binding RecentProjects}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:RecentProjectViewModel">
+                            <Button Command="{Binding OpenCommand}"
+                                    Classes="recent-item"
+                                    Margin="0,2">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Path}"
+                                               Classes="muted"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
         </StackPanel>
-
-        <!-- Recent projects -->
-        <TextBlock Text="Recent Projects"
-                   Classes="section-header"
-                   Margin="0,16,0,0" />
-
-        <ItemsControl ItemsSource="{Binding RecentProjects}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
-                    <Button Content="{Binding Name}"
-                            Command="{Binding OpenCommand}"
-                            Classes="quiet"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Margin="0,1" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-    </StackPanel>
+    </ScrollViewer>
 
 </UserControl>
