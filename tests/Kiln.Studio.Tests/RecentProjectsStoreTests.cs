@@ -156,4 +156,32 @@ public class RecentProjectsStoreTests
             Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task Add_NormalizesPath_DeduplicatesTrailingSlash()
+    {
+        var dir = MakeTempDir();
+        try
+        {
+            var store = new RecentProjectsStore(dir);
+            var projectDir = Path.Combine(dir, "TestProject");
+            Directory.CreateDirectory(projectDir);
+            
+            var pathWithoutSlash = projectDir;
+            var pathWithSlash = projectDir + Path.DirectorySeparatorChar;
+
+            store.Add(pathWithoutSlash, "Test");
+            store.Add(pathWithSlash, "Test");
+
+            var all = store.GetAll();
+
+            await Assert.That(all.Count).IsEqualTo(1);
+            // Verify path is normalized (no trailing slash)
+            await Assert.That(all[0].Path).IsEqualTo(pathWithoutSlash);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }

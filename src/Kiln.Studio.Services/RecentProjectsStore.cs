@@ -17,12 +17,20 @@ public sealed class RecentProjectsStore : IRecentProjectsStore
 
     public void Add(string path, string name)
     {
+        var normalizedPath = NormalizePath(path);
         var list = Load().ToList();
-        list.RemoveAll(p => string.Equals(p.Path, path, StringComparison.OrdinalIgnoreCase));
-        list.Insert(0, new RecentProject(path, name, DateTimeOffset.UtcNow));
+        list.RemoveAll(p => string.Equals(NormalizePath(p.Path), normalizedPath, StringComparison.OrdinalIgnoreCase));
+        list.Insert(0, new RecentProject(normalizedPath, name, DateTimeOffset.UtcNow));
         if (list.Count > MaxProjects)
             list = list.Take(MaxProjects).ToList();
         Save(list);
+    }
+
+    private static string NormalizePath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return path;
+        var fullPath = Path.GetFullPath(path);
+        return fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
     private List<RecentProject> Load()
@@ -32,7 +40,20 @@ public sealed class RecentProjectsStore : IRecentProjectsStore
             if (!File.Exists(_filePath))
                 return [];
             var json = File.ReadAllText(_filePath);
-            return JsonSerializer.Deserialize<List<RecentProject>>(json) ?? [];
+            var items = JsonSerializer.Deserialize<List<RecentProject>>(json) ?? [];
+            
+            // Deduplicate existing entries on load
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var deduplicated = new List<RecentProject>();
+            foreach (var item in items)
+            {
+                var norm = NormalizePath(item.Path);
+                if (seen.Add(norm))
+                {
+                    deduplicated.Add(item with { Path = norm });
+                }
+            }
+            return deduplicated;
         }
 #pragma warning disable CA1031
         catch

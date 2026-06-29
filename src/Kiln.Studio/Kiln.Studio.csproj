@@ -4,7 +4,12 @@
     <OutputType>WinExe</OutputType>
     <StaticAnalysisCodeType>ProdExe</StaticAnalysisCodeType>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets/kiln-studio.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.*" />

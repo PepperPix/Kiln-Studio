@@ -7,7 +7,8 @@
         x:DataType="vm:ShellViewModel"
         Title="{Binding Title}"
         Width="1200"
-        Height="800">
+        Height="800"
+        Icon="/Assets/kiln-studio.ico">
 
     <DockPanel>
 

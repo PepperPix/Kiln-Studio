@@ -7,7 +7,8 @@
         Width="520"
         SizeToContent="Height"
         CanResize="False"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/kiln-studio.ico">
 
     <StackPanel Margin="{StaticResource DialogMargin}" Spacing="8">
 
