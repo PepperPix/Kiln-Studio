@@ -11,4 +11,4 @@ TestResults/
 node_modules/
 packages.lock.json
 
-Snapshots/__diff__/
+**/__diff__/

@@ -36,7 +36,7 @@ public class ShellViewModelTests
             new PreviewViewModel(),
             buildService ?? new FakeBuildService(),
             deploymentService ?? new FakeDeploymentService(),
-            new NullSettingsDialog());
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
         return (vm, storeDir);
     }
 
@@ -114,7 +114,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -150,7 +150,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -186,7 +186,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -225,7 +225,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             // Create the site first
             await vm.NewSiteCommand.ExecuteAsync(null);
@@ -248,7 +248,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await Assert.That(vm2.RecentProjects.Count).IsEqualTo(1);
 
@@ -289,7 +289,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();
@@ -338,7 +338,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm1.NewSiteCommand.ExecuteAsync(null);
             var path1 = vm1.CurrentProjectPath!;
@@ -358,7 +358,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
 
@@ -399,7 +399,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -438,7 +438,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await Assert.That(vm.StartFullPreviewCommand.CanExecute(null)).IsFalse();
         }
@@ -474,7 +474,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm2.IsProjectOpen).IsTrue();
@@ -520,7 +520,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await vm2.StartFullPreviewCommand.ExecuteAsync(null);
@@ -563,7 +563,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.StartFullPreviewCommand.ExecuteAsync(null);
@@ -635,7 +635,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 buildService,
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -687,12 +687,161 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 buildService,
                 new FakeDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.BuildCommand.ExecuteAsync(null);
 
             await Assert.That(vm.StatusMessage).IsEqualTo("Build failed: first error");
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CanPublish_IsTrueOnlyWhenVariantIsFilesystem()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var configStore = new FakeDeploymentConfigStore();
+
+        try
+        {
+            configStore.Config = new DeploymentConfig(DeploymentVariant.None, null, FilesystemMode.PlainCopy);
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempDir),
+                new FixedInputDialog("publish-test"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService(),
+                new NullSettingsDialog(),
+                configStore,
+                new NullPublishService());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await Assert.That(vm.CanPublish).IsFalse();
+
+            configStore.Config = new DeploymentConfig(DeploymentVariant.Filesystem, "/tmp/out", FilesystemMode.PlainCopy);
+
+            var path = vm.CurrentProjectPath!;
+            var reloadedDeployConfig = configStore.Load(path);
+            await Assert.That(reloadedDeployConfig.Variant).IsEqualTo(DeploymentVariant.Filesystem);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PublishCommand_CallsPublishServiceAndSetsStatus()
+    {
+        var publishService = new FakePublishService
+        {
+            OnPublishAsync = (_, _, _) =>
+                Task.FromResult(new PublishSummary(true, "/tmp/output", 42, null))
+        };
+
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var configStore = new FakeDeploymentConfigStore
+        {
+            Config = new DeploymentConfig(DeploymentVariant.Filesystem, "/tmp/output", FilesystemMode.PlainCopy)
+        };
+
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("publish-test"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService(),
+                new NullSettingsDialog(),
+                configStore,
+                publishService);
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+
+            await vm.PublishCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.StatusMessage).Contains("Published");
+            await Assert.That(vm.StatusMessage).Contains("/tmp/output");
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task GenerateDeploymentConfig_CallsDeploymentServiceForCiVariant()
+    {
+        var deploymentService = new FakeDeploymentService
+        {
+            OnSetUp = (_, target, _) => new DeploymentSetupSummary(target, [".github/workflows/deploy.yml"])
+        };
+
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var configStore = new FakeDeploymentConfigStore
+        {
+            Config = new DeploymentConfig(DeploymentVariant.GitHubPages, null, FilesystemMode.PlainCopy)
+        };
+
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("ci-test"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                deploymentService,
+                new NullSettingsDialog(),
+                configStore,
+                new NullPublishService());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+
+            await vm.GenerateDeploymentConfigCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.StatusMessage).Contains("Deployment configured");
+            await Assert.That(vm.StatusMessage).Contains("GitHub Pages");
         }
         finally
         {
@@ -730,7 +879,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 deploymentService,
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.SetUpGitHubPagesCommand.ExecuteAsync(null);
@@ -767,7 +916,7 @@ file static class ShellViewModelTestsAccessor
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new NullSettingsDialog());
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
         return (vm, storeDir);
     }
 }

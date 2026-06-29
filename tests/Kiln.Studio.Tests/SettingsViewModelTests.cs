@@ -14,7 +14,7 @@ public class SettingsViewModelTests
         {
             CurrentSettings = new("My Site", "Desc", "http://example.com/", "de", "dark")
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
 
         vm.Load(ProjectPath);
 
@@ -34,7 +34,7 @@ public class SettingsViewModelTests
             CurrentSettings = new("Site", "", "http://localhost/", "en", "default"),
             Themes = ["dark", "default", "light"]
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
 
         vm.Load(ProjectPath);
 
@@ -47,7 +47,7 @@ public class SettingsViewModelTests
     public async Task SaveAsync_Basic_CallsSaveWithUpdatedTitle()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.Title = "New Title";
@@ -62,7 +62,7 @@ public class SettingsViewModelTests
     public async Task SaveAsync_Advanced_WritesRawYaml()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.IsAdvanced = true;
@@ -80,7 +80,7 @@ public class SettingsViewModelTests
         {
             RawYamlContent = "title: From File\n"
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.IsAdvanced = true;
@@ -95,7 +95,7 @@ public class SettingsViewModelTests
         {
             CurrentSettings = new("Reloaded", "Desc", "http://localhost/", "en", "default")
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.Title = "Dirty Title (not saved)";
@@ -109,7 +109,7 @@ public class SettingsViewModelTests
     public async Task Load_SetsStatusMessageToNull()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         await vm.SaveCommand.ExecuteAsync(null);

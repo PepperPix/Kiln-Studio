@@ -98,7 +98,7 @@ public sealed class ShellWindowUiTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
             var window = new ShellWindow { DataContext = vm };
             window.Show();
@@ -136,7 +136,7 @@ public sealed class ShellWindowUiTests
             new PreviewViewModel(),
             new NullBuildService(),
             new NullDeploymentService(),
-            new NullSettingsDialog());
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
 
         return new ShellWindow { DataContext = vm };
     }

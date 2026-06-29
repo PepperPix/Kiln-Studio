@@ -9,10 +9,12 @@ using Kiln.Studio.Views;
 internal sealed class AvaloniaSettingsDialog : ISettingsDialog
 {
     private readonly ISiteSettingsService _siteSettings;
+    private readonly IDeploymentConfigStore _deploymentConfigStore;
 
-    public AvaloniaSettingsDialog(ISiteSettingsService siteSettings)
+    public AvaloniaSettingsDialog(ISiteSettingsService siteSettings, IDeploymentConfigStore deploymentConfigStore)
     {
         _siteSettings = siteSettings;
+        _deploymentConfigStore = deploymentConfigStore;
     }
 
     public async Task ShowAsync(string projectPath)
@@ -21,7 +23,7 @@ internal sealed class AvaloniaSettingsDialog : ISettingsDialog
             || desktop.MainWindow is null)
             return;
 
-        var viewModel = new SettingsViewModel(_siteSettings);
+        var viewModel = new SettingsViewModel(_siteSettings, _deploymentConfigStore);
         viewModel.Load(projectPath);
 
         var window = new SettingsWindow { DataContext = viewModel };
