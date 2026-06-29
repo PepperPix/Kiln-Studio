@@ -264,6 +264,154 @@ public class ShellViewModelNewSiteTests
             if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task CloseProject_AfterOpen_ResetsToWelcomeState()
+    {
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var server = new FakePreviewServer();
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog(NewSiteName),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                server,
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService(),
+                new NullSettingsDialog());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+
+            vm.CloseProjectCommand.Execute(null);
+
+            await Assert.That(vm.IsProjectOpen).IsFalse();
+            await Assert.That(vm.CurrentProjectPath).IsNull();
+            await Assert.That(vm.CurrentProjectName).IsNull();
+            await Assert.That(vm.Explorer.Collections.Count).IsEqualTo(0);
+            await Assert.That(vm.StatusMessage).IsEqualTo("Ready");
+            await Assert.That(server.StopCalled).IsTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task SwitchRecent_SwitchesToDifferentProject()
+    {
+        var tempParent1 = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var tempParent2 = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent1);
+        Directory.CreateDirectory(tempParent2);
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var store = new RecentProjectsStore(storeDir);
+
+            // Create first site
+            var vm1 = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent1),
+                new FixedInputDialog("site-one"),
+                store,
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new NullPreviewServer(),
+                new NullBrowserLauncher(),
+                new PreviewViewModel(),
+                new NullBuildService(),
+                new NullDeploymentService(),
+                new NullSettingsDialog());
+
+            await vm1.NewSiteCommand.ExecuteAsync(null);
+            var path1 = vm1.CurrentProjectPath!;
+
+            // Create second site
+            var vm2 = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent2),
+                new FixedInputDialog("site-two"),
+                store,
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new NullPreviewServer(),
+                new NullBrowserLauncher(),
+                new PreviewViewModel(),
+                new NullBuildService(),
+                new NullDeploymentService(),
+                new NullSettingsDialog());
+
+            await vm2.NewSiteCommand.ExecuteAsync(null);
+
+            // SwitchRecent back to first project
+            await vm2.SwitchRecentCommand.ExecuteAsync(path1);
+
+            await Assert.That(vm2.IsProjectOpen).IsTrue();
+            await Assert.That(vm2.CurrentProjectPath).IsEqualTo(path1);
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent1)) Directory.Delete(tempParent1, recursive: true);
+            if (Directory.Exists(tempParent2)) Directory.Delete(tempParent2, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CurrentProjectName_SetOnOpen()
+    {
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog(NewSiteName),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new NullPreviewServer(),
+                new NullBrowserLauncher(),
+                new PreviewViewModel(),
+                new NullBuildService(),
+                new NullDeploymentService(),
+                new NullSettingsDialog());
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.CurrentProjectName).IsNotNull();
+            await Assert.That(vm.CurrentProjectName).IsNotEmpty();
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
 }
 
 public class ShellViewModelPreviewTests

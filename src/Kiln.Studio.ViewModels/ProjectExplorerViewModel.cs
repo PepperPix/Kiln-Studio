@@ -18,4 +18,10 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
         foreach (var collection in project.Collections)
             Collections.Add(new ContentCollectionViewModel(collection));
     }
+
+    public void Clear()
+    {
+        Collections.Clear();
+        SelectedEntry = null;
+    }
 }

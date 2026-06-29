@@ -12,13 +12,66 @@
     <DockPanel>
 
         <!-- Toolbar -->
-        <Border DockPanel.Dock="Top" Classes="toolbar-host">
+        <Border DockPanel.Dock="Top" Classes="toolbar-host"
+                IsVisible="{Binding IsProjectOpen}">
             <StackPanel Orientation="Horizontal" Spacing="4">
 
+                <!-- Project Switcher group -->
+                <Button Classes="secondary"
+                        Padding="8,6">
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <StackPanel Spacing="0" MinWidth="220">
+                                <!-- Recent projects -->
+                                <ItemsControl ItemsSource="{Binding RecentProjects}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:RecentProjectViewModel">
+                                            <Button Content="{Binding Name}"
+                                                    Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).SwitchRecentCommand}"
+                                                    CommandParameter="{Binding Path}"
+                                                    Classes="quiet"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Left"
+                                                    Padding="8,6" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Separator Margin="0,4" />
+                                <Button Content="Open…"
+                                        Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).OpenProjectCommand}"
+                                        Classes="quiet"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="8,6" />
+                                <Button Content="New Site…"
+                                        Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).NewSiteCommand}"
+                                        Classes="quiet"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="8,6" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding CurrentProjectName}"
+                                   VerticalAlignment="Center"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="▾"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource KilnTextMutedBrush}" />
+                    </StackPanel>
+                </Button>
+
+                <Button Content="Close"
+                        Command="{Binding CloseProjectCommand}"
+                        Classes="quiet" />
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
                 <!-- Navigation group -->
-                <Button Content="Open"
-                        Command="{Binding OpenProjectCommand}"
-                        Classes="secondary" />
                 <Button Content="New Page"
                         Command="{Binding NewPageCommand}"
                         Classes="secondary" />

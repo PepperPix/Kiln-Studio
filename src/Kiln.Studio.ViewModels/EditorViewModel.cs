@@ -49,6 +49,23 @@ public partial class EditorViewModel : ViewModelBase
         }
     }
 
+    public void Clear()
+    {
+        _suppressDirty = true;
+        try
+        {
+            FilePath = null;
+            FrontMatter = "";
+            Body = "";
+            HasDocument = false;
+            IsDirty = false;
+        }
+        finally
+        {
+            _suppressDirty = false;
+        }
+    }
+
     partial void OnFrontMatterChanged(string value)
     {
         if (!_suppressDirty)

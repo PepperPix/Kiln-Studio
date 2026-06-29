@@ -31,8 +31,12 @@ public partial class ShellViewModel : ViewModelBase
     private string? _currentProjectPath;
 
     [ObservableProperty]
+    private string? _currentProjectName;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenSettingsCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CloseProjectCommand))]
     private bool _isProjectOpen;
 
     [ObservableProperty]
@@ -110,6 +114,29 @@ public partial class ShellViewModel : ViewModelBase
         await OpenPathAsync(path).ConfigureAwait(true);
     }
 
+    [RelayCommand(CanExecute = nameof(CanCloseProject))]
+    private void CloseProject()
+    {
+        StopFullPreview();
+        Explorer.Clear();
+        Editor.Clear();
+        CurrentProjectPath = null;
+        CurrentProjectName = null;
+        IsProjectOpen = false;
+        StatusMessage = "Ready";
+    }
+
+    private bool CanCloseProject() => IsProjectOpen;
+
+    [RelayCommand]
+    private async Task SwitchRecentAsync(string path)
+    {
+        if (Editor.IsDirty)
+            StatusMessage = "Unsaved changes were discarded.";
+
+        await OpenPathAsync(path).ConfigureAwait(true);
+    }
+
     [RelayCommand]
     private async Task NewSiteAsync()
     {
@@ -174,6 +201,7 @@ public partial class ShellViewModel : ViewModelBase
             var project = await Task.Run(() => _projectService.Open(path)).ConfigureAwait(true);
             Explorer.Load(project);
             CurrentProjectPath = project.ProjectPath;
+            CurrentProjectName = project.SiteTitle;
             StatusMessage = $"Opened {project.SiteTitle}";
             IsProjectOpen = true;
             _recentProjectsStore.Add(project.ProjectPath, project.SiteTitle);
