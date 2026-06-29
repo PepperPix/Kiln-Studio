@@ -13,7 +13,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
     private readonly IReadOnlyList<ContentEntry> _dtoEntries;
     private readonly Dictionary<string, ContentEntryViewModel> _entryMap = [];
 
-    public ContentCollectionViewModel(ContentCollectionDto dto)
+    public ContentCollectionViewModel(ContentCollectionDto dto, Func<ContentEntryViewModel, Task>? onToggleDraft = null)
     {
         ArgumentNullException.ThrowIfNull(dto);
         Name = dto.Name;
@@ -21,7 +21,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
         _dtoEntries = dto.Entries;
         foreach (var entry in dto.Entries)
         {
-            var vm = new ContentEntryViewModel(entry);
+            var vm = new ContentEntryViewModel(entry, onToggleDraft);
             _entryMap[entry.SourcePath] = vm;
             FilteredEntries.Add(vm);
         }

@@ -8,6 +8,8 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
 {
     public ObservableCollection<ContentCollectionViewModel> Collections { get; } = [];
 
+    private Func<ContentEntryViewModel, Task>? _onToggleDraft;
+
     [ObservableProperty]
     private ContentEntryViewModel? _selectedEntry;
 
@@ -23,12 +25,14 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
     public IReadOnlyList<DraftFilter> DraftFilters { get; } = Enum.GetValues<DraftFilter>();
     public IReadOnlyList<ContentSortMode> SortModes { get; } = Enum.GetValues<ContentSortMode>();
 
+    public void SetDraftToggleHandler(Func<ContentEntryViewModel, Task> handler) => _onToggleDraft = handler;
+
     public void Load(OpenedProject project)
     {
         ArgumentNullException.ThrowIfNull(project);
         Collections.Clear();
         foreach (var collection in project.Collections)
-            Collections.Add(new ContentCollectionViewModel(collection));
+            Collections.Add(new ContentCollectionViewModel(collection, _onToggleDraft));
         ApplyToAll();
     }
 

@@ -23,6 +23,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly ISettingsDialog _settingsDialog;
     private readonly IDeploymentConfigStore _deploymentConfigStore;
     private readonly IPublishService _publishService;
+    private readonly IContentFrontmatterWriter _contentFrontmatterWriter;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -93,6 +94,7 @@ public partial class ShellViewModel : ViewModelBase
         ISettingsDialog settingsDialog,
         IDeploymentConfigStore deploymentConfigStore,
         IPublishService publishService,
+        IContentFrontmatterWriter contentFrontmatterWriter,
         IFolderRevealer? folderRevealer = null)
 #pragma warning restore S107
     {
@@ -110,7 +112,9 @@ public partial class ShellViewModel : ViewModelBase
         _settingsDialog = settingsDialog;
         _deploymentConfigStore = deploymentConfigStore;
         _publishService = publishService;
+        _contentFrontmatterWriter = contentFrontmatterWriter;
         Explorer = explorer;
+        Explorer.SetDraftToggleHandler(ToggleDraftAsync);
         Editor = editor;
         Preview = preview;
 
@@ -386,6 +390,24 @@ public partial class ShellViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private async Task ToggleDraftAsync(ContentEntryViewModel entry)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentProjectPath))
+            return;
+
+        try
+        {
+            var newDraft = await Task.Run(() => _contentFrontmatterWriter.ToggleDraft(entry.SourcePath))
+                .ConfigureAwait(true);
+            await OpenPathAsync(CurrentProjectPath).ConfigureAwait(true);
+            StatusMessage = newDraft ? "Marked as draft." : "Unmarked draft.";
+        }
+        catch (ContentWriteException ex)
+        {
+            StatusMessage = ex.Message;
         }
     }
 

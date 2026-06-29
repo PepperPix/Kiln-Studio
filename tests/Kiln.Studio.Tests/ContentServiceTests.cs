@@ -330,7 +330,7 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -382,7 +382,7 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -429,7 +429,7 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService());
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);

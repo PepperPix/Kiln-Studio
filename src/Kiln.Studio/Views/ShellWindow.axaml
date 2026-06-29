@@ -243,13 +243,21 @@
                                 </StackPanel>
                             </TreeDataTemplate>
                             <DataTemplate DataType="vm:ContentEntryViewModel">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="{Binding Title}"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="draft"
-                                               IsVisible="{Binding Draft}"
-                                               Classes="draft-badge" />
-                                </StackPanel>
+                                <Grid>
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{Binding ToggleDraftHeader}"
+                                                      Command="{Binding ToggleDraftCommand}" />
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Title}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="draft"
+                                                   IsVisible="{Binding Draft}"
+                                                   Classes="draft-badge" />
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </TreeView.DataTemplates>
                     </TreeView>

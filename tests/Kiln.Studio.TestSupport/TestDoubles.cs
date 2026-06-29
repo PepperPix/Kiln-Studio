@@ -198,6 +198,26 @@ public sealed class FakePublishService : IPublishService
     }
 }
 
+public sealed class FakeContentFrontmatterWriter : IContentFrontmatterWriter
+{
+    public string? LastSourcePath { get; private set; }
+    public bool? LastSetDraft { get; private set; }
+    public bool ToggleResult { get; set; }
+
+    public bool SetDraft(string sourcePath, bool draft)
+    {
+        LastSourcePath = sourcePath;
+        LastSetDraft = draft;
+        return draft;
+    }
+
+    public bool ToggleDraft(string sourcePath)
+    {
+        LastSourcePath = sourcePath;
+        return ToggleResult;
+    }
+}
+
 public sealed class FakeSiteSettingsService : ISiteSettingsService
 {
     public SiteSettings CurrentSettings { get; set; } =
