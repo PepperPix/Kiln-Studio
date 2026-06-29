@@ -159,73 +159,75 @@
             </DockPanel>
         </Border>
 
-        <!-- Welcome view (no project open) -->
-        <views:WelcomeView IsVisible="{Binding !IsProjectOpen}"
-                           DataContext="{Binding}" />
+        <Grid>
+            <!-- Welcome view (no project open) -->
+            <views:WelcomeView IsVisible="{Binding !IsProjectOpen}"
+                               DataContext="{Binding}" />
 
-        <!-- Three-pane content area (project open) -->
-        <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" MinWidth="120" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="*" MinWidth="200" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="280" MinWidth="120" />
-            </Grid.ColumnDefinitions>
+            <!-- Three-pane content area (project open) -->
+            <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220" MinWidth="120" />
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="*" MinWidth="200" />
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="280" MinWidth="120" />
+                </Grid.ColumnDefinitions>
 
-            <!-- Explorer -->
-            <TreeView Grid.Column="0"
-                      x:Name="ExplorerTree"
-                      ItemsSource="{Binding Explorer.Collections}">
-                <TreeView.DataTemplates>
-                    <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
-                                      ItemsSource="{Binding Entries}">
-                        <TextBlock Text="{Binding Name}"
-                                   FontWeight="SemiBold"
-                                   FontSize="{StaticResource FontSizeXS}" />
-                    </TreeDataTemplate>
-                    <DataTemplate DataType="vm:ContentEntryViewModel">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="{Binding Title}" />
-                            <TextBlock Text="draft"
-                                       IsVisible="{Binding Draft}"
-                                       Classes="draft-badge" />
-                        </StackPanel>
-                    </DataTemplate>
-                </TreeView.DataTemplates>
-            </TreeView>
+                <!-- Explorer -->
+                <TreeView Grid.Column="0"
+                          x:Name="ExplorerTree"
+                          ItemsSource="{Binding Explorer.Collections}">
+                    <TreeView.DataTemplates>
+                        <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
+                                          ItemsSource="{Binding Entries}">
+                            <TextBlock Text="{Binding Name}"
+                                       FontWeight="SemiBold"
+                                       FontSize="{StaticResource FontSizeXS}" />
+                        </TreeDataTemplate>
+                        <DataTemplate DataType="vm:ContentEntryViewModel">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding Title}" />
+                                <TextBlock Text="draft"
+                                           IsVisible="{Binding Draft}"
+                                           Classes="draft-badge" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </TreeView.DataTemplates>
+                </TreeView>
 
-            <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+                <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
 
-            <!-- Editor (middle) -->
-            <views:EditorView Grid.Column="2" DataContext="{Binding Editor}" />
+                <!-- Editor (middle) -->
+                <views:EditorView Grid.Column="2" DataContext="{Binding Editor}" />
 
-            <GridSplitter Grid.Column="3" ResizeDirection="Columns" />
+                <GridSplitter Grid.Column="3" ResizeDirection="Columns" />
 
-            <!-- Preview pane (right) -->
-            <DockPanel Grid.Column="4">
-                <!-- Serve status strip -->
-                <Border DockPanel.Dock="Bottom"
-                        IsVisible="{Binding Preview.IsServing}"
-                        Classes="preview-status-host"
-                        Padding="4,2">
-                    <TextBlock Text="{Binding Preview.ServeStatus}"
+                <!-- Preview pane (right) -->
+                <DockPanel Grid.Column="4">
+                    <!-- Serve status strip -->
+                    <Border DockPanel.Dock="Bottom"
+                            IsVisible="{Binding Preview.IsServing}"
+                            Classes="preview-status-host"
+                            Padding="4,2">
+                        <TextBlock Text="{Binding Preview.ServeStatus}"
+                                   Classes="muted"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Border>
+
+                    <!-- Markdown body preview -->
+                    <md:MarkdownScrollViewer
+                        IsVisible="{Binding Editor.HasDocument}"
+                        Markdown="{Binding Editor.Body}" />
+
+                    <!-- Placeholder when no document -->
+                    <TextBlock Text="Select a file to preview"
+                               IsVisible="{Binding !Editor.HasDocument}"
                                Classes="muted"
-                               TextTrimming="CharacterEllipsis" />
-                </Border>
-
-                <!-- Markdown body preview -->
-                <md:MarkdownScrollViewer
-                    IsVisible="{Binding Editor.HasDocument}"
-                    Markdown="{Binding Editor.Body}" />
-
-                <!-- Placeholder when no document -->
-                <TextBlock Text="Select a file to preview"
-                           IsVisible="{Binding !Editor.HasDocument}"
-                           Classes="muted"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
-            </DockPanel>
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </Grid>
         </Grid>
 
     </DockPanel>
