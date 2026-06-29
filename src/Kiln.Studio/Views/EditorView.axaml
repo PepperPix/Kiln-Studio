@@ -11,7 +11,7 @@
                    IsVisible="{Binding !HasDocument}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
-                   Foreground="Gray" />
+                   Classes="muted" />
 
         <!-- Editor area when document is loaded -->
         <Grid IsVisible="{Binding HasDocument}"
@@ -23,20 +23,20 @@
                      Text="{Binding FrontMatter}"
                      AcceptsReturn="True"
                      Height="120"
-                     FontFamily="Courier New,Consolas,monospace"
-                     FontSize="13"
+                     Classes="monospace"
                      BorderThickness="0,0,0,1"
-                     Padding="4"
+                     CornerRadius="0"
+                     Padding="8,6"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      TextWrapping="NoWrap" />
 
-            <GridSplitter Grid.Row="1" ResizeDirection="Rows" Height="4" />
+            <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
             <aedit:TextEditor Grid.Row="2"
                               x:Name="BodyEditor"
-                              FontFamily="Courier New,Consolas,monospace"
-                              FontSize="13"
+                              FontFamily="Menlo,Consolas,Courier New,monospace"
+                              FontSize="{StaticResource FontSizeXS}"
                               ShowLineNumbers="True"
                               WordWrap="True" />
 

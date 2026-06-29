@@ -13,23 +13,82 @@
 
         <!-- Toolbar -->
         <Border DockPanel.Dock="Top" Classes="toolbar-host">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Content="Open" Command="{Binding OpenProjectCommand}" />
-                <Button Content="New Page" Command="{Binding NewPageCommand}" />
-                <Button Content="Save" Command="{Binding Editor.SaveCommand}" />
-                <Button Content="Settings" Command="{Binding OpenSettingsCommand}" />
-                <Button Content="Build" Command="{Binding BuildCommand}" Classes="primary-action" />
-                <CheckBox Content="Release" IsChecked="{Binding ReleaseBuild}" VerticalAlignment="Center" />
-                <Button Content="Preview" Command="{Binding StartFullPreviewCommand}" />
-                <Button Content="Stop" Command="{Binding StopFullPreviewCommand}" IsEnabled="{Binding Preview.IsServing}" />
-                <Button Content="Deploy">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+
+                <!-- Navigation group -->
+                <Button Content="Open"
+                        Command="{Binding OpenProjectCommand}"
+                        Classes="secondary" />
+                <Button Content="New Page"
+                        Command="{Binding NewPageCommand}"
+                        Classes="secondary" />
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
+                <!-- File group -->
+                <Button Content="Save"
+                        Command="{Binding Editor.SaveCommand}"
+                        Classes="secondary" />
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
+                <!-- Build group — primary action -->
+                <Button Content="Build"
+                        Command="{Binding BuildCommand}"
+                        Classes="primary" />
+                <CheckBox Content="Release"
+                          IsChecked="{Binding ReleaseBuild}"
+                          VerticalAlignment="Center"
+                          Margin="4,0" />
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
+                <!-- Preview group -->
+                <Button Content="Preview"
+                        Command="{Binding StartFullPreviewCommand}"
+                        Classes="secondary" />
+                <Button Content="Stop"
+                        Command="{Binding StopFullPreviewCommand}"
+                        IsEnabled="{Binding Preview.IsServing}"
+                        Classes="secondary" />
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
+                <!-- Deploy group -->
+                <Button Content="Deploy"
+                        Classes="secondary">
                     <Button.Flyout>
                         <MenuFlyout>
-                            <MenuItem Header="Set up GitHub Pages" Command="{Binding SetUpGitHubPagesCommand}" />
-                            <MenuItem Header="Set up Azure Static Web Apps" Command="{Binding SetUpAzureStaticWebAppsCommand}" />
+                            <MenuItem Header="Set up GitHub Pages"
+                                      Command="{Binding SetUpGitHubPagesCommand}" />
+                            <MenuItem Header="Set up Azure Static Web Apps"
+                                      Command="{Binding SetUpAzureStaticWebAppsCommand}" />
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>
+
+                <!-- Separator -->
+                <Border Width="1"
+                        Background="{StaticResource KilnBorderBrush}"
+                        Margin="4,4" />
+
+                <!-- Settings -->
+                <Button Content="Settings"
+                        Command="{Binding OpenSettingsCommand}"
+                        Classes="quiet" />
+
             </StackPanel>
         </Border>
 
@@ -40,7 +99,9 @@
                              Classes="busy-indicator"
                              IsIndeterminate="True"
                              IsVisible="{Binding IsBusy}" />
-                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Classes="status-text"
+                           TextTrimming="CharacterEllipsis" />
             </DockPanel>
         </Border>
 
@@ -52,9 +113,9 @@
         <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" MinWidth="120" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="*" MinWidth="200" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="280" MinWidth="120" />
             </Grid.ColumnDefinitions>
 
@@ -65,24 +126,27 @@
                 <TreeView.DataTemplates>
                     <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
                                       ItemsSource="{Binding Entries}">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Name}"
+                                   FontWeight="SemiBold"
+                                   FontSize="{StaticResource FontSizeXS}" />
                     </TreeDataTemplate>
                     <DataTemplate DataType="vm:ContentEntryViewModel">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="{Binding Title}" />
-                            <TextBlock Text="(draft)" IsVisible="{Binding Draft}"
-                                       Foreground="Gray" FontStyle="Italic" />
+                            <TextBlock Text="draft"
+                                       IsVisible="{Binding Draft}"
+                                       Classes="draft-badge" />
                         </StackPanel>
                     </DataTemplate>
                 </TreeView.DataTemplates>
             </TreeView>
 
-            <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns" />
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
 
             <!-- Editor (middle) -->
             <views:EditorView Grid.Column="2" DataContext="{Binding Editor}" />
 
-            <GridSplitter Grid.Column="3" Width="4" ResizeDirection="Columns" />
+            <GridSplitter Grid.Column="3" ResizeDirection="Columns" />
 
             <!-- Preview pane (right) -->
             <DockPanel Grid.Column="4">
@@ -93,7 +157,6 @@
                         Padding="4,2">
                     <TextBlock Text="{Binding Preview.ServeStatus}"
                                Classes="muted"
-                               FontSize="11"
                                TextTrimming="CharacterEllipsis" />
                 </Border>
 
@@ -103,12 +166,11 @@
                     Markdown="{Binding Editor.Body}" />
 
                 <!-- Placeholder when no document -->
-                <TextBlock Text="Preview"
+                <TextBlock Text="Select a file to preview"
                            IsVisible="{Binding !Editor.HasDocument}"
                            Classes="muted"
                            HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           />
+                           VerticalAlignment="Center" />
             </DockPanel>
         </Grid>
 

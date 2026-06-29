@@ -9,26 +9,26 @@
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="16" Spacing="8">
+    <StackPanel Margin="{StaticResource DialogMargin}" Spacing="8">
 
         <CheckBox IsChecked="{Binding IsAdvanced}"
                   Content="Advanced (raw site.yaml)" />
 
         <!-- Basic form (shown when not in advanced mode) -->
-        <StackPanel IsVisible="{Binding !IsAdvanced}" Spacing="4">
-            <TextBlock Text="Title" />
+        <StackPanel IsVisible="{Binding !IsAdvanced}" Spacing="6">
+            <TextBlock Text="Title" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding Title}" />
 
-            <TextBlock Text="Description" Margin="0,4,0,0" />
+            <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding Description}" />
 
-            <TextBlock Text="Base URL" Margin="0,4,0,0" />
+            <TextBlock Text="Base URL" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding BaseUrl}" />
 
-            <TextBlock Text="Language" Margin="0,4,0,0" />
+            <TextBlock Text="Language" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding Language}" />
 
-            <TextBlock Text="Theme" Margin="0,4,0,0" />
+            <TextBlock Text="Theme" Classes="section-header" Margin="0,4,0,2" />
             <ComboBox ItemsSource="{Binding AvailableThemes}"
                       SelectedItem="{Binding SelectedTheme}"
                       HorizontalAlignment="Stretch" />
@@ -38,7 +38,7 @@
         <TextBox IsVisible="{Binding IsAdvanced}"
                  Text="{Binding RawYaml}"
                  AcceptsReturn="True"
-                 FontFamily="Consolas,Menlo,Courier New"
+                 Classes="monospace"
                  Height="320"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Visible" />
@@ -47,17 +47,16 @@
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Spacing="8"
-                    Margin="0,4,0,0">
-            <Button Content="Save" Command="{Binding SaveCommand}" Classes="primary-action" />
-            <Button Content="Close" Click="OnCloseButtonClick" />
+                    Margin="0,8,0,0">
+            <Button Content="Save" Command="{Binding SaveCommand}" Classes="primary" />
+            <Button Content="Close" Click="OnCloseButtonClick" Classes="secondary" />
         </StackPanel>
 
         <!-- Status message -->
         <TextBlock Text="{Binding StatusMessage}"
                    IsVisible="{Binding HasStatusMessage}"
-                   Foreground="Gray"
-                   TextTrimming="CharacterEllipsis"
-                   FontSize="11" />
+                   Classes="muted"
+                   TextTrimming="CharacterEllipsis" />
 
     </StackPanel>
 

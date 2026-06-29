@@ -1,68 +1,92 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- ==========================================
+         Ember Design Language — Token Palette
+         ADR-031: Dark-First, 4-px Grid, Inter
+         ========================================== -->
     <Styles.Resources>
+
+        <!-- Colour palette — raw Colors -->
         <Color x:Key="KilnBackgroundColor">#1E1B18</Color>
         <Color x:Key="KilnSurfaceColor">#272320</Color>
+        <Color x:Key="KilnSurfaceAltColor">#312B27</Color>
         <Color x:Key="KilnBorderColor">#3A332E</Color>
         <Color x:Key="KilnTextColor">#EDE8E2</Color>
         <Color x:Key="KilnTextMutedColor">#A89F97</Color>
         <Color x:Key="KilnPrimaryColor">#E2622B</Color>
         <Color x:Key="KilnPrimaryHoverColor">#F0743B</Color>
+        <Color x:Key="KilnPrimaryMutedColor">#7A3A1C</Color>
+        <Color x:Key="KilnSuccessColor">#5FA85A</Color>
+        <Color x:Key="KilnWarnColor">#D9A441</Color>
+        <Color x:Key="KilnErrorColor">#D9534F</Color>
 
+        <!-- Brushes -->
         <SolidColorBrush x:Key="KilnBackgroundBrush" Color="{StaticResource KilnBackgroundColor}" />
         <SolidColorBrush x:Key="KilnSurfaceBrush" Color="{StaticResource KilnSurfaceColor}" />
+        <SolidColorBrush x:Key="KilnSurfaceAltBrush" Color="{StaticResource KilnSurfaceAltColor}" />
         <SolidColorBrush x:Key="KilnBorderBrush" Color="{StaticResource KilnBorderColor}" />
         <SolidColorBrush x:Key="KilnTextBrush" Color="{StaticResource KilnTextColor}" />
         <SolidColorBrush x:Key="KilnTextMutedBrush" Color="{StaticResource KilnTextMutedColor}" />
         <SolidColorBrush x:Key="KilnPrimaryBrush" Color="{StaticResource KilnPrimaryColor}" />
         <SolidColorBrush x:Key="KilnPrimaryHoverBrush" Color="{StaticResource KilnPrimaryHoverColor}" />
+        <SolidColorBrush x:Key="KilnPrimaryMutedBrush" Color="{StaticResource KilnPrimaryMutedColor}" />
+        <SolidColorBrush x:Key="KilnSuccessBrush" Color="{StaticResource KilnSuccessColor}" />
+        <SolidColorBrush x:Key="KilnWarnBrush" Color="{StaticResource KilnWarnColor}" />
+        <SolidColorBrush x:Key="KilnErrorBrush" Color="{StaticResource KilnErrorColor}" />
+        <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
 
-        <x:Double x:Key="SpacingS">4</x:Double>
-        <x:Double x:Key="SpacingM">8</x:Double>
+        <!-- Spacing (4-px grid) -->
+        <x:Double x:Key="SpacingXS">4</x:Double>
+        <x:Double x:Key="SpacingS">8</x:Double>
+        <x:Double x:Key="SpacingM">12</x:Double>
         <x:Double x:Key="SpacingL">16</x:Double>
+        <x:Double x:Key="SpacingXL">24</x:Double>
+
+        <!-- Typography -->
+        <x:Double x:Key="FontSizeXS">12</x:Double>
         <x:Double x:Key="FontSizeS">12</x:Double>
         <x:Double x:Key="FontSizeM">14</x:Double>
-        <x:Double x:Key="FontSizeL">18</x:Double>
+        <x:Double x:Key="FontSizeBase">14</x:Double>
+        <x:Double x:Key="FontSizeL">16</x:Double>
+        <x:Double x:Key="FontSizeXL">18</x:Double>
+        <x:Double x:Key="FontSizeH">24</x:Double>
+
+        <!-- Corner radii -->
+        <CornerRadius x:Key="CornerRadiusControl">6</CornerRadius>
+        <CornerRadius x:Key="CornerRadiusCard">10</CornerRadius>
+
+        <!-- Composite tokens -->
         <Thickness x:Key="ToolbarPadding">12,10</Thickness>
         <Thickness x:Key="StatusPadding">10,6</Thickness>
         <Thickness x:Key="ButtonPadding">12,8</Thickness>
         <Thickness x:Key="PanelMargin">8</Thickness>
+        <Thickness x:Key="DialogMargin">16</Thickness>
+        <x:Double x:Key="ToolbarHeight">40</x:Double>
+        <x:Double x:Key="RowHeight">28</x:Double>
+
     </Styles.Resources>
 
+    <!-- Base window / text -->
     <Style Selector="Window">
         <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
-        <Setter Property="FontSize" Value="{StaticResource FontSizeM}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
+        <Setter Property="FontFamily" Value="Inter,Segoe UI,SF Pro Text,system-ui,sans-serif" />
     </Style>
 
-    <Style Selector="Button">
-        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
-        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
+    <Style Selector="UserControl">
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
+        <Setter Property="FontFamily" Value="Inter,Segoe UI,SF Pro Text,system-ui,sans-serif" />
     </Style>
 
-    <Style Selector="Button:pointerover">
-        <Setter Property="Background" Value="{StaticResource KilnPrimaryHoverBrush}" />
-    </Style>
-
-    <Style Selector="Button.primary-action">
-        <Setter Property="Background" Value="{StaticResource KilnPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryBrush}" />
-    </Style>
-
-    <Style Selector="TextBlock.muted">
-        <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />
-    </Style>
-
+    <!-- Structural region borders -->
     <Style Selector="Border.toolbar-host">
         <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Setter Property="Padding" Value="{StaticResource ToolbarPadding}" />
+        <Setter Property="MinHeight" Value="{StaticResource ToolbarHeight}" />
     </Style>
 
     <Style Selector="Border.status-host">
@@ -78,14 +102,31 @@
         <Setter Property="BorderThickness" Value="0,1,0,0" />
     </Style>
 
-    <Style Selector="TreeView, TextBox, CheckBox, ToggleSwitch">
-        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+    <!-- TextBlock helpers -->
+    <Style Selector="TextBlock.muted">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
     </Style>
 
+    <Style Selector="TextBlock.section-header">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,8,0,4" />
+    </Style>
+
+    <Style Selector="TextBlock.status-text">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+    </Style>
+
+    <!-- Progress bar -->
     <Style Selector="ProgressBar.busy-indicator">
         <Setter Property="Width" Value="72" />
         <Setter Property="Height" Value="6" />
         <Setter Property="Margin" Value="12,0,0,0" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource KilnPrimaryBrush}" />
     </Style>
+
 </Styles>

@@ -6,30 +6,45 @@
 
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Spacing="16">
+                Spacing="16"
+                MaxWidth="400">
 
+        <!-- Heading -->
         <TextBlock Text="Kiln Studio"
-                   FontSize="28"
-                   FontWeight="Bold"
+                   FontSize="24"
+                   FontWeight="SemiBold"
                    HorizontalAlignment="Center" />
 
+        <TextBlock Text="A static site builder — dark, warm, focused."
+                   Classes="muted"
+                   HorizontalAlignment="Center" />
+
+        <!-- Primary actions -->
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Spacing="8">
-            <Button Content="New Site" Command="{Binding NewSiteCommand}" />
-            <Button Content="Open Site" Command="{Binding OpenProjectCommand}" />
+            <Button Content="New Site"
+                    Command="{Binding NewSiteCommand}"
+                    Classes="primary" />
+            <Button Content="Open Site"
+                    Command="{Binding OpenProjectCommand}"
+                    Classes="secondary" />
         </StackPanel>
 
+        <!-- Recent projects -->
         <TextBlock Text="Recent Projects"
-                   FontWeight="SemiBold" />
+                   Classes="section-header"
+                   Margin="0,16,0,0" />
 
         <ItemsControl ItemsSource="{Binding RecentProjects}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
                     <Button Content="{Binding Name}"
                             Command="{Binding OpenCommand}"
-                            HorizontalAlignment="Left"
-                            Margin="0,2" />
+                            Classes="quiet"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Margin="0,1" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

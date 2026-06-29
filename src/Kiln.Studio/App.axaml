@@ -13,5 +13,6 @@
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Markdown.Avalonia/StyleCollections/MarkdownStyleFluentTheme.axaml" />
         <StyleInclude Source="avares://Kiln.Studio/Styles/Tokens.axaml" />
+        <StyleInclude Source="avares://Kiln.Studio/Styles/Controls.axaml" />
     </Application.Styles>
 </Application>

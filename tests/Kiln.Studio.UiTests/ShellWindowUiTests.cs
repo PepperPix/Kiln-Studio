@@ -1,4 +1,4 @@
-using Avalonia.Headless;
+using System.Runtime.InteropServices;
 using Avalonia.VisualTree;
 using Kiln.Studio.Services;
 using Kiln.Studio.TestSupport;
@@ -16,24 +16,10 @@ public sealed class ShellWindowUiTests
         Directory.CreateDirectory(storeDir);
         try
         {
-            var vm = new ShellViewModel(
-                new ProjectService(new EngineHost()),
-                new NullFolderPicker(),
-                new NullInputDialog(),
-                new RecentProjectsStore(storeDir),
-                new ContentService(),
-                new NullNewPageDialog(),
-                new ProjectExplorerViewModel(),
-                new EditorViewModel(new ContentService()),
-                new NullPreviewServer(),
-                new NullBrowserLauncher(),
-                new PreviewViewModel(),
-                new NullBuildService(),
-                new NullDeploymentService(),
-                new NullSettingsDialog());
-
-            var window = new ShellWindow { DataContext = vm };
+            var window = BuildShellWindow(storeDir);
             window.Show();
+
+            var vm = (ShellViewModel)window.DataContext!;
 
             // No project is open: IsProjectOpen must be false
             await Assert.That(vm.IsProjectOpen).IsFalse();
@@ -45,18 +31,33 @@ public sealed class ShellWindowUiTests
             await Assert.That(welcome).IsNotNull();
             await Assert.That(welcome!.IsVisible).IsTrue();
 
-            // Stretch: capture a baseline render snapshot
-            var snapshotDir = Path.GetFullPath(Path.Combine(
-                Path.GetDirectoryName(typeof(ShellWindowUiTests).Assembly.Location)!,
-                "..", "..", "..", "Snapshots"));
-            Directory.CreateDirectory(snapshotDir);
-            var frame = window.CaptureRenderedFrame();
-            if (frame is not null)
-            {
-                var snapshotPath = Path.Combine(snapshotDir, "ShellWindow_Welcome.png");
-                using var stream = File.Open(snapshotPath, FileMode.Create, FileAccess.Write);
-                frame.Save(stream);
-            }
+            window.Close();
+        }
+        finally
+        {
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Snapshot baseline: Welcome screen.
+    /// Platform-gated — reference platform is macOS arm64 (ADR-030).
+    /// On first run (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
+    /// runs compare against it with ≤0.1 % tolerance.
+    /// </summary>
+    [Test]
+    public async Task Snapshot_Welcome_MatchesBaseline()
+    {
+        if (!IsMacOsArm64()) return;
+
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var window = BuildShellWindow(storeDir);
+            window.Show();
+
+            await SnapshotComparer.AssertMatchesBaseline(window, "ShellWindow_Welcome");
 
             window.Close();
         }
@@ -65,4 +66,31 @@ public sealed class ShellWindowUiTests
             if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
         }
     }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private static ShellWindow BuildShellWindow(string storeDir)
+    {
+        var vm = new ShellViewModel(
+            new ProjectService(new EngineHost()),
+            new NullFolderPicker(),
+            new NullInputDialog(),
+            new RecentProjectsStore(storeDir),
+            new ContentService(),
+            new NullNewPageDialog(),
+            new ProjectExplorerViewModel(),
+            new EditorViewModel(new ContentService()),
+            new NullPreviewServer(),
+            new NullBrowserLauncher(),
+            new PreviewViewModel(),
+            new NullBuildService(),
+            new NullDeploymentService(),
+            new NullSettingsDialog());
+
+        return new ShellWindow { DataContext = vm };
+    }
+
+    private static bool IsMacOsArm64() =>
+        OperatingSystem.IsMacOS() &&
+        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

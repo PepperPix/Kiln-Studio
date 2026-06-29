@@ -1,0 +1,206 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ==========================================
+         Ember Design Language — Control Styles
+         ADR-031: Buttons, Lists, Inputs, Splitters
+         ========================================== -->
+
+    <!-- ── Button base ── -->
+    <Style Selector="Button">
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+    </Style>
+
+    <Style Selector="Button:pressed">
+        <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.45" />
+    </Style>
+
+    <!-- ── Primary button (Ember orange — main action) ── -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.primary:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.primary:pressed">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryMutedBrush}" />
+    </Style>
+
+    <!-- Legacy alias for existing Views using primary-action -->
+    <Style Selector="Button.primary-action">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.primary-action:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryHoverBrush}" />
+    </Style>
+
+    <!-- ── Secondary button (Surface + Border) ── -->
+    <Style Selector="Button.secondary">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+    </Style>
+
+    <Style Selector="Button.secondary:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+    </Style>
+
+    <!-- ── Quiet button (toolbar — no visible border) ── -->
+    <Style Selector="Button.quiet">
+        <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="Padding" Value="8,6" />
+    </Style>
+
+    <Style Selector="Button.quiet:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+    </Style>
+
+    <!-- ── CheckBox ── -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- ── TextBox ── -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="SelectionBrush" Value="{StaticResource KilnPrimaryMutedBrush}" />
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBox.monospace">
+        <Setter Property="FontFamily" Value="Menlo,Consolas,Courier New,monospace" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+    </Style>
+
+    <!-- ── ComboBox ── -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        <Setter Property="Padding" Value="8,6" />
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="Padding" Value="8,6" />
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+    </Style>
+
+    <!-- ── TreeView ── -->
+    <Style Selector="TreeView">
+        <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0,4" />
+    </Style>
+
+    <Style Selector="TreeViewItem">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="MinHeight" Value="{StaticResource RowHeight}" />
+        <Setter Property="Padding" Value="4,2" />
+    </Style>
+
+    <Style Selector="TreeViewItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+    </Style>
+
+    <Style Selector="TreeViewItem:selected">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+    </Style>
+
+    <Style Selector="TreeViewItem:selected:focus">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+    </Style>
+
+    <!-- ── ListBox ── -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="MinHeight" Value="{StaticResource RowHeight}" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+    </Style>
+
+    <!-- ── GridSplitter ── -->
+    <Style Selector="GridSplitter">
+        <Setter Property="Background" Value="{StaticResource KilnBorderBrush}" />
+    </Style>
+
+    <Style Selector="GridSplitter:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+    </Style>
+
+    <!-- ── ScrollBar (subtler in dark theme) ── -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+    </Style>
+
+    <!-- ── Draft badge ── -->
+    <Style Selector="TextBlock.draft-badge">
+        <Setter Property="Foreground" Value="{StaticResource KilnWarnBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontStyle" Value="Italic" />
+    </Style>
+
+</Styles>

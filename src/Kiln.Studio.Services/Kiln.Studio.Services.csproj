@@ -8,6 +8,10 @@
     <PackageReference Include="Kiln.Abstractions" Version="0.1.*" />
     <PackageReference Include="Kiln.Core" Version="0.1.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
+    <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
