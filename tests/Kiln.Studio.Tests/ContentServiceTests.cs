@@ -342,7 +342,7 @@ public class ShellViewModelEditorTests
 
             var postsCollection = explorer.Collections.FirstOrDefault(c => c.Name == "posts");
             await Assert.That(postsCollection).IsNotNull();
-            await Assert.That(postsCollection!.Entries.Count).IsGreaterThan(0);
+            await Assert.That(postsCollection!.FilteredEntries.Count).IsGreaterThan(0);
         }
         finally
         {
@@ -436,7 +436,7 @@ public class ShellViewModelEditorTests
 
             var postsCollection = explorer.Collections.FirstOrDefault(c => c.Name == "posts");
             await Assert.That(postsCollection).IsNotNull();
-            var firstEntry = postsCollection!.Entries[0];
+            var firstEntry = postsCollection!.FilteredEntries[0];
 
             explorer.SelectedEntry = firstEntry;
 
