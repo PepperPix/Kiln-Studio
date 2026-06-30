@@ -45,6 +45,16 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
         SortMode = ContentSortMode.Default;
     }
 
+    public void UpdateEntryDraft(string sourcePath, bool newDraft)
+    {
+        var collection = Collections.FirstOrDefault(c => c.HasEntry(sourcePath));
+        if (collection is null)
+            return;
+
+        collection.UpdateEntry(sourcePath, newDraft);
+        collection.ApplyView(SearchText, DraftFilter, SortMode);
+    }
+
     private void ApplyToAll()
     {
         foreach (var collection in Collections)

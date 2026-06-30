@@ -10,7 +10,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
     public ObservableCollection<ContentEntryViewModel> FilteredEntries { get; } = [];
     public int VisibleCount => FilteredEntries.Count;
 
-    private readonly IReadOnlyList<ContentEntry> _dtoEntries;
+    private readonly List<ContentEntry> _dtoEntries;
     private readonly Dictionary<string, ContentEntryViewModel> _entryMap = [];
 
     public ContentCollectionViewModel(ContentCollectionDto dto, Func<ContentEntryViewModel, Task>? onToggleDraft = null)
@@ -18,7 +18,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
         ArgumentNullException.ThrowIfNull(dto);
         Name = dto.Name;
         ContentDirectory = dto.ContentDirectory;
-        _dtoEntries = dto.Entries;
+        _dtoEntries = dto.Entries.ToList();
         foreach (var entry in dto.Entries)
         {
             var vm = new ContentEntryViewModel(entry, onToggleDraft);
@@ -34,5 +34,19 @@ public sealed class ContentCollectionViewModel : ViewModelBase
         foreach (var entry in filtered)
             FilteredEntries.Add(_entryMap[entry.SourcePath]);
         OnPropertyChanged(nameof(VisibleCount));
+    }
+
+    public bool HasEntry(string sourcePath) => _entryMap.ContainsKey(sourcePath);
+
+    public void UpdateEntry(string sourcePath, bool newDraft)
+    {
+        var idx = _dtoEntries.FindIndex(e => e.SourcePath == sourcePath);
+        if (idx < 0)
+            return;
+
+        _dtoEntries[idx] = _dtoEntries[idx] with { Draft = newDraft };
+
+        if (_entryMap.TryGetValue(sourcePath, out var vm))
+            vm.Draft = newDraft;
     }
 }

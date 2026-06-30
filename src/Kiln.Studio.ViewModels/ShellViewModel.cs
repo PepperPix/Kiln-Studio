@@ -402,7 +402,8 @@ public partial class ShellViewModel : ViewModelBase
         {
             var newDraft = await Task.Run(() => _contentFrontmatterWriter.ToggleDraft(entry.SourcePath))
                 .ConfigureAwait(true);
-            await OpenPathAsync(CurrentProjectPath).ConfigureAwait(true);
+
+            Explorer.UpdateEntryDraft(entry.SourcePath, newDraft);
             StatusMessage = newDraft ? "Marked as draft." : "Unmarked draft.";
         }
         catch (ContentWriteException ex)

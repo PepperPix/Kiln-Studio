@@ -197,6 +197,61 @@ public sealed class ProjectExplorerViewModelTests
     }
 
     [Test]
+    public async Task UpdateEntryDraft_ChangesDraftAndReappliesView()
+    {
+        var vm = new ProjectExplorerViewModel();
+        vm.Load(MakeProject());
+
+        var entry = vm.Collections[0].FilteredEntries.First(e => e.SourcePath == "/posts/gamma.md");
+        await Assert.That(entry.Draft).IsTrue();
+
+        vm.UpdateEntryDraft("/posts/gamma.md", false);
+
+        await Assert.That(entry.Draft).IsFalse();
+        await Assert.That(entry.ToggleDraftHeader).IsEqualTo("Mark as draft");
+    }
+
+    [Test]
+    public async Task UpdateEntryDraft_WithFilter_UpdatesVisibility()
+    {
+        var vm = new ProjectExplorerViewModel();
+        vm.Load(MakeProject());
+        vm.DraftFilter = DraftFilter.PublishedOnly;
+
+        await Assert.That(vm.Collections[0].FilteredEntries.Any(e => e.SourcePath == "/posts/gamma.md")).IsFalse();
+
+        vm.UpdateEntryDraft("/posts/gamma.md", false);
+
+        await Assert.That(vm.Collections[0].FilteredEntries.Any(e => e.SourcePath == "/posts/gamma.md")).IsTrue();
+    }
+
+    [Test]
+    public async Task UpdateEntryDraft_DoesNotThrow_ForUnknownPath()
+    {
+        var vm = new ProjectExplorerViewModel();
+        vm.Load(MakeProject());
+
+        vm.UpdateEntryDraft("/unknown.md", true);
+
+        await Assert.That(vm.Collections[0].FilteredEntries.Count).IsEqualTo(PostsEntryCount);
+    }
+
+    [Test]
+    public async Task UpdateEntryDraft_PreservesSearchFilter()
+    {
+        var vm = new ProjectExplorerViewModel();
+        vm.Load(MakeProject());
+        vm.SearchText = "Gamma";
+
+        await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(1);
+
+        vm.UpdateEntryDraft("/posts/gamma.md", false);
+
+        await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(1);
+        await Assert.That(vm.Collections[0].FilteredEntries[0].Draft).IsFalse();
+    }
+
+    [Test]
     public async Task Load_AfterClear_RecreatesCollections()
     {
         var vm = new ProjectExplorerViewModel();

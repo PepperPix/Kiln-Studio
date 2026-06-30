@@ -895,6 +895,67 @@ public class ShellViewModelBuildDeployTests
             if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task ToggleDraftAsync_UpdatesInPlace_WithoutReload()
+    {
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        try
+        {
+            var writer = new FakeContentFrontmatterWriter();
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(tempParent),
+                new FixedInputDialog("my-site"),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                new ProjectExplorerViewModel(),
+                new EditorViewModel(new ContentService()),
+                new NullPreviewServer(),
+                new NullBrowserLauncher(),
+                new PreviewViewModel(),
+                new NullBuildService(),
+                new NullDeploymentService(),
+                new NullSettingsDialog(),
+                new NullDeploymentConfigStore(),
+                new NullPublishService(),
+                writer);
+
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+
+            // Find an entry in the explorer (scaffolded entries are non-draft)
+            var entry = vm.Explorer.Collections
+                .SelectMany(c => c.FilteredEntries)
+                .First();
+
+            var initialCollections = vm.Explorer.Collections.ToList();
+            await Assert.That(entry.Draft).IsFalse();
+
+            // Make the writer toggle to draft=true
+            writer.ToggleResult = true;
+            await entry.ToggleDraftCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.StatusMessage).IsEqualTo("Marked as draft.");
+            await Assert.That(entry.Draft).IsTrue();
+
+            // The explorer collections are the same instances (no reload)
+            for (var i = 0; i < initialCollections.Count; i++)
+                await Assert.That(vm.Explorer.Collections[i]).IsSameReferenceAs(initialCollections[i]);
+
+            // Project is still open
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
 }
 
 file static class ShellViewModelTestsAccessor

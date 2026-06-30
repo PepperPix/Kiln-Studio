@@ -1,5 +1,6 @@
 namespace Kiln.Studio.ViewModels;
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
 
@@ -9,8 +10,11 @@ public sealed partial class ContentEntryViewModel : ViewModelBase
 
     public string Title { get; }
     public string SourcePath { get; }
-    public bool Draft { get; }
     public DateTime? Date { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ToggleDraftHeader))]
+    private bool _draft;
 
     public string ToggleDraftHeader => Draft ? "Unmark draft" : "Mark as draft";
 
@@ -20,7 +24,7 @@ public sealed partial class ContentEntryViewModel : ViewModelBase
         _onToggleDraft = onToggleDraft;
         Title = entry.Title;
         SourcePath = entry.SourcePath;
-        Draft = entry.Draft;
+        _draft = entry.Draft;
         Date = entry.Date;
     }
 
