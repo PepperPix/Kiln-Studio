@@ -12,3 +12,4 @@ node_modules/
 packages.lock.json
 
 **/__diff__/
+**/__review__/
