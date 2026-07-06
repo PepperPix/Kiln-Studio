@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kiln.Abstractions" Version="0.1.*" />
-    <PackageReference Include="Kiln.Core" Version="0.1.*" />
+    <PackageReference Include="Kiln.Abstractions" Version="1.0.*" />
+    <PackageReference Include="Kiln.Core" Version="1.0.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
     <PackageReference Include="YamlDotNet" Version="18.*" />
     <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.7.0">

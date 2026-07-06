@@ -39,25 +39,7 @@ tests/
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (10.0.301 or later)
 - [Node.js](https://nodejs.org/) (for commit tooling)
 
-### Building before Kiln is on nuget.org
-
-`Kiln.Core` and `Kiln.Abstractions` are not yet published to nuget.org. You need to build them
-locally first and provide a local feed:
-
-```bash
-# 1. Pack the Kiln engine packages
-dotnet pack path/to/Kiln/src/Kiln.Abstractions -c Release -o /tmp/kiln-localfeed
-dotnet pack path/to/Kiln/src/Kiln.Core -c Release -o /tmp/kiln-localfeed
-
-# 2. Build and test Studio (nuget.config already points to /tmp/kiln-localfeed)
-dotnet build
-dotnet test
-```
-
-Once `Kiln.Core` and `Kiln.Abstractions` are published to nuget.org, remove the `kiln-local` source
-from `nuget.config` — no changes to project files required.
-
-### Regular build
+### Building
 
 ```bash
 dotnet build
