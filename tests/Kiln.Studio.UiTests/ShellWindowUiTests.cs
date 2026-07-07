@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Avalonia.VisualTree;
 using Kiln.Studio.Services;
 using Kiln.Studio.TestSupport;
@@ -41,15 +40,13 @@ public sealed class ShellWindowUiTests
 
     /// <summary>
     /// Snapshot baseline: Welcome screen.
-    /// Platform-gated — reference platform is macOS arm64 (ADR-030).
-    /// On first run (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
+    /// Baselines are nested per-OS (ADR-043) - runs on all 3 OS, not just macOS.
+    /// On first run per platform (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
     /// runs compare against it with ≤0.1 % tolerance.
     /// </summary>
     [Test]
     public async Task Snapshot_Welcome_MatchesBaseline()
     {
-        if (!IsMacOsArm64()) return;
-
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(storeDir);
         try
@@ -69,15 +66,13 @@ public sealed class ShellWindowUiTests
 
     /// <summary>
     /// Snapshot baseline: Shell with an open project (editor/explorer visible).
-    /// Platform-gated — reference platform is macOS arm64 (ADR-030).
-    /// On first run (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
+    /// Baselines are nested per-OS (ADR-043) - runs on all 3 OS, not just macOS.
+    /// On first run per platform (or KILN_UPDATE_SNAPSHOTS=1) the baseline is written; subsequent
     /// runs compare against it with ≤0.1 % tolerance.
     /// </summary>
     [Test]
     public async Task Snapshot_ShellWithOpenProject_MatchesBaseline()
     {
-        if (!IsMacOsArm64()) return;
-
         var projectParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(projectParent);
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -140,8 +135,4 @@ public sealed class ShellWindowUiTests
 
         return new ShellWindow { DataContext = vm };
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

@@ -90,9 +90,23 @@ internal static class SnapshotComparer
     private static string ResolveSnapshotDir(string callerFile)
     {
         var testDir = Path.GetDirectoryName(callerFile)!;
-        var dir = Path.GetFullPath(Path.Combine(testDir, "Snapshots"));
+        var platform = ResolvePlatformFolderName();
+        var dir = Path.GetFullPath(Path.Combine(testDir, "Snapshots", platform));
         Directory.CreateDirectory(dir);
         return dir;
+    }
+
+    /// <summary>
+    /// Baselines are nested per-OS (ADR-043) rather than shared, since it is not yet established
+    /// whether Avalonia.Headless+Skia renders pixel-identically across platforms even with a
+    /// bundled font and fixed DPI.
+    /// </summary>
+    private static string ResolvePlatformFolderName()
+    {
+        if (OperatingSystem.IsMacOS()) return "macos";
+        if (OperatingSystem.IsWindows()) return "windows";
+        if (OperatingSystem.IsLinux()) return "linux";
+        throw new PlatformNotSupportedException("Unknown platform for snapshot baselines.");
     }
 
     private static bool ShouldUpdateBaselines() =>
