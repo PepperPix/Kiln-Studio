@@ -14,7 +14,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RepositoryUrl>https://github.com/PepperPix/Kiln-Studio</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <ItemGroup>

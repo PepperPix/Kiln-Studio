@@ -127,17 +127,18 @@
                         Margin="4,4" />
 
                 <!-- Deploy group -->
-                <Button Content="Deploy"
-                        Classes="secondary">
-                    <Button.Flyout>
-                        <MenuFlyout>
-                            <MenuItem Header="Set up GitHub Pages"
-                                      Command="{Binding SetUpGitHubPagesCommand}" />
-                            <MenuItem Header="Set up Azure Static Web Apps"
-                                      Command="{Binding SetUpAzureStaticWebAppsCommand}" />
-                        </MenuFlyout>
-                    </Button.Flyout>
-                </Button>
+                <Button Content="Publish"
+                        Command="{Binding PublishCommand}"
+                        IsVisible="{Binding CanPublish}"
+                        Classes="primary" />
+                <Button Content="Generate deployment config"
+                        Command="{Binding GenerateDeploymentConfigCommand}"
+                        IsVisible="{Binding IsCiVariant}"
+                        Classes="secondary" />
+                <TextBlock Text="Configure deployment in Settings"
+                           IsVisible="{Binding NoDeploymentVariant}"
+                           VerticalAlignment="Center"
+                           Classes="muted" />
 
                 <!-- Separator -->
                 <Border Width="1"
@@ -181,28 +182,89 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Explorer -->
-                <TreeView Grid.Column="0"
-                          x:Name="ExplorerTree"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          ItemsSource="{Binding Explorer.Collections}">
-                    <TreeView.DataTemplates>
-                        <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
-                                          ItemsSource="{Binding Entries}">
-                            <TextBlock Text="{Binding Name}"
-                                       FontWeight="SemiBold"
-                                       FontSize="{StaticResource FontSizeXS}" />
-                        </TreeDataTemplate>
-                        <DataTemplate DataType="vm:ContentEntryViewModel">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="{Binding Title}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="draft"
-                                           IsVisible="{Binding Draft}"
-                                           Classes="draft-badge" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </TreeView.DataTemplates>
-                </TreeView>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Search / filter / sort bar -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,4" Spacing="4">
+                        <TextBox PlaceholderText="Search posts…"
+                                 Text="{Binding Explorer.SearchText}"
+                                 FontSize="{StaticResource FontSizeXS}" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ComboBox ItemsSource="{Binding Explorer.DraftFilters}"
+                                      SelectedItem="{Binding Explorer.DraftFilter}"
+                                      MinWidth="90"
+                                      FontSize="{StaticResource FontSizeXS}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}"
+                                                   FontSize="{StaticResource FontSizeXS}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <ComboBox ItemsSource="{Binding Explorer.SortModes}"
+                                      SelectedItem="{Binding Explorer.SortMode}"
+                                      MinWidth="100"
+                                      FontSize="{StaticResource FontSizeXS}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}"
+                                                   FontSize="{StaticResource FontSizeXS}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- TreeView -->
+                    <TreeView Grid.Row="1"
+                              x:Name="ExplorerTree"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ItemsSource="{Binding Explorer.Collections}">
+                        <TreeView.DataTemplates>
+                            <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
+                                              ItemsSource="{Binding FilteredEntries}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               FontSize="{StaticResource FontSizeXS}" />
+                                    <TextBlock Text="("
+                                               FontSize="{StaticResource FontSizeXS}"
+                                               Foreground="{StaticResource KilnTextMutedBrush}" />
+                                    <TextBlock Text="{Binding VisibleCount}"
+                                               FontSize="{StaticResource FontSizeXS}"
+                                               Foreground="{StaticResource KilnTextMutedBrush}" />
+                                    <TextBlock Text=")"
+                                               FontSize="{StaticResource FontSizeXS}"
+                                               Foreground="{StaticResource KilnTextMutedBrush}" />
+                                </StackPanel>
+                            </TreeDataTemplate>
+                            <DataTemplate DataType="vm:ContentEntryViewModel">
+                                <Grid Background="Transparent"
+                                      HorizontalAlignment="Stretch">
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{Binding ToggleDraftHeader}"
+                                                      Command="{Binding ToggleDraftCommand}" />
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Title}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Classes="entry-title"
+                                                   Classes.draft="{Binding Draft}" />
+                                        <TextBlock Text="draft"
+                                                   IsVisible="{Binding Draft}"
+                                                   Classes="draft-badge" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </TreeView.DataTemplates>
+                    </TreeView>
+                </Grid>
 
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
 

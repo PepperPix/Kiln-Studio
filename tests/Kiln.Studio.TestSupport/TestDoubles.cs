@@ -145,6 +145,79 @@ public sealed class NullSettingsDialog : ISettingsDialog
     public Task ShowAsync(string projectPath) => Task.CompletedTask;
 }
 
+public sealed class NullDeploymentConfigStore : IDeploymentConfigStore
+{
+    public static readonly DeploymentConfig Default = new(DeploymentVariant.None, null, FilesystemMode.PlainCopy);
+
+    public DeploymentConfig Load(string projectPath) => Default;
+
+    public void Save(string projectPath, DeploymentConfig config)
+    {
+    }
+}
+
+public sealed class FakeDeploymentConfigStore : IDeploymentConfigStore
+{
+    private DeploymentConfig _config = new(DeploymentVariant.None, null, FilesystemMode.PlainCopy);
+
+    public string? LastSaveProjectPath { get; private set; }
+    public DeploymentConfig? LastSaveConfig { get; private set; }
+
+    public DeploymentConfig Config
+    {
+        get => _config;
+        set => _config = value;
+    }
+
+    public DeploymentConfig Load(string projectPath) => _config;
+
+    public void Save(string projectPath, DeploymentConfig config)
+    {
+        LastSaveProjectPath = projectPath;
+        LastSaveConfig = config;
+        _config = config;
+    }
+}
+
+public sealed class NullPublishService : IPublishService
+{
+    public Task<PublishSummary> PublishAsync(string projectPath, DeploymentConfig config, CancellationToken cancellationToken = default)
+        => Task.FromResult(new PublishSummary(true, "/dev/null", 0, null));
+}
+
+public sealed class FakePublishService : IPublishService
+{
+    public Func<string, DeploymentConfig, CancellationToken, Task<PublishSummary>>? OnPublishAsync { get; set; }
+
+    public Task<PublishSummary> PublishAsync(string projectPath, DeploymentConfig config, CancellationToken cancellationToken = default)
+    {
+        if (OnPublishAsync is not null)
+            return OnPublishAsync(projectPath, config, cancellationToken);
+
+        return Task.FromResult(new PublishSummary(true, "/output", 42, null));
+    }
+}
+
+public sealed class FakeContentFrontmatterWriter : IContentFrontmatterWriter
+{
+    public string? LastSourcePath { get; private set; }
+    public bool? LastSetDraft { get; private set; }
+    public bool ToggleResult { get; set; }
+
+    public bool SetDraft(string sourcePath, bool draft)
+    {
+        LastSourcePath = sourcePath;
+        LastSetDraft = draft;
+        return draft;
+    }
+
+    public bool ToggleDraft(string sourcePath)
+    {
+        LastSourcePath = sourcePath;
+        return ToggleResult;
+    }
+}
+
 public sealed class FakeSiteSettingsService : ISiteSettingsService
 {
     public SiteSettings CurrentSettings { get; set; } =

@@ -8,6 +8,7 @@ using Kiln.Studio.Services;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly ISiteSettingsService _settings;
+    private readonly IDeploymentConfigStore _deploymentConfigStore;
     private string? _projectPath;
 
     [ObservableProperty]
@@ -35,13 +36,35 @@ public partial class SettingsViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     private string? _statusMessage;
 
+    [ObservableProperty]
+    private DeploymentVariant _deploymentVariant;
+
+    [ObservableProperty]
+    private string? _deploymentFilesystemPath;
+
+    [ObservableProperty]
+    private FilesystemMode _deploymentFilesystemMode;
+
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
     public ObservableCollection<string> AvailableThemes { get; } = [];
 
-    public SettingsViewModel(ISiteSettingsService settings)
+    public bool IsDeploymentFilesystem => DeploymentVariant == DeploymentVariant.Filesystem;
+
+    public IReadOnlyList<DeploymentVariant> DeploymentVariants { get; } =
+        Enum.GetValues<DeploymentVariant>();
+
+    public IReadOnlyList<FilesystemMode> FilesystemModes { get; } =
+        Enum.GetValues<FilesystemMode>();
+
+    public string? LanguageWarning { get; private set; }
+
+    public bool HasLanguageWarning => !string.IsNullOrEmpty(LanguageWarning);
+
+    public SettingsViewModel(ISiteSettingsService settings, IDeploymentConfigStore deploymentConfigStore)
     {
         _settings = settings;
+        _deploymentConfigStore = deploymentConfigStore;
     }
 
     public void Load(string projectPath)
@@ -61,6 +84,23 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedTheme = s.Theme;
         RawYaml = _settings.ReadRawYaml(projectPath);
         StatusMessage = null;
+
+        var dc = _deploymentConfigStore.Load(projectPath);
+        DeploymentVariant = dc.Variant;
+        DeploymentFilesystemPath = dc.FilesystemPath;
+        DeploymentFilesystemMode = dc.FilesystemMode;
+    }
+
+    partial void OnDeploymentVariantChanged(DeploymentVariant value)
+    {
+        OnPropertyChanged(nameof(IsDeploymentFilesystem));
+    }
+
+    partial void OnLanguageChanged(string value)
+    {
+        LanguageWarning = LanguageCode.IsValid(value) ? null : "Not a valid language code (e.g. en, de-DE).";
+        OnPropertyChanged(nameof(LanguageWarning));
+        OnPropertyChanged(nameof(HasLanguageWarning));
     }
 
     partial void OnIsAdvancedChanged(bool value)
@@ -102,6 +142,9 @@ public partial class SettingsViewModel : ViewModelBase
                 var s = new SiteSettings(Title, Description, BaseUrl, Language, SelectedTheme ?? string.Empty);
                 await Task.Run(() => _settings.Save(_projectPath, s)).ConfigureAwait(true);
             }
+
+            var dc = new DeploymentConfig(DeploymentVariant, DeploymentFilesystemPath, DeploymentFilesystemMode);
+            await Task.Run(() => _deploymentConfigStore.Save(_projectPath, dc)).ConfigureAwait(true);
 
             Load(_projectPath);
             StatusMessage = "Settings saved.";

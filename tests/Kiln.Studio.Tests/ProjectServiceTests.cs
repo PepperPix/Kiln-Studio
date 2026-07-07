@@ -160,7 +160,7 @@ public class ShellViewModelOpenTests
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new NullSettingsDialog());
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
     }
 
     [Test]

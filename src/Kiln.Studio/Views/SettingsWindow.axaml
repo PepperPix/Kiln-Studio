@@ -28,6 +28,10 @@
 
             <TextBlock Text="Language" Classes="section-header" Margin="0,4,0,2" />
             <TextBox Text="{Binding Language}" />
+            <TextBlock Text="{Binding LanguageWarning}"
+                       IsVisible="{Binding HasLanguageWarning}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource KilnErrorBrush}" />
 
             <TextBlock Text="Theme" Classes="section-header" Margin="0,4,0,2" />
             <ComboBox ItemsSource="{Binding AvailableThemes}"
@@ -43,6 +47,41 @@
                  Height="320"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Visible" />
+
+        <!-- Deployment section -->
+        <Border Classes="settings-section" Margin="0,8,0,0">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Deployment" Classes="section-header" Margin="0,4,0,2" />
+
+                <TextBlock Text="Variant" Classes="muted" />
+                <ComboBox ItemsSource="{Binding DeploymentVariants}"
+                          SelectedItem="{Binding DeploymentVariant}"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel IsVisible="{Binding IsDeploymentFilesystem}" Spacing="6">
+                    <TextBlock Text="Target folder" Classes="muted" />
+                    <TextBox Text="{Binding DeploymentFilesystemPath}"
+                             PlaceholderText="/path/to/output" />
+
+                    <TextBlock Text="Mode" Classes="muted" />
+                    <ComboBox ItemsSource="{Binding FilesystemModes}"
+                              SelectedItem="{Binding DeploymentFilesystemMode}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </Border>
 
         <!-- Buttons -->
         <StackPanel Orientation="Horizontal"

@@ -1,5 +1,6 @@
 namespace Kiln.Studio.Tests;
 
+using Kiln.Studio.Services;
 using Kiln.Studio.TestSupport;
 using Kiln.Studio.ViewModels;
 
@@ -14,7 +15,7 @@ public class SettingsViewModelTests
         {
             CurrentSettings = new("My Site", "Desc", "http://example.com/", "de", "dark")
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
 
         vm.Load(ProjectPath);
 
@@ -34,7 +35,7 @@ public class SettingsViewModelTests
             CurrentSettings = new("Site", "", "http://localhost/", "en", "default"),
             Themes = ["dark", "default", "light"]
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
 
         vm.Load(ProjectPath);
 
@@ -47,7 +48,7 @@ public class SettingsViewModelTests
     public async Task SaveAsync_Basic_CallsSaveWithUpdatedTitle()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.Title = "New Title";
@@ -62,7 +63,7 @@ public class SettingsViewModelTests
     public async Task SaveAsync_Advanced_WritesRawYaml()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.IsAdvanced = true;
@@ -80,7 +81,7 @@ public class SettingsViewModelTests
         {
             RawYamlContent = "title: From File\n"
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.IsAdvanced = true;
@@ -95,7 +96,7 @@ public class SettingsViewModelTests
         {
             CurrentSettings = new("Reloaded", "Desc", "http://localhost/", "en", "default")
         };
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         vm.Title = "Dirty Title (not saved)";
@@ -106,10 +107,70 @@ public class SettingsViewModelTests
     }
 
     [Test]
+    public async Task DeploymentVariants_ContainsAllValues()
+    {
+        var vm = new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore());
+
+        const int expectedVariantCount = 4;
+        await Assert.That(vm.DeploymentVariants.Count).IsEqualTo(expectedVariantCount);
+        await Assert.That(vm.DeploymentVariants.Contains(DeploymentVariant.None)).IsTrue();
+        await Assert.That(vm.DeploymentVariants.Contains(DeploymentVariant.GitHubPages)).IsTrue();
+        await Assert.That(vm.DeploymentVariants.Contains(DeploymentVariant.AzureStaticWebApps)).IsTrue();
+        await Assert.That(vm.DeploymentVariants.Contains(DeploymentVariant.Filesystem)).IsTrue();
+    }
+
+    [Test]
+    public async Task FilesystemModes_ContainsAllValues()
+    {
+        var vm = new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore());
+
+        const int expectedModeCount = 2;
+        await Assert.That(vm.FilesystemModes.Count).IsEqualTo(expectedModeCount);
+        await Assert.That(vm.FilesystemModes.Contains(FilesystemMode.PlainCopy)).IsTrue();
+        await Assert.That(vm.FilesystemModes.Contains(FilesystemMode.Zip)).IsTrue();
+    }
+
+    [Test]
+    public async Task Language_InvalidCode_ShowsWarning()
+    {
+        var vm = new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore());
+        vm.Load(ProjectPath);
+
+        vm.Language = "xx-bad!";
+
+        await Assert.That(vm.LanguageWarning).IsNotNull();
+        await Assert.That(vm.HasLanguageWarning).IsTrue();
+    }
+
+    [Test]
+    public async Task Language_ValidDeDe_NoWarning()
+    {
+        var vm = new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore());
+        vm.Load(ProjectPath);
+
+        vm.Language = "de-DE";
+
+        await Assert.That(vm.LanguageWarning).IsNull();
+        await Assert.That(vm.HasLanguageWarning).IsFalse();
+    }
+
+    [Test]
+    public async Task Language_Empty_NoWarning()
+    {
+        var vm = new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore());
+        vm.Load(ProjectPath);
+
+        vm.Language = string.Empty;
+
+        await Assert.That(vm.LanguageWarning).IsNull();
+        await Assert.That(vm.HasLanguageWarning).IsFalse();
+    }
+
+    [Test]
     public async Task Load_SetsStatusMessageToNull()
     {
         var fake = new FakeSiteSettingsService();
-        var vm = new SettingsViewModel(fake);
+        var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
         vm.Load(ProjectPath);
 
         await vm.SaveCommand.ExecuteAsync(null);

@@ -9,6 +9,6 @@ TestResults/
 *.nupkg
 *.snupkg
 node_modules/
-packages.lock.json
 
-Snapshots/__diff__/
+**/__diff__/
+**/__review__/

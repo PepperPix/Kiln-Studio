@@ -1,6 +1,11 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Kiln.Studio.UiTests.UiTestApp">
+             x:Class="Kiln.Studio.UiTests.UiTestApp"
+             xmlns:conv="using:Kiln.Studio.Converters">
+
+    <Application.Resources>
+        <conv:EnumDisplayConverter x:Key="EnumDisplayConverter" />
+    </Application.Resources>
 
     <!--
         Sync note: these style includes must match Application.Styles in

@@ -203,4 +203,9 @@
         <Setter Property="FontStyle" Value="Italic" />
     </Style>
 
+    <!-- ── Draft entry title (italic) ── -->
+    <Style Selector="TextBlock.entry-title.draft">
+        <Setter Property="FontStyle" Value="Italic" />
+    </Style>
+
 </Styles>

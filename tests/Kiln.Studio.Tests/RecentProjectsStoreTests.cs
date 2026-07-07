@@ -70,9 +70,11 @@ public class RecentProjectsStoreTests
             store.Add("/projects/alpha", SiteAlpha);
 
             var all = store.GetAll();
+            var expectedPath = Path.GetFullPath("/projects/alpha")
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             await Assert.That(all.Count).IsEqualTo(TwoProjects);
-            await Assert.That(all[0].Path).IsEqualTo("/projects/alpha");
+            await Assert.That(all[0].Path).IsEqualTo(expectedPath);
         }
         finally
         {

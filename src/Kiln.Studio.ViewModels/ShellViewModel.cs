@@ -21,6 +21,9 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IBuildService _buildService;
     private readonly IDeploymentService _deploymentService;
     private readonly ISettingsDialog _settingsDialog;
+    private readonly IDeploymentConfigStore _deploymentConfigStore;
+    private readonly IPublishService _publishService;
+    private readonly IContentFrontmatterWriter _contentFrontmatterWriter;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -55,6 +58,18 @@ public partial class ShellViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
     private bool _isBusy;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPublish))]
+    private DeploymentVariant _currentDeploymentVariant;
+
+    public bool CanPublish => IsProjectOpen && !IsBusy && CurrentDeploymentVariant == DeploymentVariant.Filesystem;
+
+    public bool IsCiVariant => CurrentDeploymentVariant is DeploymentVariant.GitHubPages or DeploymentVariant.AzureStaticWebApps;
+
+    public bool HasDeploymentVariant => CurrentDeploymentVariant != DeploymentVariant.None;
+
+    public bool NoDeploymentVariant => CurrentDeploymentVariant == DeploymentVariant.None;
+
     public ProjectExplorerViewModel Explorer { get; }
     public EditorViewModel Editor { get; }
     public PreviewViewModel Preview { get; }
@@ -77,6 +92,9 @@ public partial class ShellViewModel : ViewModelBase
         IBuildService buildService,
         IDeploymentService deploymentService,
         ISettingsDialog settingsDialog,
+        IDeploymentConfigStore deploymentConfigStore,
+        IPublishService publishService,
+        IContentFrontmatterWriter contentFrontmatterWriter,
         IFolderRevealer? folderRevealer = null)
 #pragma warning restore S107
     {
@@ -92,7 +110,11 @@ public partial class ShellViewModel : ViewModelBase
         _buildService = buildService;
         _deploymentService = deploymentService;
         _settingsDialog = settingsDialog;
+        _deploymentConfigStore = deploymentConfigStore;
+        _publishService = publishService;
+        _contentFrontmatterWriter = contentFrontmatterWriter;
         Explorer = explorer;
+        Explorer.SetDraftToggleHandler(ToggleDraftAsync);
         Editor = editor;
         Preview = preview;
 
@@ -132,6 +154,7 @@ public partial class ShellViewModel : ViewModelBase
         CurrentProjectPath = null;
         CurrentProjectName = null;
         IsProjectOpen = false;
+        CurrentDeploymentVariant = DeploymentVariant.None;
         StatusMessage = "Ready";
     }
 
@@ -245,6 +268,9 @@ public partial class ShellViewModel : ViewModelBase
             IsProjectOpen = true;
             _recentProjectsStore.Add(project.ProjectPath, project.SiteTitle);
             RefreshRecentProjects();
+
+            var config = _deploymentConfigStore.Load(path);
+            CurrentDeploymentVariant = config.Variant;
         }
         catch (ProjectOpenException ex)
         {
@@ -320,6 +346,12 @@ public partial class ShellViewModel : ViewModelBase
     private async Task OpenSettingsAsync()
     {
         await _settingsDialog.ShowAsync(CurrentProjectPath!).ConfigureAwait(true);
+
+        if (CurrentProjectPath is not null)
+        {
+            var config = _deploymentConfigStore.Load(CurrentProjectPath);
+            CurrentDeploymentVariant = config.Variant;
+        }
     }
 
     private bool CanOpenSettings() => IsProjectOpen;
@@ -332,6 +364,93 @@ public partial class ShellViewModel : ViewModelBase
         Preview.ServeStatus = "Preview stopped";
         StatusMessage = Preview.ServeStatus;
         StartFullPreviewCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPublish))]
+    private async Task PublishAsync()
+    {
+        IsBusy = true;
+        StatusMessage = "Publishing...";
+
+        try
+        {
+            var config = _deploymentConfigStore.Load(CurrentProjectPath!);
+            var summary = await _publishService.PublishAsync(CurrentProjectPath!, config).ConfigureAwait(true);
+
+            StatusMessage = summary.Success
+                ? $"Published {summary.FileCount} files to {summary.Destination}"
+                : $"Publish failed: {summary.Error}";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Publish failed: {ex.Message}";
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task ToggleDraftAsync(ContentEntryViewModel entry)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentProjectPath))
+            return;
+
+        try
+        {
+            var newDraft = await Task.Run(() => _contentFrontmatterWriter.ToggleDraft(entry.SourcePath))
+                .ConfigureAwait(true);
+
+            Explorer.UpdateEntryDraft(entry.SourcePath, newDraft);
+            StatusMessage = newDraft ? "Marked as draft." : "Unmarked draft.";
+        }
+        catch (ContentWriteException ex)
+        {
+            StatusMessage = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task GenerateDeploymentConfigAsync()
+    {
+        if (CurrentProjectPath is null)
+            return;
+
+        IsBusy = true;
+
+        try
+        {
+            var config = _deploymentConfigStore.Load(CurrentProjectPath);
+            var target = config.Variant switch
+            {
+                DeploymentVariant.GitHubPages => DeployTarget.GitHubPages,
+                DeploymentVariant.AzureStaticWebApps => DeployTarget.AzureStaticWebApps,
+                _ => throw new InvalidOperationException($"No CI variant configured: {config.Variant}"),
+            };
+
+            var summary = await Task.Run(() => _deploymentService.SetUp(CurrentProjectPath, target)).ConfigureAwait(true);
+            StatusMessage = $"Deployment configured ({FormatTarget(summary.Target)}): {string.Join(", ", summary.CreatedFiles)} - commit & push to deploy.";
+        }
+#pragma warning disable CA1031
+        catch (Exception ex)
+        {
+            StatusMessage = $"Deployment config failed: {ex.Message}";
+        }
+#pragma warning restore CA1031
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    partial void OnCurrentDeploymentVariantChanged(DeploymentVariant value)
+    {
+        PublishCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(IsCiVariant));
+        OnPropertyChanged(nameof(HasDeploymentVariant));
+        OnPropertyChanged(nameof(NoDeploymentVariant));
     }
 
     private async Task SetUpDeploymentAsync(DeployTarget target)

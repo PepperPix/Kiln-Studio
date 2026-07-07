@@ -212,9 +212,15 @@ public class SiteSettingsServiceTests
 
             await Assert.That(result).Contains("title: Changed Title");
 
-            var resultNonTitle = string.Join('\n', result.Split('\n')
+            // Normalize line endings before comparing: the raw string literal above is checked out
+            // with the OS's native line endings without a .gitattributes pin, so a naive '\n'-only
+            // split leaves dangling '\r' characters on Windows checkouts.
+            var normalizedResult = result.Replace("\r\n", "\n", StringComparison.Ordinal);
+            var normalizedOriginal = siteYaml.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+            var resultNonTitle = string.Join('\n', normalizedResult.Split('\n')
                 .Where(l => !l.StartsWith("title:", StringComparison.Ordinal)));
-            var originalNonTitle = string.Join('\n', siteYaml.Split('\n')
+            var originalNonTitle = string.Join('\n', normalizedOriginal.Split('\n')
                 .Where(l => !l.StartsWith("title:", StringComparison.Ordinal)));
             await Assert.That(resultNonTitle).IsEqualTo(originalNonTitle);
         }
