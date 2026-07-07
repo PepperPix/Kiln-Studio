@@ -4,18 +4,18 @@
     "net10.0": {
       "Kiln.Abstractions": {
         "type": "Direct",
-        "requested": "[1.0.*, )",
-        "resolved": "1.0.0",
-        "contentHash": "zZ7WLPW9l1ykdGt74oYPXsKpH74TpzexkICWBT/j2kSxiqOTZ0PM21Ek/+/TZz9gXe/XxW4eQZKJLoDpLmijgA=="
+        "requested": "[1.*, )",
+        "resolved": "1.1.0",
+        "contentHash": "oOemqMycviB3rXcTwKGHauDKZxNWAENCxz1ig2PEB8XsGS+sWv2GyRUMZLlW0BzFTBzRGjyi4tlw6dxiEeUKXA=="
       },
       "Kiln.Core": {
         "type": "Direct",
-        "requested": "[1.0.*, )",
-        "resolved": "1.0.0",
-        "contentHash": "nWeD/2/FTkAmSHvLeWRJhNNLc3NRNHAN3ti/Xxl0NyDOiCmNmou/CUJgRZh8O/Sa1hX/jBzHVZtKC6KFaSqm7Q==",
+        "requested": "[1.*, )",
+        "resolved": "1.1.0",
+        "contentHash": "3wFf+vI0cx1w/xNpxb5638+KttuWJsXOLY8X0MS+IIVJzy63z7k/sX+5cyr+9tdn3ML+9LpSChts2udzhi5c7g==",
         "dependencies": {
           "AngleSharp": "1.5.2",
-          "Kiln.Abstractions": "1.0.0",
+          "Kiln.Abstractions": "1.1.0",
           "Markdig": "1.3.2",
           "Microsoft.Extensions.DependencyInjection": "10.0.9",
           "Microsoft.OpenApi.Readers": "1.6.29",
