@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Kiln.Studio.Controls.TaxonomyChipInput">
+
+    <StackPanel Spacing="{StaticResource SpacingXS}">
+
+        <TextBlock x:Name="LabelText" Classes="section-header" />
+
+        <ItemsControl x:Name="ChipsList">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border Classes="chip">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingXS}">
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                            <Button Content="✕"
+                                    Classes="chip-remove"
+                                    Click="OnRemoveChipClick" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <AutoCompleteBox x:Name="InputBox"
+                         FilterMode="Contains"
+                         PlaceholderText="Add value, press Enter or comma" />
+
+    </StackPanel>
+
+</UserControl>

@@ -68,6 +68,78 @@ public sealed class ContentFrontmatterWriter : IContentFrontmatterWriter
         return SetDraft(sourcePath, !currentDraft);
     }
 
+    public IReadOnlyList<string> GetTaxonomyValues(string sourcePath, string taxonomyName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(taxonomyName);
+
+        if (!File.Exists(sourcePath))
+            throw new ContentWriteException($"File not found: {sourcePath}");
+
+        var content = File.ReadAllText(sourcePath);
+        var (fmText, _, fmType) = ParseFrontmatter(content);
+
+        if (fmType != FrontmatterType.Yaml || fmText is null)
+            return [];
+
+        var root = ParseMapping(fmText);
+        if (!root.Children.TryGetValue(new YamlScalarNode(taxonomyName), out var node))
+            return [];
+
+        return node switch
+        {
+            YamlSequenceNode sequence => sequence.Children
+                .OfType<YamlScalarNode>()
+                .Select(n => n.Value)
+                .Where(v => !string.IsNullOrEmpty(v))
+                .Select(v => v!)
+                .ToList(),
+            YamlScalarNode { Value: { Length: > 0 } value } => [value],
+            _ => []
+        };
+    }
+
+    public void SetTaxonomyValues(string sourcePath, string taxonomyName, IReadOnlyList<string> values)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(taxonomyName);
+        ArgumentNullException.ThrowIfNull(values);
+
+        if (!File.Exists(sourcePath))
+            throw new ContentWriteException($"File not found: {sourcePath}");
+
+        var content = File.ReadAllText(sourcePath);
+        var (fmText, body, fmType) = ParseFrontmatter(content);
+
+        if (fmType == FrontmatterType.Toml)
+            throw new ContentWriteException("TOML front matter is not supported.");
+
+        if (fmType == FrontmatterType.None && values.Count == 0)
+            return;
+
+        var root = ParseMapping(fmText);
+        var key = new YamlScalarNode(taxonomyName);
+
+        if (values.Count == 0)
+        {
+            root.Children.Remove(key);
+        }
+        else
+        {
+            var sequence = new YamlSequenceNode();
+            foreach (var value in values)
+                sequence.Add(new YamlScalarNode(value));
+            root.Children[key] = sequence;
+        }
+
+        using var sw = new StringWriter();
+        new YamlStream(new YamlDocument(root)).Save(sw, assignAnchors: false);
+        var emitted = NormalizeEmitted(sw.ToString());
+
+        var newContent = "---\n" + emitted + "---\n" + body;
+        File.WriteAllText(sourcePath, newContent);
+    }
+
     private enum FrontmatterType { None, Yaml, Toml }
 
     private static (string? fmText, string body, FrontmatterType type) ParseFrontmatter(string content)

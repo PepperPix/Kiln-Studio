@@ -208,4 +208,31 @@
         <Setter Property="FontStyle" Value="Italic" />
     </Style>
 
+    <!-- ── Taxonomy chip input (ADR-047/PLAN-063) ── -->
+    <Style Selector="Border.chip">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Margin" Value="0,0,4,4" />
+    </Style>
+
+    <Style Selector="Button.chip-remove">
+        <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="MinWidth" Value="18" />
+        <Setter Property="MinHeight" Value="18" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+    </Style>
+
+    <Style Selector="Button.chip-remove:pointerover">
+        <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnErrorBrush}" />
+    </Style>
+
 </Styles>

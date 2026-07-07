@@ -7,6 +7,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
 {
     public string Name { get; }
     public string ContentDirectory { get; }
+    public IReadOnlyList<string> Taxonomies { get; }
     public ObservableCollection<ContentEntryViewModel> FilteredEntries { get; } = [];
     public int VisibleCount => FilteredEntries.Count;
 
@@ -18,6 +19,7 @@ public sealed class ContentCollectionViewModel : ViewModelBase
         ArgumentNullException.ThrowIfNull(dto);
         Name = dto.Name;
         ContentDirectory = dto.ContentDirectory;
+        Taxonomies = dto.Taxonomies;
         _dtoEntries = dto.Entries.ToList();
         foreach (var entry in dto.Entries)
         {

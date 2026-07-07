@@ -55,6 +55,13 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
         collection.ApplyView(SearchText, DraftFilter, SortMode);
     }
 
+    /// <summary>
+    /// Returns the taxonomy names declared for the collection that owns the given content file,
+    /// or an empty list if the entry could not be matched to any loaded collection.
+    /// </summary>
+    public IReadOnlyList<string> GetTaxonomiesForEntry(string sourcePath) =>
+        Collections.FirstOrDefault(c => c.HasEntry(sourcePath))?.Taxonomies ?? [];
+
     private void ApplyToAll()
     {
         foreach (var collection in Collections)
