@@ -44,6 +44,7 @@ public partial class App : Application
         services.AddSingleton<IDeploymentConfigStore, DeploymentConfigStore>();
         services.AddSingleton<IPublishService, PublishService>();
         services.AddSingleton<IContentFrontmatterWriter, ContentFrontmatterWriter>();
+        services.AddSingleton<ITaxonomyValueCache, TaxonomyValueCache>();
         services.AddSingleton<ISiteSettingsService, SiteSettingsService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();

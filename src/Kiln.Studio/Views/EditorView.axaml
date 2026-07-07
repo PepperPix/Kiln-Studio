@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Kiln.Studio.ViewModels"
              xmlns:aedit="using:AvaloniaEdit"
+             xmlns:controls="using:Kiln.Studio.Controls"
              x:Class="Kiln.Studio.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
@@ -15,10 +16,24 @@
 
         <!-- Editor area when document is loaded -->
         <Grid IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,4,*">
+              RowDefinitions="Auto,Auto,4,*">
+
+            <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
+            <ItemsControl Grid.Row="0"
+                          ItemsSource="{Binding TaxonomyFields}"
+                          Padding="8,6">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
+                        <controls:TaxonomyChipInput Label="{Binding Name}"
+                                                     ItemsSource="{Binding Values}"
+                                                     SuggestionsSource="{Binding Suggestions}"
+                                                     Margin="0,0,0,4" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!-- Frontmatter TextBox -->
-            <TextBox Grid.Row="0"
+            <TextBox Grid.Row="1"
                      x:Name="FrontMatterBox"
                      Text="{Binding FrontMatter}"
                      AcceptsReturn="True"
@@ -30,10 +45,10 @@
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      TextWrapping="NoWrap" />
 
-            <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+            <GridSplitter Grid.Row="2" ResizeDirection="Rows" />
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="2"
+            <aedit:TextEditor Grid.Row="3"
                               x:Name="BodyEditor"
                               FontFamily="Menlo,Consolas,Courier New,monospace"
                               FontSize="{StaticResource FontSizeXS}"

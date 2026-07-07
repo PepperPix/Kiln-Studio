@@ -23,7 +23,8 @@ public sealed class ProjectExplorerViewModelTests
                 new ContentEntry("Gamma Draft", "/posts/gamma.md", true, null),
                 new ContentEntry("Delta Final", "/posts/delta.md", false, new DateTime(2026, 3, 20)),
             ],
-            "/tmp/content");
+            "/tmp/content",
+            ["tags", "categories"]);
 
         var pages = new ContentCollectionDto(
             "pages",
@@ -31,7 +32,8 @@ public sealed class ProjectExplorerViewModelTests
                 new ContentEntry("About", "/pages/about.md", false, null),
                 new ContentEntry("Contact", "/pages/contact.md", false, new DateTime(2026, 5, 10)),
             ],
-            "/tmp/pages");
+            "/tmp/pages",
+            []);
 
         return new OpenedProject("/tmp", "Test Site", [collection, pages]);
     }

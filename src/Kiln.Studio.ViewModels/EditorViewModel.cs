@@ -1,5 +1,6 @@
 namespace Kiln.Studio.ViewModels;
 
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
@@ -7,7 +8,10 @@ using Kiln.Studio.Services;
 public partial class EditorViewModel : ViewModelBase
 {
     private readonly IContentService _contentService;
+    private readonly IContentFrontmatterWriter _frontmatterWriter;
+    private readonly ITaxonomyValueCache _taxonomyValueCache;
     private bool _suppressDirty;
+    private string? _projectPath;
 
     [ObservableProperty]
     private string? _filePath;
@@ -26,12 +30,19 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _body = "";
 
-    public EditorViewModel(IContentService contentService)
+    public ObservableCollection<TaxonomyFieldViewModel> TaxonomyFields { get; } = [];
+
+    public EditorViewModel(
+        IContentService contentService,
+        IContentFrontmatterWriter? frontmatterWriter = null,
+        ITaxonomyValueCache? taxonomyValueCache = null)
     {
         _contentService = contentService;
+        _frontmatterWriter = frontmatterWriter ?? new ContentFrontmatterWriter();
+        _taxonomyValueCache = taxonomyValueCache ?? new TaxonomyValueCache();
     }
 
-    public void Load(string filePath)
+    public void Load(string filePath, string? projectPath = null, IReadOnlyList<string>? taxonomyNames = null)
     {
         _suppressDirty = true;
         try
@@ -42,10 +53,31 @@ public partial class EditorViewModel : ViewModelBase
             Body = doc.Body;
             HasDocument = true;
             IsDirty = false;
+            _projectPath = projectPath;
+            LoadTaxonomyFields(filePath, projectPath, taxonomyNames ?? []);
         }
         finally
         {
             _suppressDirty = false;
+        }
+    }
+
+    private void LoadTaxonomyFields(string filePath, string? projectPath, IReadOnlyList<string> taxonomyNames)
+    {
+        TaxonomyFields.Clear();
+        foreach (var name in taxonomyNames)
+        {
+            var field = new TaxonomyFieldViewModel(name);
+            foreach (var value in _frontmatterWriter.GetTaxonomyValues(filePath, name))
+                field.Values.Add(value);
+
+            if (projectPath is not null)
+            {
+                foreach (var suggestion in _taxonomyValueCache.GetSuggestions(projectPath, name))
+                    field.Suggestions.Add(suggestion);
+            }
+
+            TaxonomyFields.Add(field);
         }
     }
 
@@ -59,6 +91,8 @@ public partial class EditorViewModel : ViewModelBase
             Body = "";
             HasDocument = false;
             IsDirty = false;
+            _projectPath = null;
+            TaxonomyFields.Clear();
         }
         finally
         {
@@ -84,7 +118,22 @@ public partial class EditorViewModel : ViewModelBase
         var filePath = FilePath!;
         var frontMatter = FrontMatter;
         var body = Body;
-        await Task.Run(() => _contentService.Save(filePath, frontMatter, body)).ConfigureAwait(true);
+        var projectPath = _projectPath;
+        var taxonomySnapshot = TaxonomyFields
+            .Select(f => (f.Name, Values: (IReadOnlyList<string>)f.Values.ToList()))
+            .ToList();
+
+        await Task.Run(() =>
+        {
+            _contentService.Save(filePath, frontMatter, body);
+            foreach (var (name, values) in taxonomySnapshot)
+            {
+                _frontmatterWriter.SetTaxonomyValues(filePath, name, values);
+                if (projectPath is not null && values.Count > 0)
+                    _taxonomyValueCache.AddValues(projectPath, name, values);
+            }
+        }).ConfigureAwait(true);
+
         IsDirty = false;
     }
 

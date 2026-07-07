@@ -132,7 +132,8 @@ public partial class ShellViewModel : ViewModelBase
         if (Editor.IsDirty)
             StatusMessage = "Unsaved changes were discarded.";
 
-        Editor.Load(Explorer.SelectedEntry.SourcePath);
+        var sourcePath = Explorer.SelectedEntry.SourcePath;
+        Editor.Load(sourcePath, CurrentProjectPath, Explorer.GetTaxonomiesForEntry(sourcePath));
     }
 
     [RelayCommand]
@@ -214,7 +215,7 @@ public partial class ShellViewModel : ViewModelBase
         {
             var path = await Task.Run(() => _contentService.CreatePage(contentDir, req.Title)).ConfigureAwait(true);
             await OpenPathAsync(CurrentProjectPath!).ConfigureAwait(true);
-            Editor.Load(path);
+            Editor.Load(path, CurrentProjectPath, collection.Taxonomies);
             StatusMessage = $"Created {Path.GetFileName(path)}";
         }
 #pragma warning disable CA1031

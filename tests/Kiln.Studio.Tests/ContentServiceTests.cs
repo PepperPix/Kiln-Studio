@@ -214,6 +214,7 @@ public class EditorViewModelTests
     private const string TestTitle = "Test Post";
     private const string InitialBody = "Hello world!";
     private const string ModifiedBody = "Updated body.";
+    private const int TwoTaxonomyFields = 2;
 
     [Test]
     public async Task Load_SetsPropertiesAndClearsDirty()
@@ -291,11 +292,112 @@ public class EditorViewModelTests
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task Load_WithTaxonomyNames_PopulatesFieldsFromWriterAndCache()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath,
+                $"---\ntitle: {TestTitle}\ntags:\n  - dotnet\n---\n\n{InitialBody}");
+
+            var frontmatterWriter = new ContentFrontmatterWriter();
+            var cache = new FakeTaxonomyValueCache();
+            cache.SuggestionsByTaxonomy["tags"] = ["dotnet", "kiln"];
+
+            var vm = new EditorViewModel(new ContentService(), frontmatterWriter, cache);
+            vm.Load(filePath, tempDir, ["tags", "categories"]);
+
+            await Assert.That(vm.TaxonomyFields.Count).IsEqualTo(TwoTaxonomyFields);
+
+            var tagsField = vm.TaxonomyFields.Single(f => f.Name == "tags");
+            await Assert.That(tagsField.Values).Contains("dotnet");
+            await Assert.That(tagsField.Suggestions).Contains("kiln");
+
+            var categoriesField = vm.TaxonomyFields.Single(f => f.Name == "categories");
+            await Assert.That(categoriesField.Values.Count).IsEqualTo(0);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task SaveAsync_WritesTaxonomyValues_ToFileAndCache()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath,
+                $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var frontmatterWriter = new ContentFrontmatterWriter();
+            var cache = new FakeTaxonomyValueCache();
+
+            var vm = new EditorViewModel(new ContentService(), frontmatterWriter, cache);
+            vm.Load(filePath, tempDir, ["tags"]);
+            vm.TaxonomyFields.Single(f => f.Name == "tags").Values.Add("newtag");
+
+            await vm.SaveCommand.ExecuteAsync(null);
+
+            var written = await File.ReadAllTextAsync(filePath);
+            await Assert.That(written).Contains("newtag");
+            await Assert.That(written).Contains(TestTitle);
+
+            var persisted = frontmatterWriter.GetTaxonomyValues(filePath, "tags");
+            await Assert.That(persisted).Contains("newtag");
+
+            await Assert.That(cache.AddValuesCalls.Count).IsEqualTo(1);
+            await Assert.That(cache.AddValuesCalls[0].TaxonomyName).IsEqualTo("tags");
+            await Assert.That(cache.AddValuesCalls[0].Values).Contains("newtag");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task RemoveTaxonomyValue_ThenSave_RemovesItFromFile()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath,
+                $"---\ntitle: {TestTitle}\ntags:\n  - keep\n  - remove-me\n---\n\n{InitialBody}");
+
+            var frontmatterWriter = new ContentFrontmatterWriter();
+            var vm = new EditorViewModel(new ContentService(), frontmatterWriter, new FakeTaxonomyValueCache());
+            vm.Load(filePath, tempDir, ["tags"]);
+
+            var tagsField = vm.TaxonomyFields.Single(f => f.Name == "tags");
+            tagsField.Values.Remove("remove-me");
+
+            await vm.SaveCommand.ExecuteAsync(null);
+
+            var persisted = frontmatterWriter.GetTaxonomyValues(filePath, "tags");
+            await Assert.That(persisted).Contains("keep");
+            await Assert.That(persisted).DoesNotContain("remove-me");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
 
 public class ShellViewModelEditorTests
 {
     private const string NewPostTitle = "My New Post";
+    private const int TwoTaxonomyFields = 2;
 
     [Test]
     public async Task NewPageAsync_CreatesFileAndOpensInEditor()
@@ -442,6 +544,67 @@ public class ShellViewModelEditorTests
 
             await Assert.That(editor.HasDocument).IsTrue();
             await Assert.That(editor.FilePath).IsEqualTo(firstEntry.SourcePath);
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task SelectionChange_PopulatesTaxonomyFieldsWithCrossItemAutocompleteSuggestions()
+    {
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        try
+        {
+            var host = new EngineHost();
+            using var scaffoldProvider = host.CreateProvider(tempParent);
+            var scaffolder = scaffoldProvider.GetRequiredService<IScaffolder>();
+            var scaffoldResult = scaffolder.CreateSite("taxonomy-test-site", tempParent);
+            var projectPath = scaffoldResult.ProjectPath;
+
+            var explorer = new ProjectExplorerViewModel();
+            var editor = new EditorViewModel(new ContentService(), new ContentFrontmatterWriter(), new TaxonomyValueCache());
+#pragma warning disable S107
+            var vm = new ShellViewModel(
+                new ProjectService(new EngineHost()),
+                new FixedFolderPicker(projectPath),
+                new NullInputDialog(),
+                new RecentProjectsStore(storeDir),
+                new ContentService(),
+                new NullNewPageDialog(),
+                explorer,
+                editor,
+                new FakePreviewServer(),
+                new FakeBrowserLauncher(),
+                new PreviewViewModel(),
+                new FakeBuildService(),
+                new FakeDeploymentService(),
+                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+#pragma warning restore S107
+
+            await vm.OpenProjectCommand.ExecuteAsync(null);
+
+            var postsCollection = explorer.Collections.FirstOrDefault(c => c.Name == "posts");
+            await Assert.That(postsCollection).IsNotNull();
+
+            // Every demo post has its own "tags"/"categories" values, but the taxonomy value
+            // cache built at project-open time aggregates values from ALL posts. Selecting any
+            // single post should therefore see MORE suggestions than its own tag count — proving
+            // autocomplete surfaces values used elsewhere in the project, not just the current item.
+            var entry = postsCollection!.FilteredEntries[0];
+            explorer.SelectedEntry = entry;
+
+            await Assert.That(editor.TaxonomyFields.Count).IsEqualTo(TwoTaxonomyFields);
+            var tagsField = editor.TaxonomyFields.Single(f => f.Name == "tags");
+
+            await Assert.That(tagsField.Suggestions.Count).IsGreaterThan(tagsField.Values.Count);
+            foreach (var ownValue in tagsField.Values)
+                await Assert.That(tagsField.Suggestions).Contains(ownValue);
         }
         finally
         {

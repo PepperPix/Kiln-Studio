@@ -1,7 +1,7 @@
 root = true
 
 # Avalonia framework classes inherit deep framework hierarchies by design.
-[src/Kiln.Studio/Views/*.axaml.cs]
+[src/Kiln.Studio/{Views,Controls}/*.axaml.cs]
 dotnet_diagnostic.CA1501.severity = none
 
 # Avalonia XAML code-behind types require partial for generated companion types.

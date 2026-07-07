@@ -18,7 +18,8 @@ public sealed class ContentCollectionViewModelTests
                 new ContentEntry("Gamma Draft", GammaPath, true, null),
                 new ContentEntry("Delta Final", "/posts/delta.md", false, new DateTime(2026, 3, 20)),
             ],
-            "/tmp/content");
+            "/tmp/content",
+            ["tags"]);
         return new ContentCollectionViewModel(dto);
     }
 
