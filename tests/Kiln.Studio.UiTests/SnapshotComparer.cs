@@ -135,7 +135,25 @@ internal static class SnapshotComparer
         byte[] actualBytes = new byte[bufSize];
         byte[] baselineBytes = new byte[bufSize];
 
-        ExtractPixels(actual, actualBytes, width, height, stride);
+        // Decode the freshly-rendered frame through the same PNG round-trip as the baseline
+        // (save to a temp file, then load via `new Bitmap(stream)`) instead of extracting pixels
+        // directly from the in-memory WriteableBitmap. Bitmap.CopyPixels on a file-decoded Bitmap
+        // was observed (Windows CI, 2026-07-07) to not consistently normalize to Bgra8888 the same
+        // way a native in-memory WriteableBitmap does, which made every comparison report a
+        // near-100% pixel mismatch despite the two PNGs being byte-identical once decoded. Routing
+        // both sides through the identical decode path cancels out that platform-specific quirk.
+        var tempActualPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.png");
+        try
+        {
+            SaveBitmap(actual, tempActualPath);
+            using var actualStream = File.OpenRead(tempActualPath);
+            using var actualDecoded = new Bitmap(actualStream);
+            ExtractPixels(actualDecoded, actualBytes, width, height, stride);
+        }
+        finally
+        {
+            File.Delete(tempActualPath);
+        }
 
         using var baselineStream = File.OpenRead(baselinePath);
         using var baseline = new Bitmap(baselineStream);
