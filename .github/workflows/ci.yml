@@ -41,3 +41,27 @@ jobs:
           name: snapshots-${{ matrix.os }}
           path: tests/Kiln.Studio.UiTests/Snapshots/
           if-no-files-found: ignore
+
+  inspectcode:
+    name: InspectCode (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Restore
+        run: dotnet restore --locked-mode
+
+      - name: InspectCode
+        run: |
+          dotnet tool install -g JetBrains.ReSharper.GlobalTools
+          jb inspectcode KilnStudio.slnx -e=WARNING -f=Text -o=inspect.txt
+          cat inspect.txt
+

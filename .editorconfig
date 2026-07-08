@@ -1,5 +1,13 @@
 root = true
 
+[*.cs]
+# ── ReSharper / InspectCode suppressions (see ADR-048) ──
+# Deliberate flat namespace convention regardless of folder nesting (e.g. Dto/, TestDoubles/, Vendor/).
+resharper_check_namespace_highlighting = none
+# Cosmetic only — kept as IDE hint, below the WARNING gate threshold
+resharper_redundant_name_qualifier_highlighting = suggestion
+resharper_redundant_using_directive_highlighting = suggestion
+
 # Avalonia framework classes inherit deep framework hierarchies by design.
 [src/Kiln.Studio/{Views,Controls}/*.axaml.cs]
 dotnet_diagnostic.CA1501.severity = none
@@ -7,6 +15,39 @@ dotnet_diagnostic.CA1501.severity = none
 # Avalonia XAML code-behind types require partial for generated companion types.
 [src/Kiln.Studio/App.axaml.cs]
 dotnet_diagnostic.S2333.severity = none
+resharper_partial_type_with_single_part_highlighting = none
+
+# XAML resource names deliberately follow the project-wide XS/SM/MD/LG/XL size-scale convention
+# (SpacingXS, FontSizeXL, ...) used throughout Tokens.axaml/Controls.axaml — renaming to Xs/Xl per
+# ReSharper's default XAML naming rule would break consistency with the rest of the scale.
+[src/Kiln.Studio/Styles/Tokens.axaml]
+resharper_inconsistent_naming_highlighting = none
+
+# Public DTOs are populated via mapping/deserialization and consumed by templates or future UI;
+# not every accessor is read directly by current code (mirrors Kiln's Models/*.cs rationale).
+[src/Kiln.Studio.Services/Dto/*.cs]
+resharper_unused_auto_property_accessor_global_highlighting = none
+resharper_not_accessed_positional_property_global_highlighting = none
+
+# Same rationale as Dto/*.cs — positional records populated via mapping, some members only used
+# via Equals/ToString today.
+[src/Kiln.Studio.Services/{ContentDocument,RecentProject}.cs]
+resharper_not_accessed_positional_property_global_highlighting = none
+
+# CommunityToolkit.Mvvm's [ObservableProperty] generates partial On<Prop>Changed(T value) hooks;
+# implementations that only trigger side effects (e.g. OnPropertyChanged(nameof(...)) for a
+# dependent computed property) legitimately don't reference the `value` parameter.
+[src/Kiln.Studio.ViewModels/*.cs]
+resharper_unused_parameter_in_partial_method_highlighting = none
+
+# Date is populated from ContentEntry for future/consistency purposes (mirrors Dto rationale above);
+# not yet consumed by a view.
+[src/Kiln.Studio.ViewModels/ContentEntryViewModel.cs]
+resharper_unused_auto_property_accessor_global_highlighting = none
+
+# Test doubles expose "LastXxx" spy properties consumed only by some call sites/tests.
+[tests/Kiln.Studio.TestSupport/TestDoubles/*.cs]
+resharper_unused_auto_property_accessor_global_highlighting = none
 
 # Vendored third-party files: suppress all analyzer diagnostics verbatim.
 [tests/Kiln.Studio.UiTests/Vendor/**]
@@ -17,3 +58,7 @@ dotnet_diagnostic.VSTHRD003.severity = none
 dotnet_diagnostic.S108.severity = none
 dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA2016.severity = none
+resharper_check_namespace_highlighting = none
+resharper_redundant_using_directive_highlighting = none
+resharper_inconsistent_naming_highlighting = none
+resharper_inheritdoc_invalid_usage_highlighting = none
