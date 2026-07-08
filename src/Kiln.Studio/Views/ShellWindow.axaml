@@ -168,8 +168,7 @@
 
         <Grid>
             <!-- Welcome view (no project open) -->
-            <views:WelcomeView IsVisible="{Binding !IsProjectOpen}"
-                               DataContext="{Binding}" />
+            <views:WelcomeView IsVisible="{Binding !IsProjectOpen}" />
 
             <!-- Three-pane content area (project open) -->
             <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">

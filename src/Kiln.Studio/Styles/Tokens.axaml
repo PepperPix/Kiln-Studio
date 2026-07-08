@@ -101,6 +101,12 @@
         <Setter Property="BorderThickness" Value="0,1,0,0" />
     </Style>
 
+    <Style Selector="Border.settings-section">
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="0,8,0,0" />
+    </Style>
+
     <!-- TextBlock helpers -->
     <Style Selector="TextBlock.muted">
         <Setter Property="Foreground" Value="{StaticResource KilnTextMutedBrush}" />

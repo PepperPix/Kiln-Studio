@@ -33,7 +33,7 @@ public sealed class ContentFrontmatterWriter : IContentFrontmatterWriter
         }
         else
         {
-            newContent = $"---\ndraft: {boolToString(draft)}\n---\n" + content;
+            newContent = $"---\ndraft: {BoolToString(draft)}\n---\n" + content;
         }
 
         File.WriteAllText(sourcePath, newContent);
@@ -224,7 +224,7 @@ public sealed class ContentFrontmatterWriter : IContentFrontmatterWriter
             var stream = new YamlStream();
             stream.Load(new StringReader(fmText));
 
-            if (stream.Documents.Count == 0 || stream.Documents[0].RootNode is null)
+            if (stream.Documents.Count == 0)
                 return new YamlMappingNode();
 
             if (stream.Documents[0].RootNode is YamlMappingNode mapping)
@@ -253,5 +253,5 @@ public sealed class ContentFrontmatterWriter : IContentFrontmatterWriter
         return yaml.Length > 0 ? yaml + "\n" : "\n";
     }
 
-    private static string boolToString(bool value) => value ? "true" : "false";
+    private static string BoolToString(bool value) => value ? "true" : "false";
 }
