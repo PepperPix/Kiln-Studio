@@ -54,6 +54,18 @@
           "Avalonia": "12.0.5"
         }
       },
+      "AvaloniaEdit.TextMate": {
+        "type": "Direct",
+        "requested": "[12.*, )",
+        "resolved": "12.0.0",
+        "contentHash": "FArIpBB2zcraoYqQIPNkevviNtuzKrA5tEVAAE03PboZMy2recf4TJEXk1BfCw7Oo4fBBh7srUqOdK5RNSUNrg==",
+        "dependencies": {
+          "Avalonia": "12.0.0",
+          "Avalonia.AvaloniaEdit": "12.0.0",
+          "TextMateSharp": "2.0.3",
+          "TextMateSharp.Grammars": "2.0.3"
+        }
+      },
       "CommunityToolkit.Mvvm": {
         "type": "Direct",
         "requested": "[8.*, )",
@@ -89,6 +101,15 @@
         "dependencies": {
           "Microsoft.VisualStudio.Threading.Analyzers": "17.14.15",
           "SonarAnalyzer.CSharp": "10.16.0.128591"
+        }
+      },
+      "TextMateSharp.Grammars": {
+        "type": "Direct",
+        "requested": "[2.*, )",
+        "resolved": "2.0.4",
+        "contentHash": "jzOY00q5u5Vs4L9n2m2PnRZDGwWt2uwkOLh7qlVdCx1kkGSn5eaW5XgnYCyTzEbsCwLV2xlEolnNkr/wuIMAbA==",
+        "dependencies": {
+          "TextMateSharp": "2.0.4"
         }
       },
       "AngleSharp": {
@@ -337,6 +358,11 @@
         "resolved": "1.21.17",
         "contentHash": "K2ywYpoPEvU3+Ooq6wxz+FJOkmbDeoE41q/sJZWv9tI7qbTmH2A5R0E4hWzruvl/9pnUhqwbu1mxT06C45D0ZQ=="
       },
+      "Onigwrap": {
+        "type": "Transitive",
+        "resolved": "1.0.11",
+        "contentHash": "5/WAxSYWfiiPzp1X13qqdqjFmYLKDD/U7Vh3WCkKxWG9BjqdrXnQE5fCKCFJX+xWvuYLTxwZIVWBwBWObViE8g=="
+      },
       "Scriban": {
         "type": "Transitive",
         "resolved": "7.2.5",
@@ -421,6 +447,14 @@
           "ShimSkiaSharp": "4.1.0",
           "Svg.Custom": "4.1.0",
           "Svg.Model": "4.1.0"
+        }
+      },
+      "TextMateSharp": {
+        "type": "Transitive",
+        "resolved": "2.0.4",
+        "contentHash": "5Pvn+A4zb1IF+ACAVhgw1aGf9kTyx6j7v5hdup7nCS89Nzby8KQAlCfQ54VC/GAsEoQwh4zKa5MKlAaql8nkPg==",
+        "dependencies": {
+          "Onigwrap": "1.0.11"
         }
       },
       "Tmds.DBus.Protocol": {

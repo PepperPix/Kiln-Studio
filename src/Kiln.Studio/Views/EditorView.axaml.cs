@@ -3,7 +3,9 @@ namespace Kiln.Studio.Views;
 using System.ComponentModel;
 using Avalonia.Controls;
 using AvaloniaEdit;
+using AvaloniaEdit.TextMate;
 using Kiln.Studio.ViewModels;
+using TextMateSharp.Grammars;
 
 public partial class EditorView : UserControl
 {
@@ -15,6 +17,14 @@ public partial class EditorView : UserControl
         InitializeComponent();
         BodyEditor.TextChanged += OnBodyEditorTextChanged;
         DataContextChanged += OnDataContextChanged;
+        InstallMarkdownSyntaxHighlighting();
+    }
+
+    private void InstallMarkdownSyntaxHighlighting()
+    {
+        var registryOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var installation = TextMate.InstallTextMate(BodyEditor, registryOptions);
+        installation.SetGrammar(registryOptions.GetScopeByExtension(".md"));
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
