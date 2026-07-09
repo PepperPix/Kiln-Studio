@@ -215,6 +215,9 @@ public class EditorViewModelTests
     private const string InitialBody = "Hello world!";
     private const string ModifiedBody = "Updated body.";
     private const int TwoTaxonomyFields = 2;
+    private const int ExpectedDateYear = 2026;
+    private const int ExpectedDateMonth = 7;
+    private const int ExpectedDateDay = 9;
 
     [Test]
     public async Task Load_SetsPropertiesAndClearsDirty()
@@ -233,8 +236,114 @@ public class EditorViewModelTests
             await Assert.That(vm.HasDocument).IsTrue();
             await Assert.That(vm.IsDirty).IsFalse();
             await Assert.That(vm.FilePath).IsEqualTo(filePath);
-            await Assert.That(vm.FrontMatter).Contains(TestTitle);
+            await Assert.That(vm.Title).IsEqualTo(TestTitle);
+            await Assert.That(vm.FrontMatter).DoesNotContain("title");
             await Assert.That(vm.Body).Contains(InitialBody);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task Load_PopulatesScalarFields_AndStripsOwnedKeysFromFrontMatter()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath,
+                $"---\ntitle: {TestTitle}\ndate: 2026-07-09\ndescription: A short summary\n" +
+                "tags:\n  - dotnet\ncategories:\n  - news\nid: abc123\ndraft: false\n" +
+                $"---\n\n{InitialBody}");
+
+            var vm = new EditorViewModel(new ContentService(), new ContentFrontmatterWriter(), new FakeTaxonomyValueCache());
+            vm.Load(filePath, tempDir, ["tags", "categories"]);
+
+            await Assert.That(vm.Title).IsEqualTo(TestTitle);
+            await Assert.That(vm.Date).IsNotNull();
+            await Assert.That(vm.Date!.Value.Year).IsEqualTo(ExpectedDateYear);
+            await Assert.That(vm.Date!.Value.Month).IsEqualTo(ExpectedDateMonth);
+            await Assert.That(vm.Date!.Value.Day).IsEqualTo(ExpectedDateDay);
+            await Assert.That(vm.Description).IsEqualTo("A short summary");
+
+            await Assert.That(vm.FrontMatter).DoesNotContain("title");
+            await Assert.That(vm.FrontMatter).DoesNotContain("date");
+            await Assert.That(vm.FrontMatter).DoesNotContain("description");
+            await Assert.That(vm.FrontMatter).DoesNotContain("tags");
+            await Assert.That(vm.FrontMatter).DoesNotContain("categories");
+            await Assert.That(vm.FrontMatter).Contains("id: abc123");
+            await Assert.That(vm.FrontMatter).Contains("draft: false");
+            await Assert.That(vm.IsDirty).IsFalse();
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task SaveAsync_WritesScalarFields_ToFile()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var frontmatterWriter = new ContentFrontmatterWriter();
+            var vm = new EditorViewModel(new ContentService(), frontmatterWriter, new FakeTaxonomyValueCache());
+            vm.Load(filePath, tempDir, ["tags"]);
+
+            vm.Title = "Updated Title";
+            vm.Date = new DateTimeOffset(2026, 3, 15, 0, 0, 0, TimeSpan.Zero);
+            vm.Description = "Updated description";
+            vm.TaxonomyFields.Single(f => f.Name == "tags").Values.Add("kiln");
+
+            await vm.SaveCommand.ExecuteAsync(null);
+
+            var written = await File.ReadAllTextAsync(filePath);
+            await Assert.That(written).Contains("title: Updated Title");
+            await Assert.That(written).Contains("date: 2026-03-15");
+            await Assert.That(written).Contains("description: Updated description");
+            await Assert.That(written).Contains("kiln");
+
+            await Assert.That(frontmatterWriter.GetScalarValue(filePath, "title")).IsEqualTo("Updated Title");
+            await Assert.That(frontmatterWriter.GetScalarValue(filePath, "date")).IsEqualTo("2026-03-15");
+            await Assert.That(frontmatterWriter.GetScalarValue(filePath, "description")).IsEqualTo("Updated description");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task TitleChange_MarksDocumentDirtyAndEnablesSave()
+    {
+        // Regression test analogous to AddTaxonomyValue_MarksDocumentDirtyAndEnablesSave: structured
+        // scalar fields must mark the document dirty too, otherwise SaveCommand.CanExecute stays
+        // false and the change is silently lost.
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var vm = new EditorViewModel(new ContentService());
+            vm.Load(filePath);
+
+            await Assert.That(vm.IsDirty).IsFalse();
+            await Assert.That(vm.SaveCommand.CanExecute(null)).IsFalse();
+
+            vm.Title = "Neu";
+
+            await Assert.That(vm.IsDirty).IsTrue();
+            await Assert.That(vm.SaveCommand.CanExecute(null)).IsTrue();
         }
         finally
         {
@@ -475,7 +584,7 @@ public class ShellViewModelEditorTests
 
             await Assert.That(editor.HasDocument).IsTrue();
             await Assert.That(editor.FilePath).IsNotNull();
-            await Assert.That(editor.FrontMatter).Contains(NewPostTitle);
+            await Assert.That(editor.Title).IsEqualTo(NewPostTitle);
 
             var postsCollection = explorer.Collections.FirstOrDefault(c => c.Name == "posts");
             await Assert.That(postsCollection).IsNotNull();

@@ -2,12 +2,15 @@ namespace Kiln.Studio.ViewModels;
 
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
 
 public partial class EditorViewModel : ViewModelBase
 {
+    private static readonly string[] ScalarOwnedKeys = ["title", "date", "description"];
+
     private readonly IContentService _contentService;
     private readonly IContentFrontmatterWriter _frontmatterWriter;
     private readonly ITaxonomyValueCache _taxonomyValueCache;
@@ -31,6 +34,15 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _body = "";
 
+    [ObservableProperty]
+    private string _title = "";
+
+    [ObservableProperty]
+    private DateTimeOffset? _date;
+
+    [ObservableProperty]
+    private string _description = "";
+
     public ObservableCollection<TaxonomyFieldViewModel> TaxonomyFields { get; } = [];
 
     public EditorViewModel(
@@ -49,18 +61,39 @@ public partial class EditorViewModel : ViewModelBase
         try
         {
             var doc = _contentService.Load(filePath);
+            var names = taxonomyNames ?? [];
             FilePath = filePath;
-            FrontMatter = doc.FrontMatter;
+            FrontMatter = _frontmatterWriter.RemoveOwnedKeys(doc.FrontMatter, BuildOwnedKeys(names));
             Body = doc.Body;
+            Title = _frontmatterWriter.GetScalarValue(filePath, "title") ?? "";
+            Date = ParseDate(_frontmatterWriter.GetScalarValue(filePath, "date"));
+            Description = _frontmatterWriter.GetScalarValue(filePath, "description") ?? "";
             HasDocument = true;
             IsDirty = false;
             _projectPath = projectPath;
-            LoadTaxonomyFields(filePath, projectPath, taxonomyNames ?? []);
+            LoadTaxonomyFields(filePath, projectPath, names);
         }
         finally
         {
             _suppressDirty = false;
         }
+    }
+
+    private static List<string> BuildOwnedKeys(IReadOnlyList<string> taxonomyNames)
+    {
+        var keys = new List<string>(ScalarOwnedKeys);
+        keys.AddRange(taxonomyNames);
+        return keys;
+    }
+
+    private static DateTimeOffset? ParseDate(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed
+            : null;
     }
 
     private void LoadTaxonomyFields(string filePath, string? projectPath, IReadOnlyList<string> taxonomyNames)
@@ -99,6 +132,9 @@ public partial class EditorViewModel : ViewModelBase
             FilePath = null;
             FrontMatter = "";
             Body = "";
+            Title = "";
+            Date = null;
+            Description = "";
             HasDocument = false;
             IsDirty = false;
             _projectPath = null;
@@ -122,12 +158,33 @@ public partial class EditorViewModel : ViewModelBase
             IsDirty = true;
     }
 
+    partial void OnTitleChanged(string value)
+    {
+        if (!_suppressDirty)
+            IsDirty = true;
+    }
+
+    partial void OnDateChanged(DateTimeOffset? value)
+    {
+        if (!_suppressDirty)
+            IsDirty = true;
+    }
+
+    partial void OnDescriptionChanged(string value)
+    {
+        if (!_suppressDirty)
+            IsDirty = true;
+    }
+
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
         var filePath = FilePath!;
         var frontMatter = FrontMatter;
         var body = Body;
+        var title = Title;
+        var date = Date;
+        var description = Description;
         var projectPath = _projectPath;
         var taxonomySnapshot = TaxonomyFields
             .Select(f => (f.Name, Values: (IReadOnlyList<string>)f.Values.ToList()))
@@ -136,6 +193,9 @@ public partial class EditorViewModel : ViewModelBase
         await Task.Run(() =>
         {
             _contentService.Save(filePath, frontMatter, body);
+            _frontmatterWriter.SetScalarValue(filePath, "title", title);
+            _frontmatterWriter.SetScalarValue(filePath, "date", date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            _frontmatterWriter.SetScalarValue(filePath, "description", description);
             foreach (var (name, values) in taxonomySnapshot)
             {
                 _frontmatterWriter.SetTaxonomyValues(filePath, name, values);

@@ -16,10 +16,21 @@
 
         <!-- Editor area when document is loaded -->
         <Grid IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,Auto,4,*">
+              RowDefinitions="Auto,Auto,Auto,4,*">
+
+            <!-- Structured frontmatter fields: title / date / description -->
+            <StackPanel Grid.Row="0" Spacing="{StaticResource SpacingXS}" Margin="8,6">
+                <TextBox Text="{Binding Title}" PlaceholderText="Title" />
+                <DatePicker SelectedDate="{Binding Date}" />
+                <TextBox Text="{Binding Description}"
+                         PlaceholderText="Description"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="60" />
+            </StackPanel>
 
             <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
-            <ItemsControl Grid.Row="0"
+            <ItemsControl Grid.Row="1"
                           ItemsSource="{Binding TaxonomyFields}"
                           Padding="8,6">
                 <ItemsControl.ItemTemplate>
@@ -32,23 +43,26 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- Frontmatter TextBox -->
-            <TextBox Grid.Row="1"
-                     x:Name="FrontMatterBox"
-                     Text="{Binding FrontMatter}"
-                     AcceptsReturn="True"
-                     Height="120"
-                     Classes="monospace"
-                     BorderThickness="0,0,0,1"
-                     CornerRadius="0"
-                     Padding="8,6"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     TextWrapping="NoWrap" />
+            <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
+                 editable when expanded; owned keys (title/date/description/taxonomies) are
+                 stripped from FrontMatter so they only ever appear in the structured fields above. -->
+            <Expander Grid.Row="2" Header="Raw frontmatter (advanced)" IsExpanded="False">
+                <TextBox x:Name="FrontMatterBox"
+                         Text="{Binding FrontMatter}"
+                         AcceptsReturn="True"
+                         Height="120"
+                         Classes="monospace"
+                         BorderThickness="0,0,0,1"
+                         CornerRadius="0"
+                         Padding="8,6"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         TextWrapping="NoWrap" />
+            </Expander>
 
-            <GridSplitter Grid.Row="2" ResizeDirection="Rows" />
+            <GridSplitter Grid.Row="3" ResizeDirection="Rows" />
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="3"
+            <aedit:TextEditor Grid.Row="4"
                               x:Name="BodyEditor"
                               FontFamily="Menlo,Consolas,Courier New,monospace"
                               FontSize="{StaticResource FontSizeXS}"

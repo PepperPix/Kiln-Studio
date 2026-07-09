@@ -322,4 +322,179 @@ public sealed class ContentFrontmatterWriterTests
             if (File.Exists(path)) File.Delete(path);
         }
     }
+
+    [Test]
+    public async Task GetScalarValue_ExistingKey_ReturnsValue()
+    {
+        var path = CreateTempFile("---\ntitle: Hello World\ndraft: false\n---\nBody");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            var value = writer.GetScalarValue(path, "title");
+
+            await Assert.That(value).IsEqualTo("Hello World");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task GetScalarValue_MissingKey_ReturnsNull()
+    {
+        var path = CreateTempFile("---\ntitle: Hello World\n---\nBody");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            var value = writer.GetScalarValue(path, "description");
+
+            await Assert.That(value).IsNull();
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task GetScalarValue_NoFrontmatter_ReturnsNull()
+    {
+        var path = CreateTempFile("Just body content.");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            var value = writer.GetScalarValue(path, "title");
+
+            await Assert.That(value).IsNull();
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task SetScalarValue_AddsKey_PreservesOtherFields()
+    {
+        var path = CreateTempFile("---\ndraft: false\n---\nBody content");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            writer.SetScalarValue(path, "title", "Foo: Bar");
+
+            var content = await File.ReadAllTextAsync(path);
+            await Assert.That(content).Contains("draft: false");
+            await Assert.That(content).Contains("title:");
+            await Assert.That(content).Contains("Foo: Bar");
+            await Assert.That(content).Contains("Body content");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task SetScalarValue_UpdatesExistingKey()
+    {
+        var path = CreateTempFile("---\ntitle: Old Title\n---\nBody");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            writer.SetScalarValue(path, "title", "New Title");
+
+            var content = await File.ReadAllTextAsync(path);
+            await Assert.That(content).Contains("title: New Title");
+            await Assert.That(content).DoesNotContain("Old Title");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task SetScalarValue_NullOrEmpty_RemovesKey()
+    {
+        var path = CreateTempFile("---\ntitle: Test\ndescription: Some text\n---\nBody");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            writer.SetScalarValue(path, "description", null);
+
+            var content = await File.ReadAllTextAsync(path);
+            await Assert.That(content).DoesNotContain("description");
+            await Assert.That(content).Contains("title: Test");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task SetScalarValue_RoundTrip_ViaGetScalarValue()
+    {
+        var path = CreateTempFile("---\ntitle: Test\n---\nBody");
+        try
+        {
+            var writer = new ContentFrontmatterWriter();
+            writer.SetScalarValue(path, "date", "2026-07-09");
+
+            var value = writer.GetScalarValue(path, "date");
+
+            await Assert.That(value).IsEqualTo("2026-07-09");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task RemoveOwnedKeys_RemovesGivenKeys_PreservesRest()
+    {
+        var writer = new ContentFrontmatterWriter();
+
+        var result = writer.RemoveOwnedKeys(
+            "title: Hello\ndate: 2026-07-09\ndescription: Some text\nid: abc123\ndraft: false\n",
+            ["title", "date", "description"]);
+
+        await Assert.That(result).DoesNotContain("title");
+        await Assert.That(result).DoesNotContain("date");
+        await Assert.That(result).DoesNotContain("description");
+        await Assert.That(result).Contains("id: abc123");
+        await Assert.That(result).Contains("draft: false");
+    }
+
+    [Test]
+    public async Task RemoveOwnedKeys_AllKeysRemoved_ReturnsEmptyString()
+    {
+        var writer = new ContentFrontmatterWriter();
+
+        var result = writer.RemoveOwnedKeys("title: Hello\ndate: 2026-07-09\n", ["title", "date"]);
+
+        await Assert.That(result).IsEqualTo("");
+    }
+
+    [Test]
+    public async Task RemoveOwnedKeys_EmptyInput_ReturnsEmptyString()
+    {
+        var writer = new ContentFrontmatterWriter();
+
+        var result = writer.RemoveOwnedKeys("", ["title"]);
+
+        await Assert.That(result).IsEqualTo("");
+    }
+
+    [Test]
+    public async Task RemoveOwnedKeys_KeyNotPresent_LeavesTextIntact()
+    {
+        var writer = new ContentFrontmatterWriter();
+
+        var result = writer.RemoveOwnedKeys("draft: false\n", ["title", "date", "description"]);
+
+        await Assert.That(result).Contains("draft: false");
+    }
 }
