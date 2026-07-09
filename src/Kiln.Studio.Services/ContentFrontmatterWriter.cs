@@ -140,6 +140,83 @@ public sealed class ContentFrontmatterWriter : IContentFrontmatterWriter
         File.WriteAllText(sourcePath, newContent);
     }
 
+    public string? GetScalarValue(string sourcePath, string key)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        if (!File.Exists(sourcePath))
+            throw new ContentWriteException($"File not found: {sourcePath}");
+
+        var content = File.ReadAllText(sourcePath);
+        var (fmText, _, fmType) = ParseFrontmatter(content);
+
+        if (fmType != FrontmatterType.Yaml || fmText is null)
+            return null;
+
+        var root = ParseMapping(fmText);
+        if (!root.Children.TryGetValue(new YamlScalarNode(key), out var node))
+            return null;
+
+        return node is YamlScalarNode { Value: { Length: > 0 } value } ? value : null;
+    }
+
+    public void SetScalarValue(string sourcePath, string key, string? value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        if (!File.Exists(sourcePath))
+            throw new ContentWriteException($"File not found: {sourcePath}");
+
+        var content = File.ReadAllText(sourcePath);
+        var (fmText, body, fmType) = ParseFrontmatter(content);
+
+        if (fmType == FrontmatterType.Toml)
+            throw new ContentWriteException("TOML front matter is not supported.");
+
+        if (fmType == FrontmatterType.None && string.IsNullOrEmpty(value))
+            return;
+
+        var root = ParseMapping(fmText);
+        var keyNode = new YamlScalarNode(key);
+
+        if (string.IsNullOrEmpty(value))
+        {
+            root.Children.Remove(keyNode);
+        }
+        else
+        {
+            root.Children[keyNode] = new YamlScalarNode(value);
+        }
+
+        using var sw = new StringWriter();
+        new YamlStream(new YamlDocument(root)).Save(sw, assignAnchors: false);
+        var emitted = NormalizeEmitted(sw.ToString());
+
+        var newContent = "---\n" + emitted + "---\n" + body;
+        File.WriteAllText(sourcePath, newContent);
+    }
+
+    public string RemoveOwnedKeys(string frontMatterText, IReadOnlyCollection<string> keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+
+        if (string.IsNullOrEmpty(frontMatterText))
+            return frontMatterText;
+
+        var root = ParseMapping(frontMatterText);
+        foreach (var key in keys)
+            root.Children.Remove(new YamlScalarNode(key));
+
+        if (root.Children.Count == 0)
+            return string.Empty;
+
+        using var sw = new StringWriter();
+        new YamlStream(new YamlDocument(root)).Save(sw, assignAnchors: false);
+        return NormalizeEmitted(sw.ToString());
+    }
+
     private enum FrontmatterType { None, Yaml, Toml }
 
     private static (string? fmText, string body, FrontmatterType type) ParseFrontmatter(string content)

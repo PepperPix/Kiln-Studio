@@ -27,4 +27,14 @@ public sealed class FakeContentFrontmatterWriter : IContentFrontmatterWriter
 
     public void SetTaxonomyValues(string sourcePath, string taxonomyName, IReadOnlyList<string> values) =>
         StoredTaxonomyValues[taxonomyName] = values;
+
+    public Dictionary<string, string?> StoredScalarValues { get; } = [];
+
+    public string? GetScalarValue(string sourcePath, string key) =>
+        StoredScalarValues.TryGetValue(key, out var value) ? value : null;
+
+    public void SetScalarValue(string sourcePath, string key, string? value) =>
+        StoredScalarValues[key] = value;
+
+    public string RemoveOwnedKeys(string frontMatterText, IReadOnlyCollection<string> keys) => frontMatterText;
 }
