@@ -27,6 +27,7 @@ using Kiln.Studio.Views;
 public sealed class ExploratoryTourUiTests
 {
     private const int ManyPostsCount = 90;
+    private const int SearchDebounceSettleDelayMs = 400;
 
     [Test]
     public async Task Tour_ManyPosts_CapturesKeyStates()
@@ -87,10 +88,21 @@ public sealed class ExploratoryTourUiTests
             var topLevelContainers = TryExpandAllTreeViewItems(window);
             Capture(window, reviewDir, $"02_shell_expanded_posts_containers-{topLevelContainers}");
 
-            // 3) Search-as-you-type against the full 90-post list (no debounce — see review notes).
+            // 3) Search-as-you-type against the full 90-post list. ProjectExplorerViewModel now
+            //    debounces SearchText (~250ms default) before re-applying the filter, so wait for
+            //    the debounce window to elapse before capturing the filtered/cleared states.
             explorer.SearchText = "post 7";
+            await Task.Delay(SearchDebounceSettleDelayMs);
             Capture(window, reviewDir, "03_shell_search_filtered");
+
+            // 3b) Isolate the deliberately overlong-titled post (seeded as post-001.md) to visually
+            //     confirm CharacterEllipsis truncation on a real worst-case title.
+            explorer.SearchText = "extraordinarily";
+            await Task.Delay(SearchDebounceSettleDelayMs);
+            Capture(window, reviewDir, "03b_shell_long_title_ellipsis");
+
             explorer.SearchText = null;
+            await Task.Delay(SearchDebounceSettleDelayMs);
 
             // 4) Select an entry directly (equivalent to clicking a row) to load the editor + preview.
             var firstPost = explorer.Collections.First(c => c.Name == "posts").FilteredEntries.First();
@@ -118,9 +130,15 @@ public sealed class ExploratoryTourUiTests
         {
             var isDraft = i % 5 == 0;
             var date = baseDate.AddDays(i);
+            // Post 1 gets a deliberately overlong title so the review screenshots can visually
+            // confirm the entry-title CharacterEllipsis truncation (and its ToolTip) actually work.
+            var title = i == 1
+                ? $"Post {i}: an extraordinarily long title crafted specifically to overflow the " +
+                  "content explorer column width and force visible character ellipsis truncation"
+                : $"Post {i}: a sample entry about topic number {i}";
             var frontMatter = $"""
                 ---
-                title: "Post {i}: a sample entry about topic number {i}"
+                title: "{title}"
                 date: {date:yyyy-MM-dd}
                 draft: {(isDraft ? "true" : "false")}
                 ---

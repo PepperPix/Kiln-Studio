@@ -6,9 +6,13 @@ using Kiln.Studio.Services;
 
 public sealed partial class ProjectExplorerViewModel : ViewModelBase
 {
+    private static readonly TimeSpan DefaultSearchDebounceDelay = TimeSpan.FromMilliseconds(250);
+
     public ObservableCollection<ContentCollectionViewModel> Collections { get; } = [];
 
+    private readonly TimeSpan _searchDebounceDelay;
     private Func<ContentEntryViewModel, Task>? _onToggleDraft;
+    private CancellationTokenSource? _searchDebounceCts;
 
     [ObservableProperty]
     private ContentEntryViewModel? _selectedEntry;
@@ -24,6 +28,11 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
 
     public IReadOnlyList<DraftFilter> DraftFilters { get; } = Enum.GetValues<DraftFilter>();
     public IReadOnlyList<ContentSortMode> SortModes { get; } = Enum.GetValues<ContentSortMode>();
+
+    public ProjectExplorerViewModel(TimeSpan? searchDebounceDelay = null)
+    {
+        _searchDebounceDelay = searchDebounceDelay ?? DefaultSearchDebounceDelay;
+    }
 
     public void SetDraftToggleHandler(Func<ContentEntryViewModel, Task> handler) => _onToggleDraft = handler;
 
@@ -68,7 +77,41 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
             collection.ApplyView(SearchText, DraftFilter, SortMode);
     }
 
-    partial void OnSearchTextChanged(string? value) => ApplyToAll();
+    partial void OnSearchTextChanged(string? value)
+    {
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts?.Dispose();
+
+        if (_searchDebounceDelay <= TimeSpan.Zero)
+        {
+            ApplyToAll();
+            return;
+        }
+
+        var cts = new CancellationTokenSource();
+        _searchDebounceCts = cts;
+        _ = DebounceApplyToAllAsync(cts);
+    }
+
+    private async Task DebounceApplyToAllAsync(CancellationTokenSource cts)
+    {
+        try
+        {
+            // ConfigureAwait(true): intentionally resume on the captured SynchronizationContext
+            // (Avalonia's UI-thread context in production) so ApplyToAll() below runs on the UI
+            // thread, matching where the CommunityToolkit.Mvvm property setter itself is invoked.
+            await Task.Delay(_searchDebounceDelay, cts.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (cts.IsCancellationRequested)
+            return;
+
+        ApplyToAll();
+    }
 
     partial void OnDraftFilterChanged(DraftFilter value) => ApplyToAll();
 

@@ -12,6 +12,9 @@ public sealed class ProjectExplorerViewModelTests
     private const int PostsPublishedCount = 2;
     private const int ThirdIndex = 2;
     private const int LastPostIndex = 3;
+    private const int KeystrokeIntervalMs = 10;
+    private const int DebounceSettleDelayMs = 500;
+    private const int SingleChangeSettleDelayMs = 300;
 
     private static OpenedProject MakeProject()
     {
@@ -41,7 +44,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task Load_PopulatesCollections()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         await Assert.That(vm.Collections.Count).IsEqualTo(CollectionCount);
@@ -52,7 +55,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task Load_AppliesDefaultView_ShowsAllEntries()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(PostsEntryCount);
@@ -62,7 +65,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task SearchText_FiltersCollectionEntries()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "Alpha";
@@ -75,7 +78,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task SearchText_CaseInsensitive()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "beta";
@@ -87,7 +90,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task SearchText_NoMatch_ShowsEmptyCollections()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "zzzzz";
@@ -99,7 +102,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task DraftFilter_DraftsOnly_ShowsOnlyDrafts()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.DraftFilter = DraftFilter.DraftsOnly;
@@ -112,7 +115,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task DraftFilter_PublishedOnly()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.DraftFilter = DraftFilter.PublishedOnly;
@@ -124,7 +127,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task SortMode_TitleAscending_ReordersEntries()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SortMode = ContentSortMode.TitleAscending;
@@ -138,7 +141,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task SortMode_TitleDescending()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SortMode = ContentSortMode.TitleDescending;
@@ -150,7 +153,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task Clear_ResetsSearchTextFilterAndSort()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "Alpha";
@@ -166,7 +169,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task Clear_RemovesCollections()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.Clear();
@@ -177,7 +180,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task ApplyToAll_SearchUpdatesAllCollections()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "a";
@@ -189,7 +192,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task ApplyToAll_AllEntriesStillAccessibleAfterFilter()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.SearchText = "Delta";
@@ -201,7 +204,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task UpdateEntryDraft_ChangesDraftAndReappliesView()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         var entry = vm.Collections[0].FilteredEntries.First(e => e.SourcePath == "/posts/gamma.md");
@@ -216,7 +219,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task UpdateEntryDraft_WithFilter_UpdatesVisibility()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
         vm.DraftFilter = DraftFilter.PublishedOnly;
 
@@ -230,7 +233,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task UpdateEntryDraft_DoesNotThrow_ForUnknownPath()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.UpdateEntryDraft("/unknown.md", true);
@@ -241,7 +244,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task UpdateEntryDraft_PreservesSearchFilter()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
         vm.SearchText = "Gamma";
 
@@ -256,7 +259,7 @@ public sealed class ProjectExplorerViewModelTests
     [Test]
     public async Task Load_AfterClear_RecreatesCollections()
     {
-        var vm = new ProjectExplorerViewModel();
+        var vm = new ProjectExplorerViewModel(TimeSpan.Zero);
         vm.Load(MakeProject());
 
         vm.Clear();
@@ -264,5 +267,54 @@ public sealed class ProjectExplorerViewModelTests
 
         await Assert.That(vm.Collections.Count).IsEqualTo(CollectionCount);
         await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(PostsEntryCount);
+    }
+
+    [Test]
+    public async Task SearchText_RapidKeystrokes_DebouncesApplyView()
+    {
+        const string typed = "Alpha";
+        var vm = new ProjectExplorerViewModel(TimeSpan.FromMilliseconds(200));
+        vm.Load(MakeProject());
+
+        var applyCount = 0;
+        foreach (var collection in vm.Collections)
+        {
+            collection.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ContentCollectionViewModel.VisibleCount))
+                    applyCount++;
+            };
+        }
+
+        foreach (var ch in typed)
+        {
+            vm.SearchText = (vm.SearchText ?? string.Empty) + ch;
+            await Task.Delay(KeystrokeIntervalMs);
+        }
+
+        // 5 keystrokes across 2 collections would be 10 ApplyView calls without debounce.
+        // The rapid typing above stays well within the 200ms debounce window, so the debounced
+        // apply should not have fired for every keystroke yet.
+        await Assert.That(applyCount).IsLessThan(typed.Length * vm.Collections.Count);
+
+        // Let the debounce timer elapse so the final, coalesced apply runs.
+        await Task.Delay(DebounceSettleDelayMs);
+
+        await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(1);
+        await Assert.That(vm.Collections[0].FilteredEntries[0].Title).IsEqualTo("Alpha Post");
+    }
+
+    [Test]
+    public async Task SearchText_SingleChange_StillAppliesAfterDebounceElapses()
+    {
+        var vm = new ProjectExplorerViewModel(TimeSpan.FromMilliseconds(50));
+        vm.Load(MakeProject());
+
+        vm.SearchText = "Delta";
+
+        await Task.Delay(SingleChangeSettleDelayMs);
+
+        await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(1);
+        await Assert.That(vm.Collections[0].FilteredEntries[0].Title).IsEqualTo("Delta Final");
     }
 }
