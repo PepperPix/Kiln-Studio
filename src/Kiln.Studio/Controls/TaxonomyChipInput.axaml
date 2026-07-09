@@ -6,29 +6,13 @@
 
         <TextBlock x:Name="LabelText" Classes="section-header" />
 
-        <ItemsControl x:Name="ChipsList">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <Border Classes="chip">
-                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingXS}">
-                            <TextBlock Text="{Binding}" VerticalAlignment="Center" />
-                            <Button Content="✕"
-                                    Classes="chip-remove"
-                                    Click="OnRemoveChipClick" />
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <AutoCompleteBox x:Name="InputBox"
-                         FilterMode="Contains"
-                         PlaceholderText="Add value, press Enter or comma" />
+        <!--
+            Chips and the input box are direct children of a single WrapPanel so they flow
+            together on the same line(s) — the input always appears right after the last chip,
+            wrapping onto a new line together with the chips instead of sitting in its own row
+            below (see PLAN-060-Nachfolge-ADR discussion, 2026-07-09).
+        -->
+        <WrapPanel x:Name="ChipsAndInputPanel" />
 
     </StackPanel>
 
