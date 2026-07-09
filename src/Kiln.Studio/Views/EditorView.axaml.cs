@@ -41,6 +41,89 @@ public partial class EditorView : UserControl
         installation.SetGrammar(registryOptions.GetScopeByExtension(".md"));
     }
 
+    // ── Markdown formatting toolbar (PLAN-066) ──────────────────────────────
+
+    private void OnBoldClick(object? sender, RoutedEventArgs e) => WrapSelection("**", "**");
+
+    private void OnItalicClick(object? sender, RoutedEventArgs e) => WrapSelection("_", "_");
+
+    private void OnCodeClick(object? sender, RoutedEventArgs e) => WrapSelection("`", "`");
+
+    private void OnCodeBlockClick(object? sender, RoutedEventArgs e) => WrapSelection("```\n", "\n```");
+
+    private void OnLinkClick(object? sender, RoutedEventArgs e)
+    {
+        const string placeholder = "url";
+
+        var document = BodyEditor.Document;
+        var start = BodyEditor.SelectionStart;
+        var length = BodyEditor.SelectionLength;
+        var selectedText = document.GetText(start, length);
+
+        document.Replace(start, length, $"[{selectedText}]({placeholder})");
+
+        // Land the selection on the "url" placeholder so the user can type over it immediately,
+        // regardless of whether any link text was selected beforehand.
+        var placeholderOffset = start + 1 + length + 2;
+        BodyEditor.SelectionStart = placeholderOffset;
+        BodyEditor.SelectionLength = placeholder.Length;
+
+        BodyEditor.Focus();
+    }
+
+    private void OnHeadingClick(object? sender, RoutedEventArgs e)
+    {
+        // Fixed heading level, current line only — no H1-H6 cycling/toggle (scope cut, PLAN-066).
+        var document = BodyEditor.Document;
+        var line = document.GetLineByOffset(BodyEditor.SelectionStart);
+        document.Insert(line.Offset, "## ");
+
+        BodyEditor.Focus();
+    }
+
+    private void OnBulletListClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "- ");
+
+    private void OnNumberedListClick(object? sender, RoutedEventArgs e) => PrefixLines(index => $"{index + 1}. ");
+
+    private void OnBlockquoteClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "> ");
+
+    private void PrefixLines(Func<int, string> prefixForLineIndex)
+    {
+        var document = BodyEditor.Document;
+        var start = BodyEditor.SelectionStart;
+        var length = BodyEditor.SelectionLength;
+        var startLineNumber = document.GetLineByOffset(start).LineNumber;
+        var endLineNumber = document.GetLineByOffset(start + length).LineNumber;
+
+        // Insert from the last line backwards so earlier lines' offsets stay valid as we mutate.
+        for (var lineNumber = endLineNumber; lineNumber >= startLineNumber; lineNumber--)
+            document.Insert(document.GetLineByNumber(lineNumber).Offset, prefixForLineIndex(lineNumber - startLineNumber));
+
+        BodyEditor.Focus();
+    }
+
+    private void WrapSelection(string prefix, string suffix)
+    {
+        var document = BodyEditor.Document;
+        var start = BodyEditor.SelectionStart;
+        var length = BodyEditor.SelectionLength;
+        var selectedText = document.GetText(start, length);
+
+        document.Replace(start, length, prefix + selectedText + suffix);
+
+        if (length == 0)
+        {
+            BodyEditor.CaretOffset = start + prefix.Length;
+        }
+        else
+        {
+            BodyEditor.SelectionStart = start + prefix.Length;
+            BodyEditor.SelectionLength = length;
+        }
+
+        BodyEditor.Focus();
+    }
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (_currentVm is not null)
