@@ -1,6 +1,7 @@
 namespace Kiln.Studio.ViewModels;
 
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
@@ -77,8 +78,17 @@ public partial class EditorViewModel : ViewModelBase
                     field.Suggestions.Add(suggestion);
             }
 
+            // Attach only after the initial population above, so restoring existing values on
+            // load never marks the freshly-opened document dirty.
+            field.Values.CollectionChanged += OnTaxonomyFieldValuesChanged;
             TaxonomyFields.Add(field);
         }
+    }
+
+    private void OnTaxonomyFieldValuesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_suppressDirty)
+            IsDirty = true;
     }
 
     public void Clear()

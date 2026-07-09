@@ -392,6 +392,41 @@ public class EditorViewModelTests
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task AddTaxonomyValue_MarksDocumentDirtyAndEnablesSave()
+    {
+        // Regression test: adding/removing a chip via a TaxonomyFieldViewModel must mark the
+        // document dirty, otherwise SaveCommand.CanExecute stays false and the change is silently
+        // lost (real bug found 2026-07-09 — chip edits never touched IsDirty).
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var vm = new EditorViewModel(new ContentService(), new ContentFrontmatterWriter(), new FakeTaxonomyValueCache());
+            vm.Load(filePath, tempDir, ["tags"]);
+
+            await Assert.That(vm.IsDirty).IsFalse();
+            await Assert.That(vm.SaveCommand.CanExecute(null)).IsFalse();
+
+            vm.TaxonomyFields.Single(f => f.Name == "tags").Values.Add("newtag");
+
+            await Assert.That(vm.IsDirty).IsTrue();
+            await Assert.That(vm.SaveCommand.CanExecute(null)).IsTrue();
+
+            vm.TaxonomyFields.Single(f => f.Name == "tags").Values.Remove("newtag");
+
+            await vm.SaveCommand.ExecuteAsync(null);
+            await Assert.That(vm.IsDirty).IsFalse();
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
 
 public class ShellViewModelEditorTests

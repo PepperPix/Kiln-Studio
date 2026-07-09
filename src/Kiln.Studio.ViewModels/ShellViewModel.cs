@@ -24,6 +24,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IDeploymentConfigStore _deploymentConfigStore;
     private readonly IPublishService _publishService;
     private readonly IContentFrontmatterWriter _contentFrontmatterWriter;
+    private readonly IUnsavedChangesDialog _unsavedChangesDialog;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -95,7 +96,8 @@ public partial class ShellViewModel : ViewModelBase
         IDeploymentConfigStore deploymentConfigStore,
         IPublishService publishService,
         IContentFrontmatterWriter contentFrontmatterWriter,
-        IFolderRevealer? folderRevealer = null)
+        IFolderRevealer? folderRevealer = null,
+        IUnsavedChangesDialog? unsavedChangesDialog = null)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -113,6 +115,7 @@ public partial class ShellViewModel : ViewModelBase
         _deploymentConfigStore = deploymentConfigStore;
         _publishService = publishService;
         _contentFrontmatterWriter = contentFrontmatterWriter;
+        _unsavedChangesDialog = unsavedChangesDialog ?? new AutoDiscardUnsavedChangesDialog();
         Explorer = explorer;
         Explorer.SetDraftToggleHandler(ToggleDraftAsync);
         Editor = editor;
@@ -122,18 +125,49 @@ public partial class ShellViewModel : ViewModelBase
         RefreshRecentProjects();
     }
 
-    private void OnExplorerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+#pragma warning disable VSTHRD100 // must match PropertyChangedEventHandler's void signature
+    private async void OnExplorerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+#pragma warning restore VSTHRD100
     {
         if (e.PropertyName != nameof(ProjectExplorerViewModel.SelectedEntry))
             return;
         if (Explorer.SelectedEntry is null)
             return;
 
-        if (Editor.IsDirty)
-            StatusMessage = "Unsaved changes were discarded.";
+        // No Cancel option here: the tree selection has already visually changed, and there is no
+        // clean way to revert it from the view model (see PLAN-060-Nachfolge-ADR discussion). The
+        // dialog still gives the user a chance to Save instead of silently losing the old document.
+        if (!await ResolveUnsavedChangesAsync(allowCancel: false).ConfigureAwait(true))
+            return;
 
         var sourcePath = Explorer.SelectedEntry.SourcePath;
         Editor.Load(sourcePath, CurrentProjectPath, Explorer.GetTaxonomiesForEntry(sourcePath));
+    }
+
+    /// <summary>
+    /// If the currently-open document is dirty, asks the user whether to save or discard it before
+    /// an action (switching content/project, closing) proceeds.
+    /// </summary>
+    /// <returns><see langword="false"/> only if the user chose Cancel; otherwise <see langword="true"/>.</returns>
+    public async Task<bool> ResolveUnsavedChangesAsync(bool allowCancel)
+    {
+        if (!Editor.IsDirty)
+            return true;
+
+        var contentName = Editor.FilePath is null ? "this content" : Path.GetFileName(Editor.FilePath);
+        var decision = await _unsavedChangesDialog.ConfirmAsync(contentName, allowCancel).ConfigureAwait(true);
+
+        switch (decision)
+        {
+            case UnsavedChangesDecision.Save:
+                await Editor.SaveCommand.ExecuteAsync(null).ConfigureAwait(true);
+                return true;
+            case UnsavedChangesDecision.Discard:
+                StatusMessage = "Unsaved changes were discarded.";
+                return true;
+            default:
+                return false;
+        }
     }
 
     [RelayCommand]
@@ -147,8 +181,11 @@ public partial class ShellViewModel : ViewModelBase
     }
 
     [RelayCommand(CanExecute = nameof(CanCloseProject))]
-    private void CloseProject()
+    private async Task CloseProjectAsync()
     {
+        if (!await ResolveUnsavedChangesAsync(allowCancel: true).ConfigureAwait(true))
+            return;
+
         StopFullPreview();
         Explorer.Clear();
         Editor.Clear();
@@ -164,8 +201,8 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task SwitchRecentAsync(string path)
     {
-        if (Editor.IsDirty)
-            StatusMessage = "Unsaved changes were discarded.";
+        if (!await ResolveUnsavedChangesAsync(allowCancel: false).ConfigureAwait(true))
+            return;
 
         await OpenPathAsync(path).ConfigureAwait(true);
     }
@@ -502,5 +539,11 @@ public partial class ShellViewModel : ViewModelBase
         public void Reveal(string path)
         {
         }
+    }
+
+    private sealed class AutoDiscardUnsavedChangesDialog : IUnsavedChangesDialog
+    {
+        public Task<UnsavedChangesDecision> ConfirmAsync(string contentName, bool allowCancel) =>
+            Task.FromResult(UnsavedChangesDecision.Discard);
     }
 }

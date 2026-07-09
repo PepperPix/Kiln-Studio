@@ -11,6 +11,7 @@ public class ShellViewModelTests
 {
     private const string SiteTitle = "Kiln Studio";
 
+#pragma warning disable S107
     private static (ShellViewModel vm, string storeDir) MakeVm(
         IFolderPicker folderPicker,
         IInputDialog inputDialog,
@@ -18,7 +19,9 @@ public class ShellViewModelTests
         IPreviewServer? previewServer = null,
         IBrowserLauncher? browserLauncher = null,
         IBuildService? buildService = null,
-        IDeploymentService? deploymentService = null)
+        IDeploymentService? deploymentService = null,
+        IUnsavedChangesDialog? unsavedChangesDialog = null)
+#pragma warning restore S107
     {
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(storeDir);
@@ -36,7 +39,8 @@ public class ShellViewModelTests
             new PreviewViewModel(),
             buildService ?? new FakeBuildService(),
             deploymentService ?? new FakeDeploymentService(),
-            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            unsavedChangesDialog: unsavedChangesDialog);
         return (vm, storeDir);
     }
 
@@ -294,7 +298,7 @@ public class ShellViewModelNewSiteTests
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();
 
-            vm.CloseProjectCommand.Execute(null);
+            await vm.CloseProjectCommand.ExecuteAsync(null);
 
             await Assert.That(vm.IsProjectOpen).IsFalse();
             await Assert.That(vm.CurrentProjectPath).IsNull();
@@ -302,6 +306,101 @@ public class ShellViewModelNewSiteTests
             await Assert.That(vm.Explorer.Collections.Count).IsEqualTo(0);
             await Assert.That(vm.StatusMessage).IsEqualTo("Ready");
             await Assert.That(server.StopCalled).IsTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CloseProject_WhenDirtyAndUserCancels_KeepsProjectOpen()
+    {
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var contentFile = Path.Combine(tempParent, "test.md");
+        await File.WriteAllTextAsync(contentFile, "---\ntitle: T\n---\n\nBody");
+
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var dialog = new FixedUnsavedChangesDialog(UnsavedChangesDecision.Cancel);
+        var vm = new ShellViewModel(
+            new ProjectService(new EngineHost()),
+            new FixedFolderPicker(tempParent),
+            new FixedInputDialog(NewSiteName),
+            new RecentProjectsStore(storeDir),
+            new ContentService(),
+            new NullNewPageDialog(),
+            new ProjectExplorerViewModel(),
+            new EditorViewModel(new ContentService()),
+            new FakePreviewServer(),
+            new FakeBrowserLauncher(),
+            new PreviewViewModel(),
+            new FakeBuildService(),
+            new FakeDeploymentService(),
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            unsavedChangesDialog: dialog);
+        try
+        {
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+
+            vm.Editor.Load(contentFile);
+            vm.Editor.Body = "changed";
+            await Assert.That(vm.Editor.IsDirty).IsTrue();
+
+            await vm.CloseProjectCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.IsProjectOpen).IsTrue();
+            await Assert.That(dialog.Calls.Count).IsEqualTo(1);
+            await Assert.That(dialog.Calls[0].AllowCancel).IsTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempParent)) Directory.Delete(tempParent, recursive: true);
+            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task CloseProject_WhenDirtyAndUserChoosesSave_SavesThenCloses()
+    {
+        var tempParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempParent);
+        var contentFile = Path.Combine(tempParent, "test.md");
+        await File.WriteAllTextAsync(contentFile, "---\ntitle: T\n---\n\nBody");
+
+        var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(storeDir);
+        var dialog = new FixedUnsavedChangesDialog(UnsavedChangesDecision.Save);
+        var vm = new ShellViewModel(
+            new ProjectService(new EngineHost()),
+            new FixedFolderPicker(tempParent),
+            new FixedInputDialog(NewSiteName),
+            new RecentProjectsStore(storeDir),
+            new ContentService(),
+            new NullNewPageDialog(),
+            new ProjectExplorerViewModel(),
+            new EditorViewModel(new ContentService()),
+            new FakePreviewServer(),
+            new FakeBrowserLauncher(),
+            new PreviewViewModel(),
+            new FakeBuildService(),
+            new FakeDeploymentService(),
+            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            unsavedChangesDialog: dialog);
+        try
+        {
+            await vm.NewSiteCommand.ExecuteAsync(null);
+            vm.Editor.Load(contentFile);
+            vm.Editor.Body = "changed";
+
+            await vm.CloseProjectCommand.ExecuteAsync(null);
+
+            await Assert.That(vm.IsProjectOpen).IsFalse();
+            var written = await File.ReadAllTextAsync(contentFile);
+            await Assert.That(written).Contains("changed");
         }
         finally
         {
