@@ -243,22 +243,31 @@
                             </TreeDataTemplate>
                             <DataTemplate DataType="vm:ContentEntryViewModel">
                                 <Grid Background="Transparent"
-                                      HorizontalAlignment="Stretch">
+                                      HorizontalAlignment="Stretch"
+                                      RowDefinitions="Auto,Auto">
                                     <Grid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="{Binding ToggleDraftHeader}"
                                                       Command="{Binding ToggleDraftCommand}" />
                                         </ContextMenu>
                                     </Grid.ContextMenu>
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{Binding Title}"
+                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Title}"
                                                    TextTrimming="CharacterEllipsis"
                                                    Classes="entry-title"
-                                                   Classes.draft="{Binding Draft}" />
-                                        <TextBlock Text="draft"
+                                                   Classes.draft="{Binding Draft}"
+                                                   ToolTip.Tip="{Binding Title}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="draft"
                                                    IsVisible="{Binding Draft}"
                                                    Classes="draft-badge" />
-                                    </StackPanel>
+                                    </Grid>
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding Date, StringFormat='{}{0:yyyy-MM-dd}'}"
+                                               IsVisible="{Binding Date, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                               Classes="muted"
+                                               FontSize="{StaticResource FontSizeXS}" />
                                 </Grid>
                             </DataTemplate>
                         </TreeView.DataTemplates>
