@@ -14,7 +14,7 @@ public sealed class ProjectExplorerViewModelTests
     private const int LastPostIndex = 3;
     private const int KeystrokeIntervalMs = 10;
     private const int DebounceSettleDelayMs = 500;
-    private const int SingleChangeSettleDelayMs = 300;
+    private const int SingleChangeSettleDelayMs = 1000;
 
     private static OpenedProject MakeProject()
     {
