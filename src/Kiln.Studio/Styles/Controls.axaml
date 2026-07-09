@@ -133,6 +133,17 @@
         <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
     </Style>
 
+    <!-- ── DatePicker (Frontmatter form) ── -->
+    <Style Selector="DatePicker">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="MinWidth" Value="220" />
+    </Style>
+
     <!-- ── TreeView ── -->
     <Style Selector="TreeView">
         <Setter Property="Background" Value="{StaticResource KilnBackgroundBrush}" />

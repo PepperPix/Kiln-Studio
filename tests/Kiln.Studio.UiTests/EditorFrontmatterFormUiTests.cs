@@ -2,6 +2,7 @@ namespace Kiln.Studio.UiTests;
 
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -14,9 +15,10 @@ using Kiln.Studio.Views;
 /// <summary>
 /// PLAN-065: seeds a post with title/date/description, opens it in the editor and asserts that
 /// the structured form fields (Title TextBox, DatePicker, Description TextBox) are populated and
-/// that the raw-YAML Expander is collapsed by default. Also dumps a PNG under Snapshots/__review__/
-/// for manual visual review (not a pixel-diff regression test — see ExploratoryTourUiTests for the
-/// same headless-rendering-portability rationale).
+/// that the raw-YAML text box (behind a ToggleButton disclosure, not an Expander — see the
+/// styling follow-up on 2026-07-09) is collapsed by default. Also dumps a PNG under
+/// Snapshots/__review__/ for manual visual review (not a pixel-diff regression test — see
+/// ExploratoryTourUiTests for the same headless-rendering-portability rationale).
 ///
 /// Platform-gated (ADR-030 reference platform: macOS arm64).
 /// </summary>
@@ -95,11 +97,36 @@ public sealed class EditorFrontmatterFormUiTests
             await Assert.That(datePicker).IsNotNull();
             await Assert.That(datePicker!.SelectedDate).IsNotNull();
 
-            var expander = window.GetVisualDescendants().OfType<Expander>().FirstOrDefault();
-            await Assert.That(expander).IsNotNull();
-            await Assert.That(expander!.IsExpanded).IsFalse();
+            var rawToggle = window.GetVisualDescendants().OfType<ToggleButton>()
+                .FirstOrDefault(t => t.Name == "RawFrontMatterToggle");
+            await Assert.That(rawToggle).IsNotNull();
+            await Assert.That(rawToggle!.IsChecked).IsFalse();
+
+            var frontMatterBox = window.GetVisualDescendants().OfType<TextBox>()
+                .FirstOrDefault(t => t.Name == "FrontMatterBox");
+            await Assert.That(frontMatterBox).IsNotNull();
+            await Assert.That(frontMatterBox!.IsEffectivelyVisible).IsFalse();
 
             Capture(window, reviewDir, "06_editor_frontmatter_form_collapsed_raw_yaml");
+
+            // Collapsing the whole frontmatter panel (not just the raw-YAML disclosure) must
+            // reclaim the space for the body editor instead of leaving an empty gap — see
+            // 2026-07-09 styling follow-up: the panel toggle resets DocumentGrid's row height to
+            // 0 (not just hiding the ScrollViewer), so no dead space remains.
+            var panelToggle = window.GetVisualDescendants().OfType<ToggleButton>()
+                .FirstOrDefault(t => t.Name == "FrontmatterPanelToggle");
+            await Assert.That(panelToggle).IsNotNull();
+            await Assert.That(panelToggle!.IsChecked).IsTrue();
+
+            panelToggle.IsChecked = false;
+            Dispatcher.UIThread.RunJobs();
+
+            var scrollViewer = window.GetVisualDescendants().OfType<ScrollViewer>()
+                .FirstOrDefault(s => s.Name == "FrontmatterScrollViewer");
+            await Assert.That(scrollViewer).IsNotNull();
+            await Assert.That(scrollViewer!.IsEffectivelyVisible).IsFalse();
+
+            Capture(window, reviewDir, "07_editor_frontmatter_panel_collapsed_full_height_body");
 
             window.Close();
         }
