@@ -17,7 +17,7 @@
         <!-- Editor area when document is loaded -->
         <Grid x:Name="DocumentGrid"
               IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,Auto,4,*">
+              RowDefinitions="Auto,Auto,4,Auto,*">
 
             <!-- Slim, always-visible header: collapses/expands the entire frontmatter panel below
                  to reclaim maximum space for the body editor (in addition to the GridSplitter,
@@ -105,8 +105,23 @@
                           ResizeDirection="Rows"
                           IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
 
+            <!-- Markdown formatting toolbar for the body editor: wraps/prefixes the current
+                 selection with Markdown syntax (PLAN-066, ADR-049 Entscheidung 5 — deliberately
+                 not a WYSIWYG editor, the body stays plain Markdown text). -->
+            <StackPanel Grid.Row="3"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        Margin="{StaticResource PanelMargin}">
+                <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
+                <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
+                <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
+                <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
+                <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
+                <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
+            </StackPanel>
+
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="3"
+            <aedit:TextEditor Grid.Row="4"
                               x:Name="BodyEditor"
                               FontFamily="Menlo,Consolas,Courier New,monospace"
                               FontSize="{StaticResource FontSizeXS}"
