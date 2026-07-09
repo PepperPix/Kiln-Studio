@@ -109,6 +109,25 @@ public sealed class EditorFrontmatterFormUiTests
 
             Capture(window, reviewDir, "06_editor_frontmatter_form_collapsed_raw_yaml");
 
+            // Collapsing the whole frontmatter panel (not just the raw-YAML disclosure) must
+            // reclaim the space for the body editor instead of leaving an empty gap — see
+            // 2026-07-09 styling follow-up: the panel toggle resets DocumentGrid's row height to
+            // 0 (not just hiding the ScrollViewer), so no dead space remains.
+            var panelToggle = window.GetVisualDescendants().OfType<ToggleButton>()
+                .FirstOrDefault(t => t.Name == "FrontmatterPanelToggle");
+            await Assert.That(panelToggle).IsNotNull();
+            await Assert.That(panelToggle!.IsChecked).IsTrue();
+
+            panelToggle.IsChecked = false;
+            Dispatcher.UIThread.RunJobs();
+
+            var scrollViewer = window.GetVisualDescendants().OfType<ScrollViewer>()
+                .FirstOrDefault(s => s.Name == "FrontmatterScrollViewer");
+            await Assert.That(scrollViewer).IsNotNull();
+            await Assert.That(scrollViewer!.IsEffectivelyVisible).IsFalse();
+
+            Capture(window, reviewDir, "07_editor_frontmatter_panel_collapsed_full_height_body");
+
             window.Close();
         }
         finally

@@ -15,68 +15,98 @@
                    Classes="muted" />
 
         <!-- Editor area when document is loaded -->
-        <Grid IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,Auto,Auto,4,*">
+        <Grid x:Name="DocumentGrid"
+              IsVisible="{Binding HasDocument}"
+              RowDefinitions="Auto,Auto,4,*">
 
-            <!-- Structured frontmatter fields: title / date / description -->
-            <StackPanel Grid.Row="0" Margin="{StaticResource PanelMargin}">
-                <TextBlock Text="Title" Classes="section-header" Margin="0,0,0,2" />
-                <TextBox Text="{Binding Title}" PlaceholderText="Untitled" />
+            <!-- Slim, always-visible header: collapses/expands the entire frontmatter panel below
+                 to reclaim maximum space for the body editor (in addition to the GridSplitter,
+                 which can shrink the panel down to a scrollable sliver — see the ScrollViewer
+                 below, which is what actually prevents content from overlapping the body editor
+                 when dragged small, unlike the old bare StackPanel rows). -->
+            <ToggleButton Grid.Row="0"
+                          x:Name="FrontmatterPanelToggle"
+                          Classes="secondary"
+                          IsChecked="True"
+                          Content="▾ Frontmatter"
+                          HorizontalAlignment="Left"
+                          HorizontalContentAlignment="Left"
+                          Margin="{StaticResource PanelMargin}" />
 
-                <TextBlock Text="Date" Classes="section-header" Margin="0,4,0,2" />
-                <DatePicker SelectedDate="{Binding Date}" />
+            <!-- Structured frontmatter fields + taxonomies + raw-YAML fallback, all inside one
+                 ScrollViewer so the GridSplitter below can freely shrink this row's height without
+                 any control overflowing/overlapping the body editor — content clips and a vertical
+                 scrollbar appears instead once it no longer fits. -->
+            <ScrollViewer Grid.Row="1"
+                          x:Name="FrontmatterScrollViewer"
+                          IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel>
 
-                <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
-                <TextBox Text="{Binding Description}"
-                         PlaceholderText="A short summary shown in listings and previews"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         Height="52" />
-            </StackPanel>
+                    <!-- Structured frontmatter fields: title / date / description -->
+                    <StackPanel Margin="{StaticResource PanelMargin}">
+                        <TextBlock Text="Title" Classes="section-header" Margin="0,0,0,2" />
+                        <TextBox Text="{Binding Title}" PlaceholderText="Untitled" />
 
-            <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
-            <Border Grid.Row="1" Classes="settings-section" Margin="{StaticResource PanelMargin}">
-                <ItemsControl ItemsSource="{Binding TaxonomyFields}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
-                            <controls:TaxonomyChipInput Label="{Binding Name}"
-                                                         ItemsSource="{Binding Values}"
-                                                         SuggestionsSource="{Binding Suggestions}"
-                                                         Margin="0,0,0,4" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                        <TextBlock Text="Date" Classes="section-header" Margin="0,4,0,2" />
+                        <DatePicker SelectedDate="{Binding Date}" />
 
-            <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
-                 editable when expanded; owned keys (title/date/description/taxonomies) are
-                 stripped from FrontMatter so they only ever appear in the structured fields above.
-                 A plain ToggleButton (not Expander) is used so it picks up the app's existing
-                 Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
-            <StackPanel Grid.Row="2" Margin="{StaticResource PanelMargin}">
-                <ToggleButton x:Name="RawFrontMatterToggle"
-                              Classes="secondary"
-                              HorizontalAlignment="Left"
-                              HorizontalContentAlignment="Left"
-                              Content="Raw frontmatter (advanced)" />
-                <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
-                    <TextBox x:Name="FrontMatterBox"
-                             Text="{Binding FrontMatter}"
-                             AcceptsReturn="True"
-                             Height="120"
-                             Classes="monospace"
-                             BorderThickness="0,0,0,1"
-                             CornerRadius="0"
-                             Padding="8,6"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             TextWrapping="NoWrap" />
-                </Border>
-            </StackPanel>
+                        <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
+                        <TextBox Text="{Binding Description}"
+                                 PlaceholderText="A short summary shown in listings and previews"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="52" />
+                    </StackPanel>
 
-            <GridSplitter Grid.Row="3" ResizeDirection="Rows" />
+                    <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
+                    <Border Classes="settings-section" Margin="{StaticResource PanelMargin}">
+                        <ItemsControl ItemsSource="{Binding TaxonomyFields}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
+                                    <controls:TaxonomyChipInput Label="{Binding Name}"
+                                                                 ItemsSource="{Binding Values}"
+                                                                 SuggestionsSource="{Binding Suggestions}"
+                                                                 Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
+                         editable when expanded; owned keys (title/date/description/taxonomies) are
+                         stripped from FrontMatter so they only ever appear in the structured fields above.
+                         A plain ToggleButton (not Expander) is used so it picks up the app's existing
+                         Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
+                    <StackPanel Margin="{StaticResource PanelMargin}">
+                        <ToggleButton x:Name="RawFrontMatterToggle"
+                                      Classes="secondary"
+                                      HorizontalAlignment="Left"
+                                      HorizontalContentAlignment="Left"
+                                      Content="Raw frontmatter (advanced)" />
+                        <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
+                            <TextBox x:Name="FrontMatterBox"
+                                     Text="{Binding FrontMatter}"
+                                     AcceptsReturn="True"
+                                     Height="120"
+                                     Classes="monospace"
+                                     BorderThickness="0,0,0,1"
+                                     CornerRadius="0"
+                                     Padding="8,6"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     TextWrapping="NoWrap" />
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <GridSplitter Grid.Row="2"
+                          ResizeDirection="Rows"
+                          IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="4"
+            <aedit:TextEditor Grid.Row="3"
                               x:Name="BodyEditor"
                               FontFamily="Menlo,Consolas,Courier New,monospace"
                               FontSize="{StaticResource FontSizeXS}"
