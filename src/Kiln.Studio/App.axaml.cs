@@ -50,6 +50,7 @@ public partial class App : Application
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
         services.AddSingleton<ISettingsDialog, AvaloniaSettingsDialog>();
+        services.AddSingleton<IUnsavedChangesDialog, AvaloniaUnsavedChangesDialog>();
         services.AddSingleton<IRecentProjectsStore>(_ =>
         {
             var baseDir = Path.Combine(
