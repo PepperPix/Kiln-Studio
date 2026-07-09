@@ -49,6 +49,8 @@ public partial class EditorView : UserControl
 
     private void OnCodeClick(object? sender, RoutedEventArgs e) => WrapSelection("`", "`");
 
+    private void OnCodeBlockClick(object? sender, RoutedEventArgs e) => WrapSelection("```\n", "\n```");
+
     private void OnLinkClick(object? sender, RoutedEventArgs e)
     {
         const string placeholder = "url";
@@ -79,7 +81,13 @@ public partial class EditorView : UserControl
         BodyEditor.Focus();
     }
 
-    private void OnBulletListClick(object? sender, RoutedEventArgs e)
+    private void OnBulletListClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "- ");
+
+    private void OnNumberedListClick(object? sender, RoutedEventArgs e) => PrefixLines(index => $"{index + 1}. ");
+
+    private void OnBlockquoteClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "> ");
+
+    private void PrefixLines(Func<int, string> prefixForLineIndex)
     {
         var document = BodyEditor.Document;
         var start = BodyEditor.SelectionStart;
@@ -89,7 +97,7 @@ public partial class EditorView : UserControl
 
         // Insert from the last line backwards so earlier lines' offsets stay valid as we mutate.
         for (var lineNumber = endLineNumber; lineNumber >= startLineNumber; lineNumber--)
-            document.Insert(document.GetLineByNumber(lineNumber).Offset, "- ");
+            document.Insert(document.GetLineByNumber(lineNumber).Offset, prefixForLineIndex(lineNumber - startLineNumber));
 
         BodyEditor.Focus();
     }

@@ -26,12 +26,17 @@ public sealed class EditorMarkdownToolbarUiTests
     private const string PostTitle = "Toolbar Sample";
 
     private const string SeedBody = """
-        Bold Italic Code Link
+        Bold Italic Code Link CodeBlockContent
 
         Heading line
 
         Item one
         Item two
+
+        Ordered one
+        Ordered two
+
+        Quote line
         """;
 
     [Test]
@@ -90,9 +95,12 @@ public sealed class EditorMarkdownToolbarUiTests
             var boldButton = FindButton(window, "BoldButton");
             var italicButton = FindButton(window, "ItalicButton");
             var codeButton = FindButton(window, "CodeButton");
+            var codeBlockButton = FindButton(window, "CodeBlockButton");
             var linkButton = FindButton(window, "LinkButton");
             var headingButton = FindButton(window, "HeadingButton");
             var bulletListButton = FindButton(window, "BulletListButton");
+            var numberedListButton = FindButton(window, "NumberedListButton");
+            var blockquoteButton = FindButton(window, "BlockquoteButton");
 
             Capture(window, reviewDir, "08_editor_markdown_toolbar");
 
@@ -122,6 +130,19 @@ public sealed class EditorMarkdownToolbarUiTests
             Click(bulletListButton);
             await Assert.That(bodyEditor.Text).Contains("- Item one");
             await Assert.That(bodyEditor.Text).Contains("- Item two");
+
+            SelectLines(bodyEditor, "Ordered one", "Ordered two");
+            Click(numberedListButton);
+            await Assert.That(bodyEditor.Text).Contains("1. Ordered one");
+            await Assert.That(bodyEditor.Text).Contains("2. Ordered two");
+
+            PlaceCaretOnLine(bodyEditor, "Quote line");
+            Click(blockquoteButton);
+            await Assert.That(bodyEditor.Text).Contains("> Quote line");
+
+            SelectWord(bodyEditor, "CodeBlockContent");
+            Click(codeBlockButton);
+            await Assert.That(bodyEditor.Text).Contains("```\nCodeBlockContent\n```");
 
             // Round-trip through the ViewModel's Save path to confirm the toolbar mutations were
             // real Document edits (not something bypassing the existing BodyEditor<->Body sync).
@@ -163,15 +184,16 @@ public sealed class EditorMarkdownToolbarUiTests
     private static void SelectWord(TextEditor editor, string word)
     {
         var offset = editor.Text.IndexOf(word, StringComparison.Ordinal);
-        editor.SelectionStart = offset;
-        editor.SelectionLength = word.Length;
+        // Select(start, length) atomically replaces both, avoiding a transient state where the
+        // still-stale SelectionLength from a previous action (if set first) could push past the
+        // document's end when combined with this action's new offset.
+        editor.Select(offset, word.Length);
     }
 
     private static void PlaceCaretOnLine(TextEditor editor, string lineText)
     {
         var offset = editor.Text.IndexOf(lineText, StringComparison.Ordinal);
-        editor.SelectionStart = offset;
-        editor.SelectionLength = 0;
+        editor.Select(offset, 0);
     }
 
     private static void SelectLines(TextEditor editor, string firstLineText, string lastLineText)
@@ -179,8 +201,7 @@ public sealed class EditorMarkdownToolbarUiTests
         var start = editor.Text.IndexOf(firstLineText, StringComparison.Ordinal);
         var lastLineStart = editor.Text.IndexOf(lastLineText, StringComparison.Ordinal);
         var end = lastLineStart + lastLineText.Length;
-        editor.SelectionStart = start;
-        editor.SelectionLength = end - start;
+        editor.Select(start, end - start);
     }
 
     private static void Capture(Window window, string reviewDir, string name)

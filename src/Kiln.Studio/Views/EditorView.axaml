@@ -115,9 +115,12 @@
                 <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
                 <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
                 <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
+                <Button x:Name="CodeBlockButton" Classes="secondary" Content="{}{ }" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeBlockClick" />
                 <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
                 <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
                 <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
+                <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
+                <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
             </StackPanel>
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
