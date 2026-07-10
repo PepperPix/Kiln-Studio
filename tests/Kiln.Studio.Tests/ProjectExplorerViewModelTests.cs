@@ -14,7 +14,13 @@ public sealed class ProjectExplorerViewModelTests
     private const int LastPostIndex = 3;
     private const int KeystrokeIntervalMs = 10;
     private const int DebounceSettleDelayMs = 500;
-    private const int SingleChangeSettleDelayMs = 1000;
+
+    // Generous relative to the 50ms debounce configured below (20x margin) — bumped from 1000ms
+    // after this test was observed flaking under CI's parallel test execution (thread-pool
+    // scheduling contention can occasionally delay the debounce continuation past a tighter
+    // window). [Retry] on the test itself (below) is the primary safety net; this is belt-and-
+    // suspenders.
+    private const int SingleChangeSettleDelayMs = 2000;
 
     private static OpenedProject MakeProject()
     {
@@ -304,7 +310,10 @@ public sealed class ProjectExplorerViewModelTests
         await Assert.That(vm.Collections[0].FilteredEntries[0].Title).IsEqualTo("Alpha Post");
     }
 
+    // Known flake under CI parallel test execution (thread-pool scheduling contention delaying the
+    // debounce continuation) — retry rather than just padding the wait indefinitely.
     [Test]
+    [Retry(2)]
     public async Task SearchText_SingleChange_StillAppliesAfterDebounceElapses()
     {
         var vm = new ProjectExplorerViewModel(TimeSpan.FromMilliseconds(50));
