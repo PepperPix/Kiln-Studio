@@ -47,6 +47,10 @@ public partial class App : Application
         services.AddSingleton<ITaxonomyValueCache, TaxonomyValueCache>();
         services.AddSingleton<ISiteSettingsService, SiteSettingsService>();
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
+        services.AddSingleton<IFilePicker, AvaloniaFilePicker>();
+        services.AddSingleton<IAssetLibraryService, AssetLibraryService>();
+        services.AddSingleton<IPageBundleService, PageBundleService>();
+        services.AddSingleton<IAssetPickerDialog, AvaloniaAssetPickerDialog>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
         services.AddSingleton<ISettingsDialog, AvaloniaSettingsDialog>();

@@ -121,6 +121,7 @@
                 <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
                 <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
                 <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
+                <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
             </StackPanel>
 
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->

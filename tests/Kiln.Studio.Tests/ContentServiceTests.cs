@@ -536,6 +536,181 @@ public class EditorViewModelTests
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_DialogCancelled_ReturnsNull()
+    {
+        var vm = new EditorViewModel(
+            new ContentService(),
+            assetPickerDialog: new FakeAssetPickerDialog(null));
+
+        var snippet = await vm.PickAndPrepareAssetAsync();
+
+        await Assert.That(snippet).IsNull();
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_LibraryDestination_ImageFile_ReturnsImageMarkdownWithAssetsPath()
+    {
+        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
+        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog);
+
+        var snippet = await vm.PickAndPrepareAssetAsync();
+
+        await Assert.That(snippet).IsEqualTo("![](/assets/images/photo.png)");
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_LibraryDestination_NonImageFile_ReturnsLinkMarkdown()
+    {
+        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
+        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog);
+
+        var snippet = await vm.PickAndPrepareAssetAsync();
+
+        await Assert.That(snippet).IsEqualTo("[handbuch.pdf](/assets/downloads/handbuch.pdf)");
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_PageBundleDestination_ReturnsRelativeMarkdown()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
+            var pageBundleService = new FakePageBundleService
+            {
+                UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
+            };
+
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            vm.Load(filePath);
+
+            var snippet = await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(snippet).IsEqualTo("![](./photo.png)");
+            await Assert.That(pageBundleService.LastSourcePath).IsEqualTo(filePath);
+            await Assert.That(pageBundleService.LastUploadedFilePath).IsEqualTo("/tmp/some/photo.png");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_PageBundleDestination_WasConverted_InvokesConvertedHandler()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var newSourcePath = Path.Combine(tempDir, "test", "index.md");
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/handbuch.pdf"));
+            var pageBundleService = new FakePageBundleService
+            {
+                UploadAssetResult = new PageBundleUploadResult(newSourcePath, "handbuch.pdf", WasConverted: true)
+            };
+
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            vm.Load(filePath);
+
+            string? handlerArg = null;
+            var handlerCalled = 0;
+            vm.SetPageBundleConvertedHandler(path =>
+            {
+                handlerArg = path;
+                handlerCalled++;
+                return Task.CompletedTask;
+            });
+
+            var snippet = await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(snippet).IsEqualTo("[handbuch.pdf](./handbuch.pdf)");
+            await Assert.That(handlerCalled).IsEqualTo(1);
+            await Assert.That(handlerArg).IsEqualTo(newSourcePath);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_PageBundleDestination_NotConverted_DoesNotInvokeConvertedHandler()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
+            var pageBundleService = new FakePageBundleService
+            {
+                UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
+            };
+
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            vm.Load(filePath);
+
+            var handlerCalled = 0;
+            vm.SetPageBundleConvertedHandler(_ =>
+            {
+                handlerCalled++;
+                return Task.CompletedTask;
+            });
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(handlerCalled).IsEqualTo(0);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_PageBundleDestination_DirtyDocument_SavesBeforeUpload()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
+            var pageBundleService = new FakePageBundleService
+            {
+                UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
+            };
+
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            vm.Load(filePath);
+            vm.Body = ModifiedBody;
+            await Assert.That(vm.IsDirty).IsTrue();
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(vm.IsDirty).IsFalse();
+            var written = await File.ReadAllTextAsync(filePath);
+            await Assert.That(written).Contains(ModifiedBody);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
 
 public class ShellViewModelEditorTests

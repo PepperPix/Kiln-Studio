@@ -87,6 +87,21 @@ public partial class EditorView : UserControl
 
     private void OnBlockquoteClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "> ");
 
+#pragma warning disable VSTHRD100 // must match RoutedEventHandler's void-returning signature
+    private async void OnAssetClick(object? sender, RoutedEventArgs e)
+#pragma warning restore VSTHRD100
+    {
+        if (_currentVm is null)
+            return;
+
+        var snippet = await _currentVm.PickAndPrepareAssetAsync().ConfigureAwait(true);
+        if (snippet is null)
+            return;
+
+        BodyEditor.Document.Insert(BodyEditor.CaretOffset, snippet);
+        BodyEditor.Focus();
+    }
+
     private void PrefixLines(Func<int, string> prefixForLineIndex)
     {
         var document = BodyEditor.Document;
