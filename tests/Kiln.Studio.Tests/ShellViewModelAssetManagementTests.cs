@@ -66,10 +66,15 @@ public class ShellViewModelAssetManagementTests
             await Assert.That(File.Exists(Path.Combine(Path.GetDirectoryName(expectedNewSourcePath)!, "photo.png"))).IsTrue();
 
             // Explorer was refreshed and the item at the new path re-selected — this is what
-            // re-triggers the existing OnExplorerPropertyChanged reload path.
+            // re-triggers the existing OnExplorerPropertyChanged reload path. Compared via
+            // Path.GetFullPath (canonicalizes separators) rather than raw string equality: on
+            // Windows, a collection's raw SourcePath can retain forward slashes inherited from
+            // site.yaml that plain Path.Combine does not normalize away, while expectedNewSourcePath
+            // (built purely via Path.GetDirectoryName/Path.Combine) is always fully normalized —
+            // the two can be the same file on disk without being byte-identical strings.
             await Assert.That(vm.Explorer.SelectedEntry).IsNotNull();
-            await Assert.That(vm.Explorer.SelectedEntry!.SourcePath).IsEqualTo(expectedNewSourcePath);
-            await Assert.That(vm.Editor.FilePath).IsEqualTo(expectedNewSourcePath);
+            await Assert.That(Path.GetFullPath(vm.Explorer.SelectedEntry!.SourcePath)).IsEqualTo(Path.GetFullPath(expectedNewSourcePath));
+            await Assert.That(Path.GetFullPath(vm.Editor.FilePath!)).IsEqualTo(Path.GetFullPath(expectedNewSourcePath));
             await Assert.That(vm.Editor.HasDocument).IsTrue();
         }
         finally
