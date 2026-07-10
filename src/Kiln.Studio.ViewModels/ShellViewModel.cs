@@ -507,9 +507,16 @@ public partial class ShellViewModel : ViewModelBase
     {
         await RefreshAsync().ConfigureAwait(true);
 
+        // Compare via Path.GetFullPath (canonicalizes separators, "." segments, etc.) rather than
+        // raw string equality: on Windows, a collection directory sourced from site.yaml (e.g. a
+        // default of "content/{name}") can retain forward slashes that Path.Combine does not
+        // normalize, so a SourcePath read from disk may mix '/' and '\' while newSourcePath (built
+        // purely via Path.Combine/Path.GetDirectoryName, which DOES normalize) does not — raw `==`
+        // would then never match even though both refer to the same file.
+        var expectedFullPath = Path.GetFullPath(newSourcePath);
         var matchingEntry = Explorer.Collections
             .SelectMany(c => c.FilteredEntries)
-            .FirstOrDefault(e => e.SourcePath == newSourcePath);
+            .FirstOrDefault(e => Path.GetFullPath(e.SourcePath) == expectedFullPath);
 
         if (matchingEntry is not null)
             Explorer.SelectedEntry = matchingEntry;
