@@ -10,10 +10,14 @@ using Kiln.Studio.Services;
 public partial class EditorViewModel : ViewModelBase
 {
     private static readonly string[] ScalarOwnedKeys = ["title", "date", "description"];
+    private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"];
 
     private readonly IContentService _contentService;
     private readonly IContentFrontmatterWriter _frontmatterWriter;
     private readonly ITaxonomyValueCache _taxonomyValueCache;
+    private readonly IAssetPickerDialog _assetPickerDialog;
+    private readonly IPageBundleService _pageBundleService;
+    private Func<string, Task>? _onPageBundleConverted;
     private bool _suppressDirty;
     private string? _projectPath;
 
@@ -48,12 +52,23 @@ public partial class EditorViewModel : ViewModelBase
     public EditorViewModel(
         IContentService contentService,
         IContentFrontmatterWriter? frontmatterWriter = null,
-        ITaxonomyValueCache? taxonomyValueCache = null)
+        ITaxonomyValueCache? taxonomyValueCache = null,
+        IAssetPickerDialog? assetPickerDialog = null,
+        IPageBundleService? pageBundleService = null)
     {
         _contentService = contentService;
         _frontmatterWriter = frontmatterWriter ?? new ContentFrontmatterWriter();
         _taxonomyValueCache = taxonomyValueCache ?? new TaxonomyValueCache();
+        _assetPickerDialog = assetPickerDialog ?? new NullAssetPickerDialog();
+        _pageBundleService = pageBundleService ?? new PageBundleService();
     }
+
+    /// <summary>
+    /// Registers the callback invoked after <see cref="PickAndPrepareAssetAsync"/> converts a flat
+    /// content file into a page bundle, so the owner (ShellViewModel) can resynchronize the
+    /// explorer with the moved file (analogous to <c>ProjectExplorerViewModel.SetDraftToggleHandler</c>).
+    /// </summary>
+    public void SetPageBundleConvertedHandler(Func<string, Task> handler) => _onPageBundleConverted = handler;
 
     public void Load(string filePath, string? projectPath = null, IReadOnlyList<string>? taxonomyNames = null)
     {
@@ -208,4 +223,48 @@ public partial class EditorViewModel : ViewModelBase
     }
 
     private bool CanSave() => HasDocument && IsDirty && FilePath is not null;
+
+    /// <summary>
+    /// Orchestrates the asset picker/upload/page-bundle-conversion flow and returns the finished
+    /// Markdown snippet to insert at the caret, or <see langword="null"/> if the user cancelled.
+    /// Deliberately does not touch the body editor control or caret position itself — inserting
+    /// the returned snippet is the view's responsibility (see EditorView.axaml.cs).
+    /// </summary>
+    public async Task<string?> PickAndPrepareAssetAsync()
+    {
+        var pickerResult = await _assetPickerDialog.ShowAsync(_projectPath!, HasDocument).ConfigureAwait(true);
+        if (pickerResult is null)
+            return null;
+
+        string markdownPath;
+        string fileName;
+
+        if (pickerResult.Destination == AssetPickerDestination.Library)
+        {
+            var normalized = pickerResult.Path.Replace('\\', '/');
+            markdownPath = $"/assets/{normalized}";
+            fileName = Path.GetFileName(normalized);
+        }
+        else
+        {
+            if (IsDirty)
+                await SaveAsync().ConfigureAwait(true);
+
+            var uploadResult = _pageBundleService.UploadAsset(FilePath!, pickerResult.Path);
+            if (uploadResult.WasConverted)
+                await (_onPageBundleConverted?.Invoke(uploadResult.NewSourcePath) ?? Task.CompletedTask).ConfigureAwait(true);
+
+            fileName = uploadResult.RelativeAssetFileName;
+            markdownPath = $"./{fileName}";
+        }
+
+        var isImage = ImageExtensions.Contains(Path.GetExtension(fileName), StringComparer.OrdinalIgnoreCase);
+        return isImage ? $"![]({markdownPath})" : $"[{fileName}]({markdownPath})";
+    }
+
+    private sealed class NullAssetPickerDialog : IAssetPickerDialog
+    {
+        public Task<AssetPickerResult?> ShowAsync(string projectPath, bool canUploadToPageBundle) =>
+            Task.FromResult<AssetPickerResult?>(null);
+    }
 }

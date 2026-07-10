@@ -119,6 +119,7 @@ public partial class ShellViewModel : ViewModelBase
         Explorer = explorer;
         Explorer.SetDraftToggleHandler(ToggleDraftAsync);
         Editor = editor;
+        Editor.SetPageBundleConvertedHandler(HandlePageBundleConvertedAsync);
         Preview = preview;
 
         Explorer.PropertyChanged += OnExplorerPropertyChanged;
@@ -448,6 +449,25 @@ public partial class ShellViewModel : ViewModelBase
         {
             StatusMessage = ex.Message;
         }
+    }
+
+    /// <summary>
+    /// Invoked by <see cref="EditorViewModel.PickAndPrepareAssetAsync"/> after it converts a flat
+    /// content file into a page bundle (moved to a new folder/index.md). Re-reads the project so
+    /// the explorer reflects the moved file, then re-selects the entry at its new path — this
+    /// triggers the existing <see cref="OnExplorerPropertyChanged"/> reload path, which reloads the
+    /// editor from the (unchanged) content at its new location.
+    /// </summary>
+    private async Task HandlePageBundleConvertedAsync(string newSourcePath)
+    {
+        await RefreshAsync().ConfigureAwait(true);
+
+        var matchingEntry = Explorer.Collections
+            .SelectMany(c => c.FilteredEntries)
+            .FirstOrDefault(e => e.SourcePath == newSourcePath);
+
+        if (matchingEntry is not null)
+            Explorer.SelectedEntry = matchingEntry;
     }
 
     [RelayCommand]
