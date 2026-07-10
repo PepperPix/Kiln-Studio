@@ -37,7 +37,7 @@ public sealed class AssetLibraryService : IAssetLibraryService
         var folder = ResolveFolder(projectPath, relativeFolder);
         Directory.CreateDirectory(folder);
 
-        var destination = FindUniqueFilePath(folder, Path.GetFileName(sourceFilePath));
+        var destination = FindUniqueFilePath(folder, FileNameSlugifier.Slugify(Path.GetFileName(sourceFilePath)));
         File.Copy(sourceFilePath, destination);
 
         return CombineRelative(relativeFolder, Path.GetFileName(destination));

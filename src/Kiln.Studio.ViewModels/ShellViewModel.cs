@@ -25,6 +25,8 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IPublishService _publishService;
     private readonly IContentFrontmatterWriter _contentFrontmatterWriter;
     private readonly IUnsavedChangesDialog _unsavedChangesDialog;
+    private static readonly TimeSpan PreviewAutoSaveDebounceDelay = TimeSpan.FromSeconds(1);
+    private CancellationTokenSource? _previewAutoSaveCts;
 
     [ObservableProperty]
     private string _title = "Kiln Studio";
@@ -120,6 +122,7 @@ public partial class ShellViewModel : ViewModelBase
         Explorer.SetDraftToggleHandler(ToggleDraftAsync);
         Editor = editor;
         Editor.SetPageBundleConvertedHandler(HandlePageBundleConvertedAsync);
+        Editor.PropertyChanged += OnEditorPropertyChangedForPreviewAutoSave;
         Preview = preview;
 
         Explorer.PropertyChanged += OnExplorerPropertyChanged;
@@ -328,6 +331,10 @@ public partial class ShellViewModel : ViewModelBase
     {
         try
         {
+            // Save first so the dev-server serves what's actually on screen, not a stale file.
+            if (Editor.IsDirty)
+                await Editor.SaveCommand.ExecuteAsync(null).ConfigureAwait(true);
+
             var url = await _previewServer.StartAsync(CurrentProjectPath!).ConfigureAwait(true);
             _browserLauncher.Open(url);
             Preview.IsServing = true;
@@ -398,11 +405,49 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private void StopFullPreview()
     {
+        _previewAutoSaveCts?.Cancel();
+        _previewAutoSaveCts?.Dispose();
+        _previewAutoSaveCts = null;
+
         _previewServer.StopServer();
         Preview.IsServing = false;
         Preview.ServeStatus = "Preview stopped";
         StatusMessage = Preview.ServeStatus;
         StartFullPreviewCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// While the full preview (real dev-server) is running, saves the currently-open document a
+    /// short debounce window after it becomes dirty, so live-reload picks up further edits without
+    /// requiring a manual Save click each time.
+    /// </summary>
+    private void OnEditorPropertyChangedForPreviewAutoSave(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(EditorViewModel.IsDirty) || !Editor.IsDirty || !Preview.IsServing)
+            return;
+
+        _previewAutoSaveCts?.Cancel();
+        _previewAutoSaveCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _previewAutoSaveCts = cts;
+        _ = DebouncedPreviewAutoSaveAsync(cts);
+    }
+
+    private async Task DebouncedPreviewAutoSaveAsync(CancellationTokenSource cts)
+    {
+        try
+        {
+            await Task.Delay(PreviewAutoSaveDebounceDelay, cts.Token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (cts.IsCancellationRequested || !Editor.IsDirty || !Preview.IsServing)
+            return;
+
+        await Editor.SaveCommand.ExecuteAsync(null).ConfigureAwait(true);
     }
 
     [RelayCommand(CanExecute = nameof(CanPublish))]

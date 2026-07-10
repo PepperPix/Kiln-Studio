@@ -711,6 +711,82 @@ public class EditorViewModelTests
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    [Test]
+    public async Task PreviewMarkdown_RewritesPageBundleRelativeImage_ToAbsoluteFileUri()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var bundleDir = Path.Combine(tempDir, "my-post");
+        Directory.CreateDirectory(bundleDir);
+        try
+        {
+            var imagePath = Path.Combine(bundleDir, "photo.png");
+            await File.WriteAllTextAsync(imagePath, "fake-png");
+            var filePath = Path.Combine(bundleDir, "index.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n![alt](./photo.png)");
+
+            var vm = new EditorViewModel(new ContentService());
+            vm.Load(filePath);
+
+            var expectedUri = new Uri(imagePath).AbsoluteUri;
+            await Assert.That(vm.PreviewMarkdown).Contains($"![alt]({expectedUri})");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PreviewMarkdown_RewritesLibraryAbsoluteImage_ToAbsoluteFileUriUnderStatic()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var contentDir = Path.Combine(tempDir, "content");
+        Directory.CreateDirectory(contentDir);
+        var staticDir = Path.Combine(tempDir, "static", "images");
+        Directory.CreateDirectory(staticDir);
+        try
+        {
+            var imagePath = Path.Combine(staticDir, "photo.png");
+            await File.WriteAllTextAsync(imagePath, "fake-png");
+            var filePath = Path.Combine(contentDir, "post.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n![alt](/assets/images/photo.png)");
+
+            var vm = new EditorViewModel(new ContentService());
+            vm.Load(filePath, tempDir);
+
+            var expectedUri = new Uri(imagePath).AbsoluteUri;
+            await Assert.That(vm.PreviewMarkdown).Contains($"![alt]({expectedUri})");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PreviewMarkdown_LeavesUnresolvableOrExternalImages_Untouched()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var filePath = Path.Combine(tempDir, "post.md");
+            const string externalImage = "![alt](https://example.com/photo.png)";
+            const string missingImage = "![alt](./does-not-exist.png)";
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{externalImage}\n\n{missingImage}");
+
+            var vm = new EditorViewModel(new ContentService());
+            vm.Load(filePath, tempDir);
+
+            await Assert.That(vm.PreviewMarkdown).Contains(externalImage);
+            await Assert.That(vm.PreviewMarkdown).Contains(missingImage);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
 
 public class ShellViewModelEditorTests
