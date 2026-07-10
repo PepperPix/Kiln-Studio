@@ -293,10 +293,12 @@
                                    TextTrimming="CharacterEllipsis" />
                     </Border>
 
-                    <!-- Markdown body preview -->
+                    <!-- Markdown body preview — bind PreviewMarkdown (image paths pre-resolved to
+                         absolute file:// URIs), NOT Body directly, see EditorViewModel.PreviewMarkdown
+                         for why MarkdownScrollViewer.AssetPathRoot alone cannot work here. -->
                     <md:MarkdownScrollViewer
                         IsVisible="{Binding Editor.HasDocument}"
-                        Markdown="{Binding Editor.Body}" />
+                        Markdown="{Binding Editor.PreviewMarkdown}" />
 
                     <!-- Placeholder when no document -->
                     <TextBlock Text="Select a file to preview"

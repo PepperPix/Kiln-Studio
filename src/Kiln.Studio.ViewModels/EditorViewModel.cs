@@ -3,6 +3,7 @@ namespace Kiln.Studio.ViewModels;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Kiln.Studio.Services;
@@ -11,6 +12,9 @@ public partial class EditorViewModel : ViewModelBase
 {
     private static readonly string[] ScalarOwnedKeys = ["title", "date", "description"];
     private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"];
+    private const string AssetsUrlPrefix = "/assets/";
+
+    private static readonly Regex ImageMarkdownRegex = new(@"!\[([^\]]*)\]\(([^)]+)\)", RegexOptions.Compiled);
 
     private readonly IContentService _contentService;
     private readonly IContentFrontmatterWriter _frontmatterWriter;
@@ -22,6 +26,7 @@ public partial class EditorViewModel : ViewModelBase
     private string? _projectPath;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PreviewMarkdown))]
     private string? _filePath;
 
     [ObservableProperty]
@@ -36,6 +41,7 @@ public partial class EditorViewModel : ViewModelBase
     private string _frontMatter = "";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PreviewMarkdown))]
     private string _body = "";
 
     [ObservableProperty]
@@ -260,6 +266,62 @@ public partial class EditorViewModel : ViewModelBase
 
         var isImage = ImageExtensions.Contains(Path.GetExtension(fileName), StringComparer.OrdinalIgnoreCase);
         return isImage ? $"![]({markdownPath})" : $"[{fileName}]({markdownPath})";
+    }
+
+    /// <summary>
+    /// <see cref="Body"/> with image references rewritten to fully-qualified <c>file://</c> URIs,
+    /// for binding to Studio's in-app Markdown.Avalonia quick-preview pane (<c>MarkdownScrollViewer</c>
+    /// in ShellWindow.axaml). Bind THIS, not <see cref="Body"/>, to that preview.
+    ///
+    /// Why this is necessary rather than just setting MarkdownScrollViewer.AssetPathRoot: its
+    /// DefaultPathResolver resolves relative paths via <c>Path.Combine(AssetPathRoot, path)</c> —
+    /// but .NET's Path.Combine silently DISCARDS the first argument whenever the second is rooted
+    /// (starts with '/'), which our site-library markdown scheme always does ("/assets/..."). A
+    /// single AssetPathRoot value also cannot handle both of our two path kinds at once (page-bundle
+    /// "./x.png", resolved relative to the open item's own directory, vs. site-library "/assets/x.png",
+    /// resolved relative to the project's static/ folder). Pre-resolving to absolute file:// URIs here
+    /// sidesteps both problems: DefaultPathResolver's very first check (Uri.TryCreate(..., Absolute))
+    /// succeeds immediately and never reaches the buggy AssetPathRoot/Path.Combine branch. Using
+    /// Uri.AbsoluteUri (rather than string concatenation) also correctly percent-encodes spaces/
+    /// special characters in file names, which a literal "file://" + raw path would not.
+    /// </summary>
+    public string PreviewMarkdown => RewriteImagePathsForPreview(Body);
+
+    private string RewriteImagePathsForPreview(string body)
+    {
+        if (FilePath is null)
+            return body;
+
+        return ImageMarkdownRegex.Replace(body, match =>
+        {
+            var alt = match.Groups[1].Value;
+            var path = match.Groups[2].Value;
+
+            // NOTE: deliberately NOT using Uri.TryCreate(path, UriKind.Absolute, ...) here — .NET's
+            // Uri parser treats ANY string starting with '/' as a well-formed absolute "file://" URI
+            // (e.g. "/assets/x.png" parses successfully as "file:///assets/x.png"), which would wrongly
+            // short-circuit our own site-root-relative "/assets/..." scheme before it gets resolved below.
+            if (path.Contains("://", StringComparison.Ordinal) || path.StartsWith("data:", StringComparison.Ordinal))
+                return match.Value; // already absolute (http(s)://, file://, data:) — leave as-is
+
+            string? resolvedFsPath = null;
+            if (path.StartsWith(AssetsUrlPrefix, StringComparison.Ordinal) && _projectPath is not null)
+            {
+                var relative = path[AssetsUrlPrefix.Length..];
+                resolvedFsPath = Path.Combine(_projectPath, "static", relative);
+            }
+            else if (!path.StartsWith('/'))
+            {
+                var itemDir = Path.GetDirectoryName(FilePath)!;
+                var relative = path.StartsWith("./", StringComparison.Ordinal) ? path[2..] : path;
+                resolvedFsPath = Path.Combine(itemDir, relative);
+            }
+
+            if (resolvedFsPath is null || !File.Exists(resolvedFsPath))
+                return match.Value; // can't resolve — leave the original markdown untouched
+
+            return $"![{alt}]({new Uri(resolvedFsPath).AbsoluteUri})";
+        });
     }
 
     private sealed class NullAssetPickerDialog : IAssetPickerDialog

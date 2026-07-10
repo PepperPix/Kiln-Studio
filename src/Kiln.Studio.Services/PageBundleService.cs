@@ -39,7 +39,7 @@ public sealed class PageBundleService : IPageBundleService
 
     private static string CopyIntoBundle(string bundleDir, string uploadedFilePath)
     {
-        var destination = FindUniqueFilePath(bundleDir, Path.GetFileName(uploadedFilePath));
+        var destination = FindUniqueFilePath(bundleDir, FileNameSlugifier.Slugify(Path.GetFileName(uploadedFilePath)));
         File.Copy(uploadedFilePath, destination);
         return Path.GetFileName(destination);
     }
