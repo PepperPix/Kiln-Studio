@@ -214,6 +214,7 @@ public class EditorViewModelTests
     private const string TestTitle = "Test Post";
     private const string InitialBody = "Hello world!";
     private const string ModifiedBody = "Updated body.";
+    private const int TestImageFileSizeBytes = 300 * 1024;
     private const int TwoTaxonomyFields = 2;
     private const int ExpectedDateYear = 2026;
     private const int ExpectedDateMonth = 7;
@@ -710,6 +711,146 @@ public class EditorViewModelTests
         {
             Directory.Delete(tempDir, recursive: true);
         }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_ImageWithinMaxWidth_SetsOriginalSizeFeedback()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(tempDir, "site.yaml"), "title: Test Site\nbaseUrl: http://localhost:5000\n");
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+            var staticDir = Path.Combine(tempDir, "static", "images");
+            Directory.CreateDirectory(staticDir);
+            var imagePath = Path.Combine(staticDir, "photo.png");
+            await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
+            var reader = new FakeImageDimensionReader((800, 600));
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            vm.Load(filePath, tempDir);
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(vm.LastAssetFeedback)
+                .IsEqualTo("800×600px, 300 KB — bleibt beim Build in Originalgröße (Limit: 2000px).");
+            await Assert.That(reader.LastFilePath).IsEqualTo(imagePath);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_ImageOptimizationDisabled_SetsDisabledFeedback()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(tempDir, "site.yaml"),
+                "title: Test Site\nbaseUrl: http://localhost:5000\nimages:\n  enabled: false\n");
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+            var staticDir = Path.Combine(tempDir, "static", "images");
+            Directory.CreateDirectory(staticDir);
+            var imagePath = Path.Combine(staticDir, "photo.png");
+            await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
+            var reader = new FakeImageDimensionReader((800, 600));
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            vm.Load(filePath, tempDir);
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(vm.LastAssetFeedback)
+                .IsEqualTo("800×600px, 300 KB — Bild-Optimierung ist für dieses Projekt deaktiviert.");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_ImageExceedsMaxWidth_SetsScaledFeedback()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(tempDir, "site.yaml"),
+                "title: Test Site\nbaseUrl: http://localhost:5000\nimages:\n  maxWidth: 400\n");
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+            var staticDir = Path.Combine(tempDir, "static", "images");
+            Directory.CreateDirectory(staticDir);
+            var imagePath = Path.Combine(staticDir, "photo.png");
+            await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
+            var reader = new FakeImageDimensionReader((800, 600));
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            vm.Load(filePath, tempDir);
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(vm.LastAssetFeedback)
+                .IsEqualTo("800×600px, 300 KB — wird beim Build auf 400px Breite skaliert.");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_DimensionsUnreadable_LeavesFeedbackNull()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(tempDir, "site.yaml"), "title: Test Site\nbaseUrl: http://localhost:5000\n");
+            var filePath = Path.Combine(tempDir, "test.md");
+            await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
+            var staticDir = Path.Combine(tempDir, "static", "images");
+            Directory.CreateDirectory(staticDir);
+            var imagePath = Path.Combine(staticDir, "photo.png");
+            await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
+
+            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
+            var reader = new FakeImageDimensionReader(null);
+            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            vm.Load(filePath, tempDir);
+
+            await vm.PickAndPrepareAssetAsync();
+
+            await Assert.That(vm.LastAssetFeedback).IsNull();
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task PickAndPrepareAssetAsync_NonImageFile_LeavesFeedbackNull()
+    {
+        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
+        var reader = new FakeImageDimensionReader((800, 600));
+        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+
+        await vm.PickAndPrepareAssetAsync();
+
+        await Assert.That(vm.LastAssetFeedback).IsNull();
     }
 
     [Test]

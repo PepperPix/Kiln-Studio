@@ -6,7 +6,10 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Kiln.Models;
+using Kiln.Services;
 using Kiln.Studio.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 public partial class EditorViewModel : ViewModelBase
 {
@@ -21,6 +24,8 @@ public partial class EditorViewModel : ViewModelBase
     private readonly ITaxonomyValueCache _taxonomyValueCache;
     private readonly IAssetPickerDialog _assetPickerDialog;
     private readonly IPageBundleService _pageBundleService;
+    private readonly IImageDimensionReader _imageDimensionReader;
+    private readonly EngineHost _engineHost;
     private Func<string, Task>? _onPageBundleConverted;
     private bool _suppressDirty;
     private string? _projectPath;
@@ -53,6 +58,9 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _description = "";
 
+    [ObservableProperty]
+    private string? _lastAssetFeedback;
+
     public ObservableCollection<TaxonomyFieldViewModel> TaxonomyFields { get; } = [];
 
     public EditorViewModel(
@@ -60,13 +68,17 @@ public partial class EditorViewModel : ViewModelBase
         IContentFrontmatterWriter? frontmatterWriter = null,
         ITaxonomyValueCache? taxonomyValueCache = null,
         IAssetPickerDialog? assetPickerDialog = null,
-        IPageBundleService? pageBundleService = null)
+        IPageBundleService? pageBundleService = null,
+        IImageDimensionReader? imageDimensionReader = null,
+        EngineHost? engineHost = null)
     {
         _contentService = contentService;
         _frontmatterWriter = frontmatterWriter ?? new ContentFrontmatterWriter();
         _taxonomyValueCache = taxonomyValueCache ?? new TaxonomyValueCache();
         _assetPickerDialog = assetPickerDialog ?? new NullAssetPickerDialog();
         _pageBundleService = pageBundleService ?? new PageBundleService();
+        _imageDimensionReader = imageDimensionReader ?? new NullImageDimensionReader();
+        _engineHost = engineHost ?? new EngineHost();
     }
 
     /// <summary>
@@ -244,12 +256,14 @@ public partial class EditorViewModel : ViewModelBase
 
         string markdownPath;
         string fileName;
+        string? physicalPath;
 
         if (pickerResult.Destination == AssetPickerDestination.Library)
         {
             var normalized = pickerResult.Path.Replace('\\', '/');
             markdownPath = $"/assets/{normalized}";
             fileName = Path.GetFileName(normalized);
+            physicalPath = _projectPath is not null ? Path.Combine(_projectPath, "static", normalized) : null;
         }
         else
         {
@@ -262,10 +276,71 @@ public partial class EditorViewModel : ViewModelBase
 
             fileName = uploadResult.RelativeAssetFileName;
             markdownPath = $"./{fileName}";
+            physicalPath = Path.Combine(Path.GetDirectoryName(uploadResult.NewSourcePath)!, uploadResult.RelativeAssetFileName);
         }
 
         var isImage = ImageExtensions.Contains(Path.GetExtension(fileName), StringComparer.OrdinalIgnoreCase);
+        LastAssetFeedback = isImage ? BuildAssetFeedback(physicalPath) : null;
         return isImage ? $"![]({markdownPath})" : $"[{fileName}]({markdownPath})";
+    }
+
+    /// <summary>
+    /// Rein informative Rückmeldung nach einem Bild-Upload/-Pick: Maße, Dateigröße, und eine
+    /// deterministische Skalierungs-Aussage basierend auf <c>site.yaml</c>s <c>images.*</c>
+    /// (ADR-051). Gibt <see langword="null"/> zurück, wenn die Datei nicht existiert oder ihre
+    /// Maße nicht gelesen werden können — nie einen Fallback-Text.
+    /// </summary>
+    private string? BuildAssetFeedback(string? physicalPath)
+    {
+        if (physicalPath is null || !File.Exists(physicalPath))
+            return null;
+
+        var dimensions = _imageDimensionReader.TryReadDimensions(physicalPath);
+        if (dimensions is null)
+            return null;
+
+        var (width, height) = dimensions.Value;
+        var fileSizeBytes = new FileInfo(physicalPath).Length;
+        var images = LoadImageOptions();
+        return FormatAssetFeedback(width, height, fileSizeBytes, images);
+    }
+
+    private ImageOptions LoadImageOptions()
+    {
+        if (_projectPath is null)
+            return new ImageOptions();
+
+        using var provider = _engineHost.CreateProvider(_projectPath);
+        var loader = provider.GetRequiredService<ISiteConfigLoader>();
+        return loader.Load(_projectPath).Images;
+    }
+
+    private static string FormatAssetFeedback(int width, int height, long fileSizeBytes, ImageOptions images)
+    {
+        var sizeFormatted = FormatFileSize(fileSizeBytes);
+
+        if (!images.Enabled)
+            return $"{width}\u00d7{height}px, {sizeFormatted} — Bild-Optimierung ist für dieses Projekt deaktiviert.";
+
+        if (width <= images.MaxWidth)
+            return $"{width}\u00d7{height}px, {sizeFormatted} — bleibt beim Build in Originalgröße (Limit: {images.MaxWidth}px).";
+
+        return $"{width}\u00d7{height}px, {sizeFormatted} — wird beim Build auf {images.MaxWidth}px Breite skaliert.";
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        const double kb = 1024;
+        const double mb = 1024 * 1024;
+
+        if (bytes >= mb)
+        {
+            var value = (bytes / mb).ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',');
+            return $"{value} MB";
+        }
+
+        var kbValue = (long)Math.Round(bytes / kb, MidpointRounding.AwayFromZero);
+        return $"{kbValue} KB";
     }
 
     /// <summary>
@@ -328,5 +403,10 @@ public partial class EditorViewModel : ViewModelBase
     {
         public Task<AssetPickerResult?> ShowAsync(string projectPath, bool canUploadToPageBundle) =>
             Task.FromResult<AssetPickerResult?>(null);
+    }
+
+    private sealed class NullImageDimensionReader : IImageDimensionReader
+    {
+        public (int Width, int Height)? TryReadDimensions(string filePath) => null;
     }
 }
