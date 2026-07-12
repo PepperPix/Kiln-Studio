@@ -17,7 +17,7 @@
         <!-- Editor area when document is loaded -->
         <Grid x:Name="DocumentGrid"
               IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,Auto,4,Auto,*">
+              RowDefinitions="Auto,Auto,4,Auto,Auto,*">
 
             <!-- Slim, always-visible header: collapses/expands the entire frontmatter panel below
                  to reclaim maximum space for the body editor (in addition to the GridSplitter,
@@ -124,8 +124,19 @@
                 <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
             </StackPanel>
 
+            <!-- Rein informative Rückmeldung nach einem Asset-Pick/-Upload: Maße, Dateigröße,
+                 Skalierungs-Hinweis (PLAN-069). Nur für Bilddateien gesetzt; kein Dialog, kein
+                 Toast-Framework, kein Auto-Hide-Timer. -->
+            <TextBlock Grid.Row="4"
+                       x:Name="AssetFeedbackText"
+                       Text="{Binding LastAssetFeedback}"
+                       IsVisible="{Binding LastAssetFeedback, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       TextWrapping="Wrap"
+                       Classes="muted"
+                       Margin="{StaticResource PanelMargin}" />
+
             <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="4"
+            <aedit:TextEditor Grid.Row="5"
                               x:Name="BodyEditor"
                               FontFamily="Menlo,Consolas,Courier New,monospace"
                               FontSize="{StaticResource FontSizeXS}"

@@ -265,16 +265,19 @@
       },
       "Kiln.Core": {
         "type": "Transitive",
-        "resolved": "1.1.0",
-        "contentHash": "3wFf+vI0cx1w/xNpxb5638+KttuWJsXOLY8X0MS+IIVJzy63z7k/sX+5cyr+9tdn3ML+9LpSChts2udzhi5c7g==",
+        "resolved": "1.1.0-beta.3",
+        "contentHash": "s1tu00NY0BxopS9orWxZfuxUM3PYXtky8i5+mYgv77Xc49YSnBZEJd14k6xij8PUfYCI3ROJkrhqSjyAswso7Q==",
         "dependencies": {
           "AngleSharp": "1.5.2",
-          "Kiln.Abstractions": "1.1.0",
+          "Kiln.Abstractions": "1.1.0-beta.3",
           "Markdig": "1.3.2",
           "Microsoft.Extensions.DependencyInjection": "10.0.9",
+          "Microsoft.Extensions.FileSystemGlobbing": "10.0.9",
           "Microsoft.OpenApi.Readers": "1.6.29",
-          "NUglify": "1.21.17",
+          "NUglify": "1.21.18",
           "Scriban": "7.2.5",
+          "SkiaSharp": "3.119.4",
+          "SkiaSharp.NativeAssets.Linux.NoDependencies": "3.119.4",
           "YamlDotNet": "18.1.0"
         }
       },
@@ -334,6 +337,11 @@
         "resolved": "10.0.9",
         "contentHash": "g41l/30G3K4B/d/L8kjux0+30e27c8D0FVQ/PFCpbekgfDpj9mnDhieP67EqXWvl1EWNeZh2rpR4F5B/jcDOHA=="
       },
+      "Microsoft.Extensions.FileSystemGlobbing": {
+        "type": "Transitive",
+        "resolved": "10.0.9",
+        "contentHash": "mvRf9qOH/LslWIee/h+lsElnoUyKotEwoPL31soqScmO/eoxObaTCLCdx2DdqPdRi9LnB+7qKZ49jfyrLZuc+w=="
+      },
       "Microsoft.OpenApi": {
         "type": "Transitive",
         "resolved": "1.6.29",
@@ -355,8 +363,8 @@
       },
       "NUglify": {
         "type": "Transitive",
-        "resolved": "1.21.17",
-        "contentHash": "K2ywYpoPEvU3+Ooq6wxz+FJOkmbDeoE41q/sJZWv9tI7qbTmH2A5R0E4hWzruvl/9pnUhqwbu1mxT06C45D0ZQ=="
+        "resolved": "1.21.18",
+        "contentHash": "M6IoRH/8/1cJU2rS/zmYkr+Gwc9s0VuDcao+3wfRihcZ7hwDtJ3VgMOOa8BIKh4YC2KxOYdHhnrQIVL7elUSrQ=="
       },
       "Onigwrap": {
         "type": "Transitive",
@@ -391,6 +399,11 @@
         "type": "Transitive",
         "resolved": "3.119.4",
         "contentHash": "UAyVzbqNfZsZbKbzj68zXLyUyF/SbTKmzTfOO6qDu++dtIUMMTzPBe8oOuzU/DiewpfKoUUlOSsJmqWc6blxBw=="
+      },
+      "SkiaSharp.NativeAssets.Linux.NoDependencies": {
+        "type": "Transitive",
+        "resolved": "3.119.4",
+        "contentHash": "iFnpOfZoim2SwhSPy0EJNZtQAaWM7D0A6Q1YvquwOXUdQAFrSy81Tfb1I4c0IHrrQnoVjcZPcwOc1+VM2ja77w=="
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",
@@ -471,7 +484,7 @@
         "type": "Project",
         "dependencies": {
           "Kiln.Abstractions": "[1.*, )",
-          "Kiln.Core": "[1.*, )",
+          "Kiln.Core": "[1.1.0-beta.3, )",
           "Microsoft.Extensions.DependencyInjection": "[10.*, )",
           "YamlDotNet": "[18.*, )"
         }
