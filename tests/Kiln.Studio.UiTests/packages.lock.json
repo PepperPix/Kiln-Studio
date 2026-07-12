@@ -28,6 +28,16 @@
           "SkiaSharp.NativeAssets.WebAssembly": "3.119.4"
         }
       },
+      "jcamp.Avalonia.Headless.TUnit": {
+        "type": "Direct",
+        "requested": "[0.1.1, )",
+        "resolved": "0.1.1",
+        "contentHash": "KOOxtyjvVnedmVOJS23xGs4QItLUFbzLhojgBTNmLXzvhZH1xA8m3rRosgYICC8NkID81zJHexErldILRHBPEw==",
+        "dependencies": {
+          "Avalonia.Headless": "12.0.3",
+          "TUnit": "[1.44.0, 2.0.0)"
+        }
+      },
       "Microsoft.Extensions.StaticAnalysis": {
         "type": "Direct",
         "requested": "[10.7.0, )",

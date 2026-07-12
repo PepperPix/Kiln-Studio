@@ -2,7 +2,7 @@ root = true
 
 [*.cs]
 # ── ReSharper / InspectCode suppressions (see ADR-048) ──
-# Deliberate flat namespace convention regardless of folder nesting (e.g. Dto/, TestDoubles/, Vendor/).
+# Deliberate flat namespace convention regardless of folder nesting (e.g. Dto/, TestDoubles/).
 resharper_check_namespace_highlighting = none
 # Cosmetic only — kept as IDE hint, below the WARNING gate threshold
 resharper_redundant_name_qualifier_highlighting = suggestion
@@ -48,17 +48,3 @@ resharper_unused_auto_property_accessor_global_highlighting = none
 # Test doubles expose "LastXxx" spy properties consumed only by some call sites/tests.
 [tests/Kiln.Studio.TestSupport/TestDoubles/*.cs]
 resharper_unused_auto_property_accessor_global_highlighting = none
-
-# Vendored third-party files: suppress all analyzer diagnostics verbatim.
-[tests/Kiln.Studio.UiTests/Vendor/**]
-dotnet_analyzer_diagnostic.severity = none
-dotnet_diagnostic.CA1822.severity = none
-dotnet_diagnostic.CA1031.severity = none
-dotnet_diagnostic.VSTHRD003.severity = none
-dotnet_diagnostic.S108.severity = none
-dotnet_diagnostic.CA1062.severity = none
-dotnet_diagnostic.CA2016.severity = none
-resharper_check_namespace_highlighting = none
-resharper_redundant_using_directive_highlighting = none
-resharper_inconsistent_naming_highlighting = none
-resharper_inheritdoc_invalid_usage_highlighting = none
