@@ -210,7 +210,7 @@ public sealed class EditorMarkdownToolbarUiTests
             ?? throw new InvalidOperationException($"CaptureRenderedFrame returned null for '{name}'.");
 
         using var stream = File.Open(Path.Combine(reviewDir, $"{name}.png"), FileMode.Create, FileAccess.Write);
-        frame.Save(stream);
+        frame.Save(stream, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
     }
 
     private static string ResolveReviewDir([System.Runtime.CompilerServices.CallerFilePath] string callerFile = "")

@@ -118,7 +118,7 @@ internal static class SnapshotComparer
     private static void SaveBitmap(WriteableBitmap bitmap, string path)
     {
         using var stream = File.Open(path, FileMode.Create, FileAccess.Write);
-        bitmap.Save(stream);
+        bitmap.Save(stream, PngBitmapEncoderOptions.Default);
     }
 
     private static (double DiffFraction, bool[]? DiffMask) CompareWithBaseline(
@@ -242,7 +242,7 @@ internal static class SnapshotComparer
         }
 
         using var stream = File.Open(path, FileMode.Create, FileAccess.Write);
-        wb.Save(stream);
+        wb.Save(stream, PngBitmapEncoderOptions.Default);
     }
 }
 
