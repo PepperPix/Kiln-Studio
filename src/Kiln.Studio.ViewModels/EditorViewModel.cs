@@ -263,7 +263,14 @@ public partial class EditorViewModel : ViewModelBase
             var normalized = pickerResult.Path.Replace('\\', '/');
             markdownPath = $"/assets/{normalized}";
             fileName = Path.GetFileName(normalized);
-            physicalPath = _projectPath is not null ? Path.Combine(_projectPath, "static", normalized) : null;
+            // AssetLibraryService.CombineRelative always builds forward-slash-joined relative
+            // paths by design (canonical, platform-independent — see AssetLibraryService.cs), NOT
+            // native separators. Path.Combine only normalizes the separator BETWEEN its arguments,
+            // never inside one, so combining with pickerResult.Path as-is leaves a mixed
+            // "...\static\images/photo.png" path on Windows (confirmed via CI: windows-latest).
+            // Convert to the platform separator explicitly before combining.
+            var nativeRelativePath = normalized.Replace('/', Path.DirectorySeparatorChar);
+            physicalPath = _projectPath is not null ? Path.Combine(_projectPath, "static", nativeRelativePath) : null;
         }
         else
         {
