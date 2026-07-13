@@ -73,6 +73,19 @@
         <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
     </Style>
 
+    <!-- Checked state for ToggleButton.secondary (Frontmatter/Preview toggles etc.) — without this,
+         FluentTheme's default :checked style takes over and paints a jarring accent-blue background
+         instead of matching the app's muted dark palette (bug fix, 2026-07-13). -->
+    <Style Selector="ToggleButton.secondary:checked">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource KilnPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+    </Style>
+
+    <Style Selector="ToggleButton.secondary:checked:pointerover">
+        <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+    </Style>
+
     <!-- ── Quiet button (toolbar — no visible border) ── -->
     <Style Selector="Button.quiet">
         <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
@@ -85,6 +98,35 @@
     <Style Selector="Button.quiet:pointerover">
         <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource KilnBorderBrush}" />
+    </Style>
+
+    <!-- ── Gutter toggle (EditorView Frontmatter/Preview collapse handles) ──
+         A minimal custom template that deliberately bypasses FluentTheme's built-in ToggleButton
+         chrome entirely: overriding the theme's :checked visual via plain Style/local-value Setters
+         did not work (that state is painted by an internal template part, not the Background
+         property), and these buttons don't need a "checked" highlight anyway — the chevron icon's
+         direction already communicates panel state (bug fix, 2026-07-13). -->
+    <Style Selector="ToggleButton.gutter-toggle">
+        <Setter Property="Background" Value="{StaticResource TransparentBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource KilnTextBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_GutterToggleBorder"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{StaticResource CornerRadiusControl}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="ToggleButton.gutter-toggle:pointerover /template/ Border#PART_GutterToggleBorder">
+        <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
     </Style>
 
     <!-- ── CheckBox ── -->

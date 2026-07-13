@@ -4,6 +4,8 @@
              xmlns:aedit="using:AvaloniaEdit"
              xmlns:controls="using:Kiln.Studio.Controls"
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
+             xmlns:local="using:Kiln.Studio"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
              x:Class="Kiln.Studio.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
@@ -33,21 +35,15 @@
 
             <Grid Grid.Row="1"
                   x:Name="DocumentGrid"
-                  ColumnDefinitions="260,4,*,4,Auto">
+                  ColumnDefinitions="260,20,*,20,Auto">
 
-                <!-- Left column: Frontmatter / Stats sub-tabs -->
-                <Grid Grid.Column="0" RowDefinitions="Auto,*">
-                    <ToggleButton Grid.Row="0"
-                                  x:Name="FrontmatterPanelToggle"
-                                  Classes="secondary"
-                                  IsChecked="True"
-                                  Content="▾ Frontmatter"
-                                  HorizontalAlignment="Left"
-                                  HorizontalContentAlignment="Left"
-                                  Margin="{StaticResource PanelMargin}" />
-
-                    <TabControl Grid.Row="1"
-                                IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}">
+                <!-- Left column: Frontmatter / Stats sub-tabs. The collapse toggle used to live
+                     INSIDE this column (Row 0) — once collapsed to width 0 there was no way to
+                     click it again to re-expand (bug fix, 2026-07-13). It now lives in the always-
+                     visible gutter column (Grid.Column="1" below), mirroring how NavRailView pins
+                     its own expand/collapse toggle outside the width-collapsing region. -->
+                <Grid Grid.Column="0">
+                    <TabControl IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}">
 
                         <TabItem Header="Frontmatter">
                             <ScrollViewer x:Name="FrontmatterScrollViewer"
@@ -138,9 +134,26 @@
                     </TabControl>
                 </Grid>
 
-                <GridSplitter Grid.Column="1"
-                              ResizeDirection="Columns"
-                              IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
+                <!-- Gutter column: resize splitter (only draggable while expanded) plus a small,
+                     always-visible collapse/expand toggle button pinned at the top — this is the
+                     part that never disappears, unlike the old in-panel toggle (bug fix,
+                     2026-07-13). -->
+                <Grid Grid.Column="1">
+                    <GridSplitter ResizeDirection="Columns"
+                                  HorizontalAlignment="Stretch"
+                                  IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
+                    <ToggleButton x:Name="FrontmatterPanelToggle"
+                                  Classes="gutter-toggle"
+                                  IsChecked="True"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Top"
+                                  Margin="0,4,0,0"
+                                  ToolTip.Tip="Frontmatter ein-/ausblenden">
+                        <materialIcons:MaterialIcon Kind="{Binding #FrontmatterPanelToggle.IsChecked, Converter={x:Static local:AppConverters.ExpandedToLeftPanelCollapseIcon}}"
+                                      Width="14"
+                                      Height="14" />
+                    </ToggleButton>
+                </Grid>
 
                 <!-- Middle column: title + Markdown toolbar + body editor -->
                 <Grid Grid.Column="2" RowDefinitions="Auto,Auto,Auto,*">
@@ -156,26 +169,30 @@
 
                     <!-- Markdown formatting toolbar for the body editor: wraps/prefixes the current
                          selection with Markdown syntax (PLAN-066, ADR-049 Entscheidung 5 — deliberately
-                         not a WYSIWYG editor, the body stays plain Markdown text). -->
-                    <StackPanel Grid.Row="1"
-                                Orientation="Horizontal"
-                                Spacing="4"
-                                Margin="{StaticResource PanelMargin}">
-                        <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
-                        <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
-                        <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
-                        <Button x:Name="CodeBlockButton" Classes="secondary" Content="{}{ }" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeBlockClick" />
-                        <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
-                        <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
-                        <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
-                        <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
-                        <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
-                        <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
-                        <ToggleButton x:Name="PreviewToggleButton"
-                                      Classes="secondary"
-                                      Content="Preview"
-                                      IsChecked="{Binding IsInlinePreviewVisible}" />
-                    </StackPanel>
+                         not a WYSIWYG editor, the body stays plain Markdown text).
+                         Wrapped in a horizontally-scrolling ScrollViewer (bug fix, 2026-07-13): the
+                         ten buttons are wider than the middle column once the Frontmatter panel and
+                         inline Preview column are both visible, and Avalonia's StackPanel does not
+                         clip overflowing content by default — the excess buttons painted over the
+                         Preview column instead of being confined to this column's own bounds. -->
+                    <ScrollViewer Grid.Row="1"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="4"
+                                    Margin="{StaticResource PanelMargin}">
+                            <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
+                            <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
+                            <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
+                            <Button x:Name="CodeBlockButton" Classes="secondary" Content="{}{ }" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeBlockClick" />
+                            <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
+                            <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
+                            <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
+                            <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
+                            <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
+                            <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
+                        </StackPanel>
+                    </ScrollViewer>
 
                     <!-- Rein informative Rückmeldung nach einem Asset-Pick/-Upload: Maße, Dateigröße,
                          Skalierungs-Hinweis (PLAN-069). Nur für Bilddateien gesetzt; kein Dialog, kein
@@ -197,12 +214,30 @@
                                       WordWrap="True" />
                 </Grid>
 
-                <GridSplitter Grid.Column="3"
-                              ResizeDirection="Columns"
-                              IsVisible="{Binding IsInlinePreviewVisible}" />
+                <!-- Gutter column: mirrors the Frontmatter gutter (Grid.Column="1") above — a small,
+                     always-visible collapse/expand toggle for the inline Preview panel, moved out of
+                     the crowded toolbar row (bug fix, 2026-07-13; the toolbar row's overflowing
+                     buttons previously painted over this panel — see the ScrollViewer fix above).
+                     Both gutters now share the same visual affordance, per discussion. -->
+                <Grid Grid.Column="3">
+                    <GridSplitter ResizeDirection="Columns"
+                                  HorizontalAlignment="Stretch"
+                                  IsVisible="{Binding IsInlinePreviewVisible}" />
+                    <ToggleButton x:Name="PreviewToggleButton"
+                                  Classes="gutter-toggle"
+                                  IsChecked="{Binding IsInlinePreviewVisible}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Top"
+                                  Margin="0,4,0,0"
+                                  ToolTip.Tip="Preview ein-/ausblenden">
+                        <materialIcons:MaterialIcon Kind="{Binding IsInlinePreviewVisible, Converter={x:Static local:AppConverters.VisibleToRightPanelCollapseIcon}}"
+                                      Width="14"
+                                      Height="14" />
+                    </ToggleButton>
+                </Grid>
 
                 <!-- Opt-in third column: Markdown.Avalonia inline preview (ADR-054 — no longer
-                     permanently visible, toggled via the Preview button in the toolbar above). -->
+                     permanently visible, toggled via the Preview toggle in the gutter above). -->
                 <md:MarkdownScrollViewer Grid.Column="4"
                                          x:Name="InlinePreview"
                                          IsVisible="{Binding IsInlinePreviewVisible}"

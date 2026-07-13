@@ -22,4 +22,17 @@ internal static class AppConverters
     /// (ADR-054 "Umfang dieser Iteration") so they read as visually distinct from real destinations.</summary>
     public static readonly FuncValueConverter<bool, double> PlaceholderToOpacity =
         new(isPlaceholder => isPlaceholder ? 0.6 : 1.0);
+
+    /// <summary>Chevron for the Frontmatter panel's collapse handle (EditorView) — points left
+    /// (towards the panel it collapses) when expanded, right when collapsed, mirroring the nav
+    /// rail's own chevron convention.</summary>
+    public static readonly FuncValueConverter<bool, MaterialIconKind> ExpandedToLeftPanelCollapseIcon =
+        new(isExpanded => isExpanded ? MaterialIconKind.ChevronLeft : MaterialIconKind.ChevronRight);
+
+    /// <summary>Chevron for the inline Preview panel's collapse handle (EditorView) — points right
+    /// (towards the panel it reveals) when hidden, left when visible; mirrored orientation of
+    /// <see cref="ExpandedToLeftPanelCollapseIcon"/> since the Preview panel lives on the opposite
+    /// (right) side of the editor.</summary>
+    public static readonly FuncValueConverter<bool, MaterialIconKind> VisibleToRightPanelCollapseIcon =
+        new(isVisible => isVisible ? MaterialIconKind.ChevronRight : MaterialIconKind.ChevronLeft);
 }
