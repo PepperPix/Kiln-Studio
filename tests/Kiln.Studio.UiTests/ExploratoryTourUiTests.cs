@@ -109,6 +109,11 @@ public sealed class ExploratoryTourUiTests
             explorer.SelectedEntry = firstPost;
             Capture(window, reviewDir, "04_editor_with_content_loaded");
 
+            // 5) Toggle the inline preview column on (PLAN-072 bug review, 2026-07-13) to visually
+            //    inspect the reported "Preview overlaps buttons" defect.
+            editor.IsInlinePreviewVisible = true;
+            Capture(window, reviewDir, "05_editor_with_inline_preview_visible");
+
             window.Close();
         }
         finally

@@ -62,6 +62,7 @@
 
         <!-- Entry list for the selected collection -->
         <ListBox Grid.Row="2"
+                 x:Name="EntryListBox"
                  ItemsSource="{Binding SelectedCollection.FilteredEntries}"
                  SelectedItem="{Binding SelectedEntry}">
             <ListBox.ItemTemplate>
