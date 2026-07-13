@@ -39,7 +39,7 @@ public class ShellViewModelTests
             new PreviewViewModel(),
             buildService ?? new FakeBuildService(),
             deploymentService ?? new FakeDeploymentService(),
-            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
             unsavedChangesDialog: unsavedChangesDialog);
         return (vm, storeDir);
     }
@@ -118,7 +118,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -154,7 +154,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -190,7 +190,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -229,7 +229,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             // Create the site first
             await vm.NewSiteCommand.ExecuteAsync(null);
@@ -252,7 +252,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await Assert.That(vm2.RecentProjects.Count).IsEqualTo(1);
 
@@ -293,7 +293,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();
@@ -339,7 +339,7 @@ public class ShellViewModelNewSiteTests
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
             unsavedChangesDialog: dialog);
         try
         {
@@ -388,7 +388,7 @@ public class ShellViewModelNewSiteTests
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
+            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter(),
             unsavedChangesDialog: dialog);
         try
         {
@@ -437,7 +437,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm1.NewSiteCommand.ExecuteAsync(null);
             var path1 = vm1.CurrentProjectPath!;
@@ -457,7 +457,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
 
@@ -498,7 +498,7 @@ public class ShellViewModelNewSiteTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -537,7 +537,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await Assert.That(vm.StartFullPreviewCommand.CanExecute(null)).IsFalse();
         }
@@ -573,7 +573,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm2.IsProjectOpen).IsTrue();
@@ -619,7 +619,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await vm2.StartFullPreviewCommand.ExecuteAsync(null);
@@ -662,7 +662,7 @@ public class ShellViewModelPreviewTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.StartFullPreviewCommand.ExecuteAsync(null);
@@ -734,7 +734,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 buildService,
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -786,7 +786,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 buildService,
                 new FakeDeploymentService(),
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.BuildCommand.ExecuteAsync(null);
@@ -826,7 +826,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(),
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 configStore,
                 new NullPublishService(), new FakeContentFrontmatterWriter());
 
@@ -880,7 +880,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new NullSettingsDialog(),
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 configStore,
                 publishService,
                 new FakeContentFrontmatterWriter());
@@ -932,7 +932,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 deploymentService,
-                new NullSettingsDialog(),
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 configStore,
                 new NullPublishService(), new FakeContentFrontmatterWriter());
 
@@ -979,7 +979,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 deploymentService,
-                new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.SetUpGitHubPagesCommand.ExecuteAsync(null);
@@ -1019,7 +1019,7 @@ public class ShellViewModelBuildDeployTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog(),
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 writer);
@@ -1077,7 +1077,7 @@ file static class ShellViewModelTestsAccessor
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new NullSettingsDialog(), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
         return (vm, storeDir);
     }
 }

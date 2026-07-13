@@ -341,6 +341,20 @@
           "ColorTextBlock.Avalonia": "12.0.0-a3"
         }
       },
+      "Material.Icons": {
+        "type": "Transitive",
+        "resolved": "2.4.3",
+        "contentHash": "IcwOvAC9CZNd20zCB6Dxx6nVix5lsQXKHLmmSlF4R7px0dSNCq/2KJGqu5O9nMf1P82d58Vl2v2taDjAezpABA=="
+      },
+      "Material.Icons.Avalonia": {
+        "type": "Transitive",
+        "resolved": "2.4.3",
+        "contentHash": "AglohupilU2JuId7bDWFngfPPyX1kTwdqZs0jnNfIEypce3wfe8ETgB58c1jbRIq+nhWPSlgZrOevQ4hQsM+/A==",
+        "dependencies": {
+          "Avalonia": "12.0.0",
+          "Material.Icons": "2.4.3"
+        }
+      },
       "MicroCom.Runtime": {
         "type": "Transitive",
         "resolved": "0.11.6",
@@ -609,6 +623,7 @@
           "Kiln.Studio.Services": "[0.1.0, )",
           "Kiln.Studio.ViewModels": "[0.1.0, )",
           "Markdown.Avalonia": "[12.0.0-a3, )",
+          "Material.Icons.Avalonia": "[2.*, )",
           "Microsoft.Extensions.DependencyInjection": "[10.*, )",
           "TextMateSharp.Grammars": "[2.*, )"
         }

@@ -17,6 +17,14 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
     [ObservableProperty]
     private ContentEntryViewModel? _selectedEntry;
 
+    /// <summary>
+    /// The collection currently shown by the full-screen content list (collection switcher,
+    /// PLAN-072) - replaces the old always-all-collections TreeView. Defaults to the first loaded
+    /// collection.
+    /// </summary>
+    [ObservableProperty]
+    private ContentCollectionViewModel? _selectedCollection;
+
     [ObservableProperty]
     private string? _searchText;
 
@@ -42,6 +50,7 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
         Collections.Clear();
         foreach (var collection in project.Collections)
             Collections.Add(new ContentCollectionViewModel(collection, _onToggleDraft));
+        SelectedCollection = Collections.Count > 0 ? Collections[0] : null;
         ApplyToAll();
     }
 
@@ -49,6 +58,7 @@ public sealed partial class ProjectExplorerViewModel : ViewModelBase
     {
         Collections.Clear();
         SelectedEntry = null;
+        SelectedCollection = null;
         SearchText = null;
         DraftFilter = DraftFilter.All;
         SortMode = ContentSortMode.Default;

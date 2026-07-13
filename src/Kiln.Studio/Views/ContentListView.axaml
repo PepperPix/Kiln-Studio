@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             x:Class="Kiln.Studio.Views.ContentListView"
+             x:DataType="vm:ProjectExplorerViewModel">
+
+    <!-- Full-screen content list (ADR-054/PLAN-072): promoted from the old narrow TreeView
+         sidebar. Existing search/filter/sort logic (PLAN-046) is unchanged, only the surrounding
+         layout and the collection switcher (replacing the old always-all-collections tree) are
+         new. Clicking a row sets SelectedEntry, which ShellViewModel already reacts to (loading
+         the editor) - see ShellViewModel.OnExplorerPropertyChanged. -->
+    <Grid RowDefinitions="Auto,Auto,*" Margin="{StaticResource PanelMargin}">
+
+        <!-- Collection switcher + New button -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding Collections}"
+                      SelectedItem="{Binding SelectedCollection}"
+                      HorizontalAlignment="Left"
+                      MinWidth="160">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ContentCollectionViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="(" Foreground="{StaticResource KilnTextMutedBrush}" />
+                            <TextBlock Text="{Binding VisibleCount}" Foreground="{StaticResource KilnTextMutedBrush}" />
+                            <TextBlock Text=")" Foreground="{StaticResource KilnTextMutedBrush}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1"
+                    Content="New"
+                    Classes="primary"
+                    Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).NewPageCommand}" />
+        </Grid>
+
+        <!-- Search / filter / sort bar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+            <TextBox PlaceholderText="Search…"
+                     Text="{Binding SearchText}"
+                     MinWidth="200" />
+            <ComboBox ItemsSource="{Binding DraftFilters}"
+                      SelectedItem="{Binding DraftFilter}"
+                      MinWidth="110">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <ComboBox ItemsSource="{Binding SortModes}"
+                      SelectedItem="{Binding SortMode}"
+                      MinWidth="130">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Entry list for the selected collection -->
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding SelectedCollection.FilteredEntries}"
+                 SelectedItem="{Binding SelectedEntry}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ContentEntryViewModel">
+                    <Grid HorizontalAlignment="Stretch" RowDefinitions="Auto,Auto">
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{Binding ToggleDraftHeader}"
+                                          Command="{Binding ToggleDraftCommand}" />
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Title}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Classes="entry-title"
+                                       Classes.draft="{Binding Draft}"
+                                       ToolTip.Tip="{Binding Title}" />
+                            <TextBlock Grid.Column="1"
+                                       Text="draft"
+                                       IsVisible="{Binding Draft}"
+                                       Classes="draft-badge" />
+                        </Grid>
+                        <TextBlock Grid.Row="1"
+                                   Text="{Binding Date, StringFormat='{}{0:yyyy-MM-dd}'}"
+                                   IsVisible="{Binding Date, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                   Classes="muted" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+    </Grid>
+
+</UserControl>

@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Kiln.Studio.ViewModels"
         xmlns:views="using:Kiln.Studio.Views"
-        xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
         x:Class="Kiln.Studio.Views.ShellWindow"
         x:DataType="vm:ShellViewModel"
         Title="{Binding Title}"
@@ -12,7 +11,13 @@
 
     <DockPanel>
 
-        <!-- Toolbar -->
+        <!-- Slim project header strip (ADR-054/PLAN-072): the old wide multi-group toolbar is
+             gone — per-content actions (New/Save/Preview) moved into their own nav destinations
+             (Content list / Editor header). Only truly global, cross-cutting actions with no
+             single nav-target home remain here: project switcher, folder/refresh, and Build
+             (site-wide artifact generation, distinct from the "Deploy group", which retires into
+             the placeholder Deployment nav entry this iteration — see ADR-054 "Umfang dieser
+             Iteration"). -->
         <Border DockPanel.Dock="Top" Classes="toolbar-host"
                 IsVisible="{Binding IsProjectOpen}">
             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -72,26 +77,12 @@
                         Background="{StaticResource KilnBorderBrush}"
                         Margin="4,4" />
 
-                <!-- Navigation group -->
-                <Button Content="New Content"
-                        Command="{Binding NewPageCommand}"
-                        Classes="secondary" />
                 <Button Content="Open Folder"
                     Command="{Binding OpenInFileManagerCommand}"
                     Classes="secondary" />
                 <Button Content="Refresh"
                     Command="{Binding RefreshCommand}"
                     Classes="secondary" />
-
-                <!-- Separator -->
-                <Border Width="1"
-                        Background="{StaticResource KilnBorderBrush}"
-                        Margin="4,4" />
-
-                <!-- File group -->
-                <Button Content="Save"
-                        Command="{Binding Editor.SaveCommand}"
-                        Classes="secondary" />
 
                 <!-- Separator -->
                 <Border Width="1"
@@ -106,49 +97,6 @@
                           IsChecked="{Binding ReleaseBuild}"
                           VerticalAlignment="Center"
                           Margin="4,0" />
-
-                <!-- Separator -->
-                <Border Width="1"
-                        Background="{StaticResource KilnBorderBrush}"
-                        Margin="4,4" />
-
-                <!-- Preview group -->
-                <Button Content="Preview"
-                        Command="{Binding StartFullPreviewCommand}"
-                        Classes="secondary" />
-                <Button Content="Stop"
-                        Command="{Binding StopFullPreviewCommand}"
-                        IsEnabled="{Binding Preview.IsServing}"
-                        Classes="secondary" />
-
-                <!-- Separator -->
-                <Border Width="1"
-                        Background="{StaticResource KilnBorderBrush}"
-                        Margin="4,4" />
-
-                <!-- Deploy group -->
-                <Button Content="Publish"
-                        Command="{Binding PublishCommand}"
-                        IsVisible="{Binding CanPublish}"
-                        Classes="primary" />
-                <Button Content="Generate deployment config"
-                        Command="{Binding GenerateDeploymentConfigCommand}"
-                        IsVisible="{Binding IsCiVariant}"
-                        Classes="secondary" />
-                <TextBlock Text="Configure deployment in Settings"
-                           IsVisible="{Binding NoDeploymentVariant}"
-                           VerticalAlignment="Center"
-                           Classes="muted" />
-
-                <!-- Separator -->
-                <Border Width="1"
-                        Background="{StaticResource KilnBorderBrush}"
-                        Margin="4,4" />
-
-                <!-- Settings -->
-                <Button Content="Settings"
-                        Command="{Binding OpenSettingsCommand}"
-                        Classes="quiet" />
 
             </StackPanel>
         </Border>
@@ -170,146 +118,40 @@
             <!-- Welcome view (no project open) -->
             <views:WelcomeView IsVisible="{Binding !IsProjectOpen}" />
 
-            <!-- Three-pane content area (project open) -->
-            <Grid IsVisible="{Binding IsProjectOpen}" Margin="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220" MinWidth="120" />
-                    <ColumnDefinition Width="4" />
-                    <ColumnDefinition Width="*" MinWidth="200" />
-                    <ColumnDefinition Width="4" />
-                    <ColumnDefinition Width="280" MinWidth="120" />
-                </Grid.ColumnDefinitions>
+            <!-- Nav rail + content area (project open) -->
+            <Grid IsVisible="{Binding IsProjectOpen}" ColumnDefinitions="Auto,*">
 
-                <!-- Explorer -->
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+                <views:NavRailView Grid.Column="0" DataContext="{Binding NavRail}" />
 
-                    <!-- Search / filter / sort bar -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,4" Spacing="4">
-                        <TextBox PlaceholderText="Search posts…"
-                                 Text="{Binding Explorer.SearchText}"
-                                 FontSize="{StaticResource FontSizeXS}" />
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <ComboBox ItemsSource="{Binding Explorer.DraftFilters}"
-                                      SelectedItem="{Binding Explorer.DraftFilter}"
-                                      MinWidth="90"
-                                      FontSize="{StaticResource FontSizeXS}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}"
-                                                   FontSize="{StaticResource FontSizeXS}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <ComboBox ItemsSource="{Binding Explorer.SortModes}"
-                                      SelectedItem="{Binding Explorer.SortMode}"
-                                      MinWidth="100"
-                                      FontSize="{StaticResource FontSizeXS}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}"
-                                                   FontSize="{StaticResource FontSizeXS}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                    </StackPanel>
+                <Grid Grid.Column="1">
 
-                    <!-- TreeView -->
-                    <TreeView Grid.Row="1"
-                              x:Name="ExplorerTree"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              ItemsSource="{Binding Explorer.Collections}">
-                        <TreeView.DataTemplates>
-                            <TreeDataTemplate DataType="vm:ContentCollectionViewModel"
-                                              ItemsSource="{Binding FilteredEntries}">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="{Binding Name}"
-                                               FontWeight="SemiBold"
-                                               FontSize="{StaticResource FontSizeXS}" />
-                                    <TextBlock Text="("
-                                               FontSize="{StaticResource FontSizeXS}"
-                                               Foreground="{StaticResource KilnTextMutedBrush}" />
-                                    <TextBlock Text="{Binding VisibleCount}"
-                                               FontSize="{StaticResource FontSizeXS}"
-                                               Foreground="{StaticResource KilnTextMutedBrush}" />
-                                    <TextBlock Text=")"
-                                               FontSize="{StaticResource FontSizeXS}"
-                                               Foreground="{StaticResource KilnTextMutedBrush}" />
-                                </StackPanel>
-                            </TreeDataTemplate>
-                            <DataTemplate DataType="vm:ContentEntryViewModel">
-                                <Grid Background="Transparent"
-                                      HorizontalAlignment="Stretch"
-                                      RowDefinitions="Auto,Auto">
-                                    <Grid.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="{Binding ToggleDraftHeader}"
-                                                      Command="{Binding ToggleDraftCommand}" />
-                                        </ContextMenu>
-                                    </Grid.ContextMenu>
-                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0"
-                                                   Text="{Binding Title}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Classes="entry-title"
-                                                   Classes.draft="{Binding Draft}"
-                                                   ToolTip.Tip="{Binding Title}" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="draft"
-                                                   IsVisible="{Binding Draft}"
-                                                   Classes="draft-badge" />
-                                    </Grid>
-                                    <TextBlock Grid.Row="1"
-                                               Text="{Binding Date, StringFormat='{}{0:yyyy-MM-dd}'}"
-                                               IsVisible="{Binding Date, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                               Classes="muted"
-                                               FontSize="{StaticResource FontSizeXS}" />
-                                </Grid>
-                            </DataTemplate>
-                        </TreeView.DataTemplates>
-                    </TreeView>
+                    <!-- Content: full-screen list, or the two/three-column editor once an item is open -->
+                    <Grid IsVisible="{Binding IsContentTargetSelected}">
+                        <Grid IsVisible="{Binding !IsEditingContent}">
+                            <views:ContentListView DataContext="{Binding Explorer}" />
+                        </Grid>
+                        <Grid IsVisible="{Binding IsEditingContent}">
+                            <views:EditorView DataContext="{Binding Editor}" />
+                        </Grid>
+                    </Grid>
+
+                    <!-- Placeholder nav destinations (ADR-054 "Umfang dieser Iteration"): Assets'
+                         real browsing surface is PLAN-073, Menus/Theme/Deployment follow later. -->
+                    <views:PlaceholderView Header="Assets" IsVisible="{Binding IsAssetsTargetSelected}" />
+                    <views:PlaceholderView Header="Menus" IsVisible="{Binding IsMenusTargetSelected}" />
+                    <views:PlaceholderView Header="Theme" IsVisible="{Binding IsThemeTargetSelected}" />
+                    <views:PlaceholderView Header="Deployment" IsVisible="{Binding IsDeploymentTargetSelected}" />
+
+                    <!-- Settings: real nav destination, replaces the former modal SettingsWindow (amends ADR-027) -->
+                    <Grid IsVisible="{Binding IsSettingsTargetSelected}">
+                        <views:SettingsView DataContext="{Binding Settings}" />
+                    </Grid>
+
                 </Grid>
-
-                <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
-
-                <!-- Editor (middle) -->
-                <views:EditorView Grid.Column="2" DataContext="{Binding Editor}" />
-
-                <GridSplitter Grid.Column="3" ResizeDirection="Columns" />
-
-                <!-- Preview pane (right) -->
-                <DockPanel Grid.Column="4">
-                    <!-- Serve status strip -->
-                    <Border DockPanel.Dock="Bottom"
-                            IsVisible="{Binding Preview.IsServing}"
-                            Classes="preview-status-host"
-                            Padding="4,2">
-                        <TextBlock Text="{Binding Preview.ServeStatus}"
-                                   Classes="muted"
-                                   TextTrimming="CharacterEllipsis" />
-                    </Border>
-
-                    <!-- Markdown body preview — bind PreviewMarkdown (image paths pre-resolved to
-                         absolute file:// URIs), NOT Body directly, see EditorViewModel.PreviewMarkdown
-                         for why MarkdownScrollViewer.AssetPathRoot alone cannot work here. -->
-                    <md:MarkdownScrollViewer
-                        IsVisible="{Binding Editor.HasDocument}"
-                        Markdown="{Binding Editor.PreviewMarkdown}" />
-
-                    <!-- Placeholder when no document -->
-                    <TextBlock Text="Select a file to preview"
-                               IsVisible="{Binding !Editor.HasDocument}"
-                               Classes="muted"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                </DockPanel>
             </Grid>
         </Grid>
 
     </DockPanel>
 
 </Window>
+

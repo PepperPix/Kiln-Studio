@@ -1,7 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Kiln.Studio.UiTests.UiTestApp"
-             xmlns:conv="using:Kiln.Studio.Converters">
+             xmlns:conv="using:Kiln.Studio.Converters"
+             xmlns:materialIcons="using:Material.Icons.Avalonia">
 
     <Application.Resources>
         <conv:EnumDisplayConverter x:Key="EnumDisplayConverter" />
@@ -13,6 +14,7 @@
     -->
     <Application.Styles>
         <FluentTheme />
+        <materialIcons:MaterialIconStyles />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Markdown.Avalonia/StyleCollections/MarkdownStyleFluentTheme.axaml" />
         <StyleInclude Source="avares://Kiln.Studio/Styles/Tokens.axaml" />

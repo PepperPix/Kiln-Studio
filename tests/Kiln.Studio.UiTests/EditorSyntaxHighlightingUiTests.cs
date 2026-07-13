@@ -58,7 +58,7 @@ public sealed class EditorSyntaxHighlightingUiTests
                 new PreviewViewModel(),
                 new NullBuildService(),
                 new NullDeploymentService(),
-                new NullSettingsDialog(),
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter());

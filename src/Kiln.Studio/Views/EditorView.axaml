@@ -3,148 +3,216 @@
              xmlns:vm="using:Kiln.Studio.ViewModels"
              xmlns:aedit="using:AvaloniaEdit"
              xmlns:controls="using:Kiln.Studio.Controls"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
              x:Class="Kiln.Studio.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
     <Grid>
         <!-- Placeholder when no document -->
-        <TextBlock Text="Select a file to edit"
+        <TextBlock Text="Select an item from the content list"
                    IsVisible="{Binding !HasDocument}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Classes="muted" />
 
-        <!-- Editor area when document is loaded -->
-        <Grid x:Name="DocumentGrid"
+        <!-- Editor mode (ADR-054/PLAN-072): breadcrumb back to the content list, then a two-column
+             layout — Frontmatter/Stats sub-tabs on the left, Title+toolbar+body on the right, with
+             the Markdown.Avalonia inline preview as an opt-in third column (no longer permanently
+             visible). -->
+        <Grid x:Name="RootGrid"
               IsVisible="{Binding HasDocument}"
-              RowDefinitions="Auto,Auto,4,Auto,Auto,*">
+              RowDefinitions="Auto,*">
 
-            <!-- Slim, always-visible header: collapses/expands the entire frontmatter panel below
-                 to reclaim maximum space for the body editor (in addition to the GridSplitter,
-                 which can shrink the panel down to a scrollable sliver — see the ScrollViewer
-                 below, which is what actually prevents content from overlapping the body editor
-                 when dragged small, unlike the old bare StackPanel rows). -->
-            <ToggleButton Grid.Row="0"
-                          x:Name="FrontmatterPanelToggle"
-                          Classes="secondary"
-                          IsChecked="True"
-                          Content="▾ Frontmatter"
-                          HorizontalAlignment="Left"
-                          HorizontalContentAlignment="Left"
-                          Margin="{StaticResource PanelMargin}" />
+            <!-- Breadcrumb -->
+            <Button Grid.Row="0"
+                    Content="← Content"
+                    Classes="quiet"
+                    HorizontalAlignment="Left"
+                    Margin="{StaticResource PanelMargin}"
+                    Command="{Binding $parent[Window].((vm:ShellViewModel)DataContext).BackToContentListCommand}" />
 
-            <!-- Structured frontmatter fields + taxonomies + raw-YAML fallback, all inside one
-                 ScrollViewer so the GridSplitter below can freely shrink this row's height without
-                 any control overflowing/overlapping the body editor — content clips and a vertical
-                 scrollbar appears instead once it no longer fits. -->
-            <ScrollViewer Grid.Row="1"
-                          x:Name="FrontmatterScrollViewer"
-                          IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}"
-                          VerticalScrollBarVisibility="Auto">
-                <StackPanel>
+            <Grid Grid.Row="1"
+                  x:Name="DocumentGrid"
+                  ColumnDefinitions="260,4,*,4,Auto">
 
-                    <!-- Structured frontmatter fields: title / date / description -->
-                    <StackPanel Margin="{StaticResource PanelMargin}">
-                        <TextBlock Text="Title" Classes="section-header" Margin="0,0,0,2" />
-                        <TextBox Text="{Binding Title}" PlaceholderText="Untitled" />
+                <!-- Left column: Frontmatter / Stats sub-tabs -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,*">
+                    <ToggleButton Grid.Row="0"
+                                  x:Name="FrontmatterPanelToggle"
+                                  Classes="secondary"
+                                  IsChecked="True"
+                                  Content="▾ Frontmatter"
+                                  HorizontalAlignment="Left"
+                                  HorizontalContentAlignment="Left"
+                                  Margin="{StaticResource PanelMargin}" />
 
-                        <TextBlock Text="Date" Classes="section-header" Margin="0,4,0,2" />
-                        <DatePicker SelectedDate="{Binding Date}" />
+                    <TabControl Grid.Row="1"
+                                IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}">
 
-                        <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
-                        <TextBox Text="{Binding Description}"
-                                 PlaceholderText="A short summary shown in listings and previews"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Height="52" />
-                    </StackPanel>
+                        <TabItem Header="Frontmatter">
+                            <ScrollViewer x:Name="FrontmatterScrollViewer"
+                                          VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
 
-                    <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
-                    <Border Classes="settings-section" Margin="{StaticResource PanelMargin}">
-                        <ItemsControl ItemsSource="{Binding TaxonomyFields}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
-                                    <controls:TaxonomyChipInput Label="{Binding Name}"
-                                                                 ItemsSource="{Binding Values}"
-                                                                 SuggestionsSource="{Binding Suggestions}"
-                                                                 Margin="0,0,0,4" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Border>
+                                    <!-- Structured frontmatter fields: date / description (title lives
+                                         in the right column now, as the page heading — ADR-054) -->
+                                    <StackPanel Margin="{StaticResource PanelMargin}">
+                                        <TextBlock Text="Date" Classes="section-header" Margin="0,0,0,2" />
+                                        <DatePicker SelectedDate="{Binding Date}" />
 
-                    <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
-                         editable when expanded; owned keys (title/date/description/taxonomies) are
-                         stripped from FrontMatter so they only ever appear in the structured fields above.
-                         A plain ToggleButton (not Expander) is used so it picks up the app's existing
-                         Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
-                    <StackPanel Margin="{StaticResource PanelMargin}">
-                        <ToggleButton x:Name="RawFrontMatterToggle"
+                                        <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
+                                        <TextBox Text="{Binding Description}"
+                                                 PlaceholderText="A short summary shown in listings and previews"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 Height="52" />
+                                    </StackPanel>
+
+                                    <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
+                                    <Border Classes="settings-section" Margin="{StaticResource PanelMargin}">
+                                        <ItemsControl ItemsSource="{Binding TaxonomyFields}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
+                                                    <controls:TaxonomyChipInput Label="{Binding Name}"
+                                                                                 ItemsSource="{Binding Values}"
+                                                                                 SuggestionsSource="{Binding Suggestions}"
+                                                                                 Margin="0,0,0,4" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Border>
+
+                                    <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
+                                         editable when expanded; owned keys (title/date/description/taxonomies) are
+                                         stripped from FrontMatter so they only ever appear in the structured fields above.
+                                         A plain ToggleButton (not Expander) is used so it picks up the app's existing
+                                         Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
+                                    <StackPanel Margin="{StaticResource PanelMargin}">
+                                        <ToggleButton x:Name="RawFrontMatterToggle"
+                                                      Classes="secondary"
+                                                      HorizontalAlignment="Left"
+                                                      HorizontalContentAlignment="Left"
+                                                      Content="Raw frontmatter (advanced)" />
+                                        <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
+                                            <TextBox x:Name="FrontMatterBox"
+                                                     Text="{Binding FrontMatter}"
+                                                     AcceptsReturn="True"
+                                                     Height="120"
+                                                     Classes="monospace"
+                                                     BorderThickness="0,0,0,1"
+                                                     CornerRadius="0"
+                                                     Padding="8,6"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                     TextWrapping="NoWrap" />
+                                        </Border>
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- Stats sub-tab (ADR-054/PLAN-072): purely informative word/character/reading-time
+                             counts, referenced-asset count, and file-system created/modified dates. -->
+                        <TabItem Header="Stats">
+                            <StackPanel Margin="{StaticResource PanelMargin}" Spacing="4">
+                                <TextBlock Text="Word count" Classes="section-header" Margin="0,0,0,0" />
+                                <TextBlock Text="{Binding WordCount}" />
+
+                                <TextBlock Text="Characters" Classes="section-header" />
+                                <TextBlock Text="{Binding CharacterCount}" />
+
+                                <TextBlock Text="Reading time" Classes="section-header" />
+                                <TextBlock Text="{Binding ReadingTimeMinutes, StringFormat='{}{0} min'}" />
+
+                                <TextBlock Text="Referenced assets" Classes="section-header" />
+                                <TextBlock Text="{Binding ReferencedAssetCount}" />
+
+                                <TextBlock Text="Created" Classes="section-header" />
+                                <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+
+                                <TextBlock Text="Modified" Classes="section-header" />
+                                <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+                            </StackPanel>
+                        </TabItem>
+
+                    </TabControl>
+                </Grid>
+
+                <GridSplitter Grid.Column="1"
+                              ResizeDirection="Columns"
+                              IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
+
+                <!-- Middle column: title + Markdown toolbar + body editor -->
+                <Grid Grid.Column="2" RowDefinitions="Auto,Auto,Auto,*">
+
+                    <TextBox Grid.Row="0"
+                             Text="{Binding Title}"
+                             PlaceholderText="Untitled"
+                             FontSize="{StaticResource FontSizeXL}"
+                             FontWeight="SemiBold"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Padding="{StaticResource PanelMargin}" />
+
+                    <!-- Markdown formatting toolbar for the body editor: wraps/prefixes the current
+                         selection with Markdown syntax (PLAN-066, ADR-049 Entscheidung 5 — deliberately
+                         not a WYSIWYG editor, the body stays plain Markdown text). -->
+                    <StackPanel Grid.Row="1"
+                                Orientation="Horizontal"
+                                Spacing="4"
+                                Margin="{StaticResource PanelMargin}">
+                        <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
+                        <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
+                        <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
+                        <Button x:Name="CodeBlockButton" Classes="secondary" Content="{}{ }" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeBlockClick" />
+                        <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
+                        <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
+                        <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
+                        <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
+                        <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
+                        <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
+                        <ToggleButton x:Name="PreviewToggleButton"
                                       Classes="secondary"
-                                      HorizontalAlignment="Left"
-                                      HorizontalContentAlignment="Left"
-                                      Content="Raw frontmatter (advanced)" />
-                        <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
-                            <TextBox x:Name="FrontMatterBox"
-                                     Text="{Binding FrontMatter}"
-                                     AcceptsReturn="True"
-                                     Height="120"
-                                     Classes="monospace"
-                                     BorderThickness="0,0,0,1"
-                                     CornerRadius="0"
-                                     Padding="8,6"
-                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                     TextWrapping="NoWrap" />
-                        </Border>
+                                      Content="Preview"
+                                      IsChecked="{Binding IsInlinePreviewVisible}" />
                     </StackPanel>
 
-                </StackPanel>
-            </ScrollViewer>
+                    <!-- Rein informative Rückmeldung nach einem Asset-Pick/-Upload: Maße, Dateigröße,
+                         Skalierungs-Hinweis (PLAN-069). Nur für Bilddateien gesetzt; kein Dialog, kein
+                         Toast-Framework, kein Auto-Hide-Timer. -->
+                    <TextBlock Grid.Row="2"
+                               x:Name="AssetFeedbackText"
+                               Text="{Binding LastAssetFeedback}"
+                               IsVisible="{Binding LastAssetFeedback, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               TextWrapping="Wrap"
+                               Classes="muted"
+                               Margin="{StaticResource PanelMargin}" />
 
-            <GridSplitter Grid.Row="2"
-                          ResizeDirection="Rows"
-                          IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
+                    <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
+                    <aedit:TextEditor Grid.Row="3"
+                                      x:Name="BodyEditor"
+                                      FontFamily="Menlo,Consolas,Courier New,monospace"
+                                      FontSize="{StaticResource FontSizeXS}"
+                                      ShowLineNumbers="True"
+                                      WordWrap="True" />
+                </Grid>
 
-            <!-- Markdown formatting toolbar for the body editor: wraps/prefixes the current
-                 selection with Markdown syntax (PLAN-066, ADR-049 Entscheidung 5 — deliberately
-                 not a WYSIWYG editor, the body stays plain Markdown text). -->
-            <StackPanel Grid.Row="3"
-                        Orientation="Horizontal"
-                        Spacing="4"
-                        Margin="{StaticResource PanelMargin}">
-                <Button x:Name="BoldButton" Classes="secondary" Content="B" FontWeight="Bold" Click="OnBoldClick" />
-                <Button x:Name="ItalicButton" Classes="secondary" Content="I" FontStyle="Italic" Click="OnItalicClick" />
-                <Button x:Name="CodeButton" Classes="secondary" Content="Code" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeClick" />
-                <Button x:Name="CodeBlockButton" Classes="secondary" Content="{}{ }" FontFamily="Menlo,Consolas,Courier New,monospace" Click="OnCodeBlockClick" />
-                <Button x:Name="LinkButton" Classes="secondary" Content="Link" Click="OnLinkClick" />
-                <Button x:Name="HeadingButton" Classes="secondary" Content="H2" Click="OnHeadingClick" />
-                <Button x:Name="BulletListButton" Classes="secondary" Content="List" Click="OnBulletListClick" />
-                <Button x:Name="NumberedListButton" Classes="secondary" Content="1. List" Click="OnNumberedListClick" />
-                <Button x:Name="BlockquoteButton" Classes="secondary" Content="Quote" Click="OnBlockquoteClick" />
-                <Button x:Name="AssetButton" Classes="secondary" Content="Asset" Click="OnAssetClick" />
-            </StackPanel>
+                <GridSplitter Grid.Column="3"
+                              ResizeDirection="Columns"
+                              IsVisible="{Binding IsInlinePreviewVisible}" />
 
-            <!-- Rein informative Rückmeldung nach einem Asset-Pick/-Upload: Maße, Dateigröße,
-                 Skalierungs-Hinweis (PLAN-069). Nur für Bilddateien gesetzt; kein Dialog, kein
-                 Toast-Framework, kein Auto-Hide-Timer. -->
-            <TextBlock Grid.Row="4"
-                       x:Name="AssetFeedbackText"
-                       Text="{Binding LastAssetFeedback}"
-                       IsVisible="{Binding LastAssetFeedback, Converter={x:Static ObjectConverters.IsNotNull}}"
-                       TextWrapping="Wrap"
-                       Classes="muted"
-                       Margin="{StaticResource PanelMargin}" />
+                <!-- Opt-in third column: Markdown.Avalonia inline preview (ADR-054 — no longer
+                     permanently visible, toggled via the Preview button in the toolbar above). -->
+                <md:MarkdownScrollViewer Grid.Column="4"
+                                         x:Name="InlinePreview"
+                                         IsVisible="{Binding IsInlinePreviewVisible}"
+                                         Width="320"
+                                         Markdown="{Binding PreviewMarkdown}" />
 
-            <!-- Body editor — Text synced via code-behind because TextEditor.Text is not a StyledProperty -->
-            <aedit:TextEditor Grid.Row="5"
-                              x:Name="BodyEditor"
-                              FontFamily="Menlo,Consolas,Courier New,monospace"
-                              FontSize="{StaticResource FontSizeXS}"
-                              ShowLineNumbers="True"
-                              WordWrap="True" />
-
+            </Grid>
         </Grid>
     </Grid>
 
 </UserControl>
+
 

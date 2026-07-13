@@ -28,10 +28,10 @@ public partial class EditorView : UserControl
         var isExpanded = FrontmatterPanelToggle.IsChecked == true;
         FrontmatterPanelToggle.Content = isExpanded ? "▾ Frontmatter" : "▸ Frontmatter";
 
-        // The GridSplitter mutates this row's height to an explicit pixel value while dragging.
+        // The GridSplitter mutates this column's width to an explicit pixel value while dragging.
         // Collapsing/expanding via the toggle button (rather than dragging) resets it back to its
-        // natural content size instead of leaving it pinned at whatever height the splitter left.
-        DocumentGrid.RowDefinitions[1].Height = isExpanded ? GridLength.Auto : new GridLength(0);
+        // natural content size instead of leaving it pinned at whatever width the splitter left.
+        DocumentGrid.ColumnDefinitions[0].Width = isExpanded ? new GridLength(260) : new GridLength(0);
     }
 
     private void InstallMarkdownSyntaxHighlighting()

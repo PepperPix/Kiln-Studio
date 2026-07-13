@@ -54,7 +54,6 @@ public partial class App : Application
         services.AddSingleton<IImageDimensionReader, AvaloniaImageDimensionReader>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
-        services.AddSingleton<ISettingsDialog, AvaloniaSettingsDialog>();
         services.AddSingleton<IUnsavedChangesDialog, AvaloniaUnsavedChangesDialog>();
         services.AddSingleton<IRecentProjectsStore>(_ =>
         {
@@ -70,6 +69,7 @@ public partial class App : Application
         services.AddSingleton<PreviewViewModel>();
         services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<EditorViewModel>();
+        services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         return services.BuildServiceProvider();
