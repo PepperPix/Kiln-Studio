@@ -21,6 +21,7 @@
     <PackageReference Include="TextMateSharp.Grammars" Version="2.*" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
     <PackageReference Include="Markdown.Avalonia" Version="12.0.0-a3" />
+    <PackageReference Include="Material.Icons.Avalonia" Version="2.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
     <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.7.0">
       <PrivateAssets>all</PrivateAssets>

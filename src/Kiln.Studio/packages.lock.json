@@ -84,6 +84,16 @@
           "Markdown.Avalonia.Tight": "12.0.0-a3"
         }
       },
+      "Material.Icons.Avalonia": {
+        "type": "Direct",
+        "requested": "[2.*, )",
+        "resolved": "2.4.3",
+        "contentHash": "AglohupilU2JuId7bDWFngfPPyX1kTwdqZs0jnNfIEypce3wfe8ETgB58c1jbRIq+nhWPSlgZrOevQ4hQsM+/A==",
+        "dependencies": {
+          "Avalonia": "12.0.0",
+          "Material.Icons": "2.4.3"
+        }
+      },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Direct",
         "requested": "[10.*, )",
@@ -326,6 +336,11 @@
           "ColorDocument.Avalonia": "12.0.0-a3",
           "ColorTextBlock.Avalonia": "12.0.0-a3"
         }
+      },
+      "Material.Icons": {
+        "type": "Transitive",
+        "resolved": "2.4.3",
+        "contentHash": "IcwOvAC9CZNd20zCB6Dxx6nVix5lsQXKHLmmSlF4R7px0dSNCq/2KJGqu5O9nMf1P82d58Vl2v2taDjAezpABA=="
       },
       "MicroCom.Runtime": {
         "type": "Transitive",

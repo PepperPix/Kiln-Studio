@@ -10,16 +10,7 @@ public partial class ShellWindow : Window
     public ShellWindow()
     {
         InitializeComponent();
-        var explorer = this.FindControl<TreeView>("ExplorerTree");
-        if (explorer is not null)
-            explorer.SelectionChanged += OnExplorerSelectionChanged;
         Closing += OnClosing;
-    }
-
-    private void OnExplorerSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is ShellViewModel vm && sender is TreeView tree)
-            vm.Explorer.SelectedEntry = tree.SelectedItem as ContentEntryViewModel;
     }
 
 #pragma warning disable VSTHRD100 // must match Window.Closing's void-returning EventHandler signature

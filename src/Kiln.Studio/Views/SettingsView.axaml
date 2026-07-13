@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             x:Class="Kiln.Studio.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <!-- Settings nav destination (ADR-054/PLAN-072, amends ADR-027): same form content as the
+         former SettingsWindow modal, now a fixed nav-rail destination instead of a dialog. -->
+    <ScrollViewer>
+        <StackPanel Margin="{StaticResource DialogMargin}" Spacing="8" MaxWidth="520" HorizontalAlignment="Left">
+
+            <TextBlock Text="Settings" FontSize="{StaticResource FontSizeXL}" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+            <CheckBox IsChecked="{Binding IsAdvanced}"
+                      Content="Advanced (raw site.yaml)" />
+
+            <!-- Basic form (shown when not in advanced mode) -->
+            <StackPanel IsVisible="{Binding !IsAdvanced}" Spacing="6">
+                <TextBlock Text="Title" Classes="section-header" Margin="0,4,0,2" />
+                <TextBox Text="{Binding Title}" />
+
+                <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
+                <TextBox Text="{Binding Description}" />
+
+                <TextBlock Text="Base URL" Classes="section-header" Margin="0,4,0,2" />
+                <TextBox Text="{Binding BaseUrl}" />
+
+                <TextBlock Text="Language" Classes="section-header" Margin="0,4,0,2" />
+                <TextBox Text="{Binding Language}" />
+                <TextBlock Text="{Binding LanguageWarning}"
+                           IsVisible="{Binding HasLanguageWarning}"
+                           FontSize="{StaticResource FontSizeXS}"
+                           Foreground="{StaticResource KilnErrorBrush}" />
+
+                <TextBlock Text="Theme" Classes="section-header" Margin="0,4,0,2" />
+                <ComboBox ItemsSource="{Binding AvailableThemes}"
+                          SelectedItem="{Binding SelectedTheme}"
+                          HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <!-- Raw YAML editor (shown in advanced mode) -->
+            <TextBox IsVisible="{Binding IsAdvanced}"
+                     Text="{Binding RawYaml}"
+                     AcceptsReturn="True"
+                     Classes="monospace"
+                     Height="320"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible" />
+
+            <!-- Deployment section -->
+            <Border Classes="settings-section" Margin="0,8,0,0">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Deployment" Classes="section-header" Margin="0,4,0,2" />
+
+                    <TextBlock Text="Variant" Classes="muted" />
+                    <ComboBox ItemsSource="{Binding DeploymentVariants}"
+                              SelectedItem="{Binding DeploymentVariant}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <StackPanel IsVisible="{Binding IsDeploymentFilesystem}" Spacing="6">
+                        <TextBlock Text="Target folder" Classes="muted" />
+                        <TextBox Text="{Binding DeploymentFilesystemPath}"
+                                 PlaceholderText="/path/to/output" />
+
+                        <TextBlock Text="Mode" Classes="muted" />
+                        <ComboBox ItemsSource="{Binding FilesystemModes}"
+                                  SelectedItem="{Binding DeploymentFilesystemMode}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,8,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" Classes="primary" />
+            </StackPanel>
+
+            <!-- Status message -->
+            <TextBlock Text="{Binding StatusMessage}"
+                       IsVisible="{Binding HasStatusMessage}"
+                       Classes="muted"
+                       TextTrimming="CharacterEllipsis" />
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

@@ -3,10 +3,12 @@
              x:Class="Kiln.Studio.App"
              xmlns:local="using:Kiln.Studio"
              xmlns:conv="using:Kiln.Studio.Converters"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
              RequestedThemeVariant="Dark">
 
     <Application.Resources>
         <conv:EnumDisplayConverter x:Key="EnumDisplayConverter" />
+        <conv:NavIconConverter x:Key="NavIconConverter" />
     </Application.Resources>
 
     <Application.DataTemplates>
@@ -15,9 +17,11 @@
 
     <Application.Styles>
         <FluentTheme />
+        <materialIcons:MaterialIconStyles />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://Markdown.Avalonia/StyleCollections/MarkdownStyleFluentTheme.axaml" />
         <StyleInclude Source="avares://Kiln.Studio/Styles/Tokens.axaml" />
         <StyleInclude Source="avares://Kiln.Studio/Styles/Controls.axaml" />
     </Application.Styles>
 </Application>
+

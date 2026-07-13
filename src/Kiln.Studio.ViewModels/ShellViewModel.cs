@@ -20,7 +20,6 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IFolderRevealer _folderRevealer;
     private readonly IBuildService _buildService;
     private readonly IDeploymentService _deploymentService;
-    private readonly ISettingsDialog _settingsDialog;
     private readonly IDeploymentConfigStore _deploymentConfigStore;
     private readonly IPublishService _publishService;
     private readonly IContentFrontmatterWriter _contentFrontmatterWriter;
@@ -44,7 +43,6 @@ public partial class ShellViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartFullPreviewCommand))]
-    [NotifyCanExecuteChangedFor(nameof(OpenSettingsCommand))]
     [NotifyCanExecuteChangedFor(nameof(CloseProjectCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenInFileManagerCommand))]
     [NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
@@ -76,6 +74,24 @@ public partial class ShellViewModel : ViewModelBase
     public ProjectExplorerViewModel Explorer { get; }
     public EditorViewModel Editor { get; }
     public PreviewViewModel Preview { get; }
+    public SettingsViewModel Settings { get; }
+
+    /// <summary>Drives the persistent left navigation rail (ADR-054/PLAN-072).</summary>
+    public NavRailViewModel NavRail { get; } = new();
+
+    /// <summary>
+    /// True once an item has been opened for editing in the Content nav target - swaps the
+    /// full-screen list for the two-column editor (breadcrumb "back to list", ADR-054). Simply
+    /// mirrors <see cref="EditorViewModel.HasDocument"/> rather than tracking a separate flag.
+    /// </summary>
+    public bool IsEditingContent => Editor.HasDocument;
+
+    public bool IsContentTargetSelected => NavRail.Selected == NavTarget.Content;
+    public bool IsAssetsTargetSelected => NavRail.Selected == NavTarget.Assets;
+    public bool IsMenusTargetSelected => NavRail.Selected == NavTarget.Menus;
+    public bool IsThemeTargetSelected => NavRail.Selected == NavTarget.Theme;
+    public bool IsDeploymentTargetSelected => NavRail.Selected == NavTarget.Deployment;
+    public bool IsSettingsTargetSelected => NavRail.Selected == NavTarget.Settings;
 
     public ObservableCollection<RecentProjectViewModel> RecentProjects { get; } = [];
 
@@ -94,7 +110,7 @@ public partial class ShellViewModel : ViewModelBase
         PreviewViewModel preview,
         IBuildService buildService,
         IDeploymentService deploymentService,
-        ISettingsDialog settingsDialog,
+        SettingsViewModel settings,
         IDeploymentConfigStore deploymentConfigStore,
         IPublishService publishService,
         IContentFrontmatterWriter contentFrontmatterWriter,
@@ -113,7 +129,6 @@ public partial class ShellViewModel : ViewModelBase
         _folderRevealer = folderRevealer ?? new NullFolderRevealer();
         _buildService = buildService;
         _deploymentService = deploymentService;
-        _settingsDialog = settingsDialog;
         _deploymentConfigStore = deploymentConfigStore;
         _publishService = publishService;
         _contentFrontmatterWriter = contentFrontmatterWriter;
@@ -123,10 +138,29 @@ public partial class ShellViewModel : ViewModelBase
         Editor = editor;
         Editor.SetPageBundleConvertedHandler(HandlePageBundleConvertedAsync);
         Editor.PropertyChanged += OnEditorPropertyChangedForPreviewAutoSave;
+        Editor.PropertyChanged += OnEditorPropertyChangedForContentMode;
         Preview = preview;
+        Settings = settings;
 
         Explorer.PropertyChanged += OnExplorerPropertyChanged;
+        NavRail.PropertyChanged += OnNavRailPropertyChanged;
         RefreshRecentProjects();
+    }
+
+    private void OnNavRailPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(NavRailViewModel.Selected))
+            return;
+
+        OnPropertyChanged(nameof(IsContentTargetSelected));
+        OnPropertyChanged(nameof(IsAssetsTargetSelected));
+        OnPropertyChanged(nameof(IsMenusTargetSelected));
+        OnPropertyChanged(nameof(IsThemeTargetSelected));
+        OnPropertyChanged(nameof(IsDeploymentTargetSelected));
+        OnPropertyChanged(nameof(IsSettingsTargetSelected));
+
+        if (NavRail.Selected == NavTarget.Settings && CurrentProjectPath is not null)
+            Settings.Load(CurrentProjectPath);
     }
 
 #pragma warning disable VSTHRD100 // must match PropertyChangedEventHandler's void signature
@@ -197,6 +231,7 @@ public partial class ShellViewModel : ViewModelBase
         CurrentProjectName = null;
         IsProjectOpen = false;
         CurrentDeploymentVariant = DeploymentVariant.None;
+        NavRail.Selected = NavTarget.Content;
         StatusMessage = "Ready";
     }
 
@@ -313,6 +348,9 @@ public partial class ShellViewModel : ViewModelBase
 
             var config = _deploymentConfigStore.Load(path);
             CurrentDeploymentVariant = config.Variant;
+
+            if (NavRail.Selected == NavTarget.Settings)
+                Settings.Load(project.ProjectPath);
         }
         catch (ProjectOpenException ex)
         {
@@ -388,19 +426,20 @@ public partial class ShellViewModel : ViewModelBase
 
     private bool CanDeploy() => IsProjectOpen && !IsBusy;
 
-    [RelayCommand(CanExecute = nameof(CanOpenSettings))]
-    private async Task OpenSettingsAsync()
+    /// <summary>
+    /// Breadcrumb "← Content" action (ADR-054/PLAN-072): leaves the two-column editor and returns
+    /// to the full-screen content list, honoring unsaved changes exactly like switching to a
+    /// different entry does.
+    /// </summary>
+    [RelayCommand]
+    private async Task BackToContentListAsync()
     {
-        await _settingsDialog.ShowAsync(CurrentProjectPath!).ConfigureAwait(true);
+        if (!await ResolveUnsavedChangesAsync(allowCancel: true).ConfigureAwait(true))
+            return;
 
-        if (CurrentProjectPath is not null)
-        {
-            var config = _deploymentConfigStore.Load(CurrentProjectPath);
-            CurrentDeploymentVariant = config.Variant;
-        }
+        Explorer.SelectedEntry = null;
+        Editor.Clear();
     }
-
-    private bool CanOpenSettings() => IsProjectOpen;
 
     [RelayCommand]
     private void StopFullPreview()
@@ -431,6 +470,16 @@ public partial class ShellViewModel : ViewModelBase
         var cts = new CancellationTokenSource();
         _previewAutoSaveCts = cts;
         _ = DebouncedPreviewAutoSaveAsync(cts);
+    }
+
+    /// <summary>
+    /// Notifies the Content nav target's list/editor switch (<see cref="IsEditingContent"/>)
+    /// whenever the underlying document load state flips (ADR-054/PLAN-072).
+    /// </summary>
+    private void OnEditorPropertyChangedForContentMode(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EditorViewModel.HasDocument))
+            OnPropertyChanged(nameof(IsEditingContent));
     }
 
     private async Task DebouncedPreviewAutoSaveAsync(CancellationTokenSource cts)

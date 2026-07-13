@@ -18,6 +18,8 @@ public partial class EditorViewModel : ViewModelBase
     private const string AssetsUrlPrefix = "/assets/";
 
     private static readonly Regex ImageMarkdownRegex = new(@"!\[([^\]]*)\]\(([^)]+)\)", RegexOptions.Compiled);
+    private static readonly Regex AssetReferenceRegex = new(@"!?\[([^\]]*)\]\(([^)]+)\)", RegexOptions.Compiled);
+    private const int WordsPerMinute = 200;
 
     private readonly IContentService _contentService;
     private readonly IContentFrontmatterWriter _frontmatterWriter;
@@ -31,7 +33,7 @@ public partial class EditorViewModel : ViewModelBase
     private string? _projectPath;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PreviewMarkdown))]
+    [NotifyPropertyChangedFor(nameof(PreviewMarkdown), nameof(CreatedAt), nameof(ModifiedAt))]
     private string? _filePath;
 
     [ObservableProperty]
@@ -42,11 +44,23 @@ public partial class EditorViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private bool _isDirty;
 
+    /// <summary>
+    /// Toggles the third, opt-in Markdown.Avalonia inline-preview column in the editor's two-
+    /// column layout (ADR-054: no longer a permanently-visible pane). Defaults to hidden.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isInlinePreviewVisible;
+
     [ObservableProperty]
     private string _frontMatter = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PreviewMarkdown))]
+    [NotifyPropertyChangedFor(
+        nameof(PreviewMarkdown),
+        nameof(WordCount),
+        nameof(CharacterCount),
+        nameof(ReadingTimeMinutes),
+        nameof(ReferencedAssetCount))]
     private string _body = "";
 
     [ObservableProperty]
@@ -87,6 +101,48 @@ public partial class EditorViewModel : ViewModelBase
     /// explorer with the moved file (analogous to <c>ProjectExplorerViewModel.SetDraftToggleHandler</c>).
     /// </summary>
     public void SetPageBundleConvertedHandler(Func<string, Task> handler) => _onPageBundleConverted = handler;
+
+    [RelayCommand]
+    private void ToggleInlinePreview() => IsInlinePreviewVisible = !IsInlinePreviewVisible;
+
+    // ── Stats sub-tab (ADR-054/PLAN-072: word count/characters/reading time/referenced assets, plus
+    //    file-system created/modified dates) - purely informative, computed on demand from Body/FilePath. ──
+
+    public int WordCount => string.IsNullOrWhiteSpace(Body)
+        ? 0
+        : Body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+
+    public int CharacterCount => Body.Length;
+
+    public int ReadingTimeMinutes => Math.Max(1, (int)Math.Ceiling(WordCount / (double)WordsPerMinute));
+
+    /// <summary>
+    /// Number of Markdown image/link references in <see cref="Body"/> that point at a Kiln asset
+    /// (either the site asset library, "/assets/...", or a page-bundle-relative file, "./..." -
+    /// the two schemes produced by <see cref="PickAndPrepareAssetAsync"/>). Deliberately a simple
+    /// forward count over the item's own body, NOT the project-wide reverse reference index
+    /// (that is a separate, larger concern - see PLAN-071's <c>IAssetReferenceIndexBuilder</c>).
+    /// </summary>
+    public int ReferencedAssetCount
+    {
+        get
+        {
+            var count = 0;
+            foreach (Match match in AssetReferenceRegex.Matches(Body))
+            {
+                var path = match.Groups[2].Value;
+                if (path.StartsWith(AssetsUrlPrefix, StringComparison.Ordinal) ||
+                    path.StartsWith("./", StringComparison.Ordinal))
+                    count++;
+            }
+
+            return count;
+        }
+    }
+
+    public DateTime? CreatedAt => FilePath is not null && File.Exists(FilePath) ? File.GetCreationTime(FilePath) : null;
+
+    public DateTime? ModifiedAt => FilePath is not null && File.Exists(FilePath) ? File.GetLastWriteTime(FilePath) : null;
 
     public void Load(string filePath, string? projectPath = null, IReadOnlyList<string>? taxonomyNames = null)
     {

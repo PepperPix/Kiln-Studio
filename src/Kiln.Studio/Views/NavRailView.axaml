@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             xmlns:conv="using:Kiln.Studio.Converters"
+             xmlns:local="using:Kiln.Studio"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
+             x:Class="Kiln.Studio.Views.NavRailView"
+             x:DataType="vm:NavRailViewModel">
+
+    <UserControl.Resources>
+        <conv:NavIconConverter x:Key="NavIconConverter" />
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Button.nav-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusControl}" />
+        </Style>
+        <Style Selector="Button.nav-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource KilnSurfaceAltBrush}" />
+        </Style>
+        <Style Selector="Button.nav-item.selected">
+            <Setter Property="Background" Value="{StaticResource KilnPrimaryMutedBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Persistent left navigation rail (ADR-054/PLAN-072): expanded shows icon+label, collapsed
+         shows icon-only. Width toggles via the IsExpanded-driven column in ShellWindow.axaml. -->
+    <DockPanel Background="{StaticResource KilnSurfaceBrush}"
+               Width="{Binding IsExpanded, Converter={x:Static local:AppConverters.ExpandedToNavRailWidth}}">
+
+        <!-- Expand/collapse toggle, pinned to the bottom -->
+        <Button DockPanel.Dock="Bottom"
+                Classes="nav-item"
+                Command="{Binding ToggleExpandedCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={x:Static local:AppConverters.ExpandedToCollapseIcon}}"
+                                             Width="20" Height="20" />
+                <TextBlock Text="Collapse"
+                           IsVisible="{Binding IsExpanded}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
+
+        <ItemsControl ItemsSource="{Binding Items}" Margin="4">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NavRailItemViewModel">
+                    <Button Classes="nav-item"
+                            Classes.selected="{Binding IsSelected}"
+                            Opacity="{Binding IsPlaceholder, Converter={x:Static local:AppConverters.PlaceholderToOpacity}}"
+                            Command="{Binding $parent[ItemsControl].((vm:NavRailViewModel)DataContext).SelectCommand}"
+                            CommandParameter="{Binding Target}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="{Binding IconName, Converter={StaticResource NavIconConverter}}"
+                                                         Width="20" Height="20" />
+                            <TextBlock Text="{Binding Label}"
+                                       IsVisible="{Binding $parent[ItemsControl].((vm:NavRailViewModel)DataContext).IsExpanded}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+    </DockPanel>
+
+</UserControl>

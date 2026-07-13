@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Kiln.Studio.Views.PlaceholderView"
+             x:Name="Root">
+
+    <!-- Nav destination placeholder (ADR-054/PLAN-072): Menus/Theme/Deployment/Assets are
+         structural nav entries only in this iteration - no functionality yet, real
+         implementations follow in dedicated later plans (e.g. PLAN-073 for Assets). -->
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="8">
+        <TextBlock Text="{Binding #Root.Header}"
+                   FontSize="{StaticResource FontSizeXL}"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center" />
+        <TextBlock Text="Coming soon"
+                   Classes="muted"
+                   HorizontalAlignment="Center" />
+    </StackPanel>
+
+</UserControl>
