@@ -52,6 +52,9 @@
         <x:Double x:Key="FontSizeXL">18</x:Double>
         <x:Double x:Key="FontSizeH">24</x:Double>
 
+        <!-- Code typography -->
+        <FontFamily x:Key="KilnCodeFontFamily">avares://Kiln.Studio/Assets/Fonts/JetBrainsMono#JetBrains Mono Light</FontFamily>
+
         <!-- Corner radii -->
         <CornerRadius x:Key="CornerRadiusControl">6</CornerRadius>
         <CornerRadius x:Key="CornerRadiusCard">10</CornerRadius>

@@ -1,5 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
+        xmlns:avedit="https://github.com/avaloniaui/avaloniaedit">
 
     <!-- ==========================================
          Ember Design Language — Control Styles
@@ -151,8 +153,20 @@
     </Style>
 
     <Style Selector="TextBox.monospace">
-        <Setter Property="FontFamily" Value="Menlo,Consolas,Courier New,monospace" />
+        <Setter Property="FontFamily" Value="{StaticResource KilnCodeFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+    </Style>
+
+    <!-- Markdown.Avalonia code-render controls: override their default OS-dependent font list
+         (the root cause of the Ubuntu CI glyph-typeface crash) with the bundled JetBrains Mono. -->
+    <Style Selector="ctxt|CCode">
+        <Setter Property="MonospaceFontFamily" Value="{StaticResource KilnCodeFontFamily}" />
+    </Style>
+    <Style Selector="TextBlock.CodeBlock">
+        <Setter Property="FontFamily" Value="{StaticResource KilnCodeFontFamily}" />
+    </Style>
+    <Style Selector="avedit|TextEditor">
+        <Setter Property="FontFamily" Value="{StaticResource KilnCodeFontFamily}" />
     </Style>
 
     <!-- ── ComboBox ── -->
