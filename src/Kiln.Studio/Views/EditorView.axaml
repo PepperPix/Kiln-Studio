@@ -110,23 +110,28 @@
                                       WordWrap="True" />
                 </Grid>
 
-                <!-- Gutter column: single splitter + collapse toggle for the unified right panel. -->
-                <Grid Grid.Column="1">
-                    <GridSplitter ResizeDirection="Columns"
-                                  HorizontalAlignment="Stretch"
-                                  IsVisible="{Binding IsRightPanelExpanded}" />
-                    <ToggleButton x:Name="RightPanelToggle"
-                                  Classes="gutter-toggle"
-                                  IsChecked="{Binding IsRightPanelExpanded}"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Top"
-                                  Margin="0,4,0,0"
-                                  ToolTip.Tip="Panel ein-/ausblenden">
-                        <materialIcons:MaterialIcon Kind="{Binding IsRightPanelExpanded, Converter={x:Static local:AppConverters.ExpandedToChevron}}"
-                                      Width="14"
-                                      Height="14" />
-                    </ToggleButton>
-                </Grid>
+                <!-- Gutter column: single splitter + collapse toggle for the unified right panel.
+                     Both must be DIRECT children of DocumentGrid (not wrapped in a nested Grid):
+                     Avalonia's GridSplitter resizes the ColumnDefinitions of its immediate parent
+                     Grid, so nesting it one level deeper made it resize a single-column wrapper
+                     Grid with nothing to resize instead of DocumentGrid's real columns — the
+                     splitter looked draggable but silently did nothing (bug found 2026-07-18). -->
+                <GridSplitter Grid.Column="1"
+                              ResizeDirection="Columns"
+                              HorizontalAlignment="Stretch"
+                              IsVisible="{Binding IsRightPanelExpanded}" />
+                <ToggleButton Grid.Column="1"
+                              x:Name="RightPanelToggle"
+                              Classes="gutter-toggle"
+                              IsChecked="{Binding IsRightPanelExpanded}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Top"
+                              Margin="0,4,0,0"
+                              ToolTip.Tip="Panel ein-/ausblenden">
+                    <materialIcons:MaterialIcon Kind="{Binding IsRightPanelExpanded, Converter={x:Static local:AppConverters.ExpandedToChevron}}"
+                                  Width="14"
+                                  Height="14" />
+                </ToggleButton>
 
                 <!-- Right column: unified panel with Details/Stats/Preview/Assets tabs. -->
                 <TabControl Grid.Column="2"
