@@ -80,7 +80,7 @@
         <!-- Empty state for flat files without a bundle -->
         <TextBlock Grid.Row="2"
                    Text="Upload the first asset for this page."
-                   IsVisible="{Binding Entries.Count, Converter={x:Static local:AppConverters.IsCountZeroInt}}"
+                   IsVisible="{Binding IsEmptyStateVisible}"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"

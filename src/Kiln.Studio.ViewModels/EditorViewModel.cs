@@ -82,13 +82,15 @@ public partial class EditorViewModel : ViewModelBase
     /// Asset browser for the Assets tab, scoped to the currently open document's page bundle.
     /// Recreated every time <see cref="Load"/> runs because the underlying directory changes.
     /// </summary>
-    public AssetBrowserViewModel? DocumentAssets { get; private set; }
+    [ObservableProperty]
+    private AssetBrowserViewModel? _documentAssets;
 
     /// <summary>
     /// Asset browser for the site-wide library Flyout opened from the Markdown toolbar. Recreated
     /// every time <see cref="Load"/> runs because the project path may change.
     /// </summary>
-    public AssetBrowserViewModel? FlyoutAssets { get; private set; }
+    [ObservableProperty]
+    private AssetBrowserViewModel? _flyoutAssets;
 
     /// <summary>
     /// Callback invoked whenever an asset browser (tab or flyout) has produced a Markdown snippet

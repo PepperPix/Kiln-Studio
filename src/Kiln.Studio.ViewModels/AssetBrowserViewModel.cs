@@ -26,6 +26,7 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ModeButtonText))]
+    [NotifyPropertyChangedFor(nameof(IsEmptyStateVisible))]
     private bool _isUploadMode;
 
     [ObservableProperty]
@@ -64,6 +65,8 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
             UploadDestination = AssetPickerDestination.Library;
         }
 
+        Entries.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmptyStateVisible));
+
         _ = RefreshAsync();
     }
 
@@ -76,6 +79,8 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
     public bool CanUpload => !string.IsNullOrEmpty(ChosenFilePath);
 
     public ObservableCollection<AssetLibraryEntry> Entries { get; } = [];
+
+    public bool IsEmptyStateVisible => !IsUploadMode && Entries.Count == 0;
 
     public string Breadcrumb => string.IsNullOrEmpty(CurrentFolder)
         ? RootDisplayName

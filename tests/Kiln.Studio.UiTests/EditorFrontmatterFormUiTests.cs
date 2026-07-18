@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
@@ -19,8 +18,6 @@ using Kiln.Studio.Views;
 /// styling follow-up on 2026-07-09) is collapsed by default. Also dumps a PNG under
 /// Snapshots/__review__/ for manual visual review (not a pixel-diff regression test — see
 /// ExploratoryTourUiTests for the same headless-rendering-portability rationale).
-///
-/// Platform-gated (ADR-030 reference platform: macOS arm64).
 /// </summary>
 public sealed class EditorFrontmatterFormUiTests
 {
@@ -31,9 +28,6 @@ public sealed class EditorFrontmatterFormUiTests
     [Test]
     public async Task OpenPost_ShowsStructuredFormFields_AndCollapsedRawYaml()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var reviewDir = ResolveReviewDir();
         Directory.CreateDirectory(reviewDir);
 
@@ -172,8 +166,4 @@ public sealed class EditorFrontmatterFormUiTests
         var testDir = Path.GetDirectoryName(callerFile)!;
         return Path.GetFullPath(Path.Combine(testDir, "Snapshots", "__review__"));
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }
