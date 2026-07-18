@@ -14,7 +14,11 @@ public sealed class AvaloniaImageDimensionReader : IImageDimensionReader
     {
         try
         {
-            using var stream = File.OpenRead(filePath);
+            // Load the full file into memory first so the file handle is closed before Avalonia's
+            // Bitmap potentially keeps a lazy-decoding reference open (observed as an IOException
+            // on Windows when tests delete the containing directory immediately after reading).
+            var bytes = File.ReadAllBytes(filePath);
+            using var stream = new MemoryStream(bytes);
             using var bitmap = new Bitmap(stream);
             return (bitmap.PixelSize.Width, bitmap.PixelSize.Height);
         }

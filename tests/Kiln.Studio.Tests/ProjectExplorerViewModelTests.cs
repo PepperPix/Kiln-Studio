@@ -13,7 +13,6 @@ public sealed class ProjectExplorerViewModelTests
     private const int ThirdIndex = 2;
     private const int LastPostIndex = 3;
     private const int KeystrokeIntervalMs = 10;
-    private const int DebounceSettleDelayMs = 500;
 
     // Generous relative to the 50ms debounce configured below (20x margin) — bumped from 1000ms
     // after this test was observed flaking under CI's parallel test execution (thread-pool
@@ -303,11 +302,30 @@ public sealed class ProjectExplorerViewModelTests
         // apply should not have fired for every keystroke yet.
         await Assert.That(applyCount).IsLessThan(typed.Length * vm.Collections.Count);
 
-        // Let the debounce timer elapse so the final, coalesced apply runs.
-        await Task.Delay(DebounceSettleDelayMs);
+        // Let the debounce timer elapse so the final, coalesced apply runs. Polling avoids
+        // flakes under CI thread-pool contention where Task.Delay(200) + UI-thread resume can
+        // exceed a fixed 500ms wait.
+        await WaitUntilAsync(
+            () => vm.Collections[0].VisibleCount == 1,
+            TimeSpan.FromSeconds(5));
 
         await Assert.That(vm.Collections[0].VisibleCount).IsEqualTo(1);
         await Assert.That(vm.Collections[0].FilteredEntries[0].Title).IsEqualTo("Alpha Post");
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> predicate, TimeSpan timeout)
+    {
+        const int pollingIntervalMs = 50;
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (!predicate())
+        {
+            if (sw.Elapsed > timeout)
+            {
+                throw new TimeoutException($"Condition was not met within the {nameof(timeout)}.");
+            }
+
+            await Task.Delay(pollingIntervalMs);
+        }
     }
 
     // Known flake under CI parallel test execution (thread-pool scheduling contention delaying the

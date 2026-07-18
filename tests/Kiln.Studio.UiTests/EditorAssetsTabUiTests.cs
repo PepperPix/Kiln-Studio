@@ -69,8 +69,8 @@ public sealed class EditorAssetsTabUiTests
         }
         finally
         {
-            if (Directory.Exists(parentDir)) Directory.Delete(parentDir, recursive: true);
-            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+            DirectoryHelper.TryDeleteRecursive(parentDir);
+            DirectoryHelper.TryDeleteRecursive(storeDir);
         }
     }
 
@@ -129,8 +129,8 @@ public sealed class EditorAssetsTabUiTests
         }
         finally
         {
-            if (Directory.Exists(parentDir)) Directory.Delete(parentDir, recursive: true);
-            if (Directory.Exists(storeDir)) Directory.Delete(storeDir, recursive: true);
+            DirectoryHelper.TryDeleteRecursive(parentDir);
+            DirectoryHelper.TryDeleteRecursive(storeDir);
         }
     }
 
