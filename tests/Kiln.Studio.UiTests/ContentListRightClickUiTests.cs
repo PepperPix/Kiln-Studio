@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -20,17 +19,12 @@ using Kiln.Studio.Views;
 /// at the Tunnel routing phase to suppress the selection change while leaving the ContextMenu
 /// untouched. This test drives a real pointer press/release through the headless input pipeline
 /// against a realized ListBoxItem to verify the fix end-to-end (not just that the code compiles).
-///
-/// Platform-gated (ADR-030 reference platform: macOS arm64).
 /// </summary>
 public sealed class ContentListRightClickUiTests
 {
     [Test]
     public async Task RightClickOnEntry_DoesNotChangeSelection_ButLeftClickDoes()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var parentDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(parentDir);
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -149,8 +143,4 @@ public sealed class ContentListRightClickUiTests
             // Best-effort cleanup only.
         }
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

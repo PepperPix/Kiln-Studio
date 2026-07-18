@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -13,8 +12,7 @@ using Kiln.Studio.Views;
 
 /// <summary>
 /// PLAN-074: verifies the document-scoped Assets tab in the editor's unified right panel and the
-/// site-wide asset Flyout opened from the Markdown toolbar. Platform-gated (ADR-030 reference
-/// platform: macOS arm64).
+/// site-wide asset Flyout opened from the Markdown toolbar.
 /// </summary>
 public sealed class EditorAssetsTabUiTests
 {
@@ -26,9 +24,6 @@ public sealed class EditorAssetsTabUiTests
     [Test]
     public async Task AssetsTab_ShowsDocumentScopedAssets_AndInsertAddsMarkdown()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var parentDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(parentDir);
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -82,9 +77,6 @@ public sealed class EditorAssetsTabUiTests
     [Test]
     public async Task AssetToolbarFlyout_ShowsSiteWideLibrary_AndInsertAddsMarkdown()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var parentDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(parentDir);
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -243,8 +235,4 @@ public sealed class EditorAssetsTabUiTests
         Directory.CreateDirectory(staticDir);
         File.WriteAllText(Path.Combine(staticDir, LibraryAssetFileName), "fake-png");
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

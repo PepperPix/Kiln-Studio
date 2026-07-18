@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Interactivity;
@@ -18,8 +17,6 @@ using Kiln.Studio.Views;
 /// — no pointer coordinates needed) against a selection set directly on the AvaloniaEdit
 /// TextEditor. Asserts the resulting BodyEditor.Text after each action. Also dumps a PNG under
 /// Snapshots/__review__/ showing the toolbar for manual visual review.
-///
-/// Platform-gated (ADR-030 reference platform: macOS arm64).
 /// </summary>
 public sealed class EditorMarkdownToolbarUiTests
 {
@@ -42,9 +39,6 @@ public sealed class EditorMarkdownToolbarUiTests
     [Test]
     public async Task ToolbarButtons_ApplyMarkdownSyntax_ToSelection()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var reviewDir = ResolveReviewDir();
         Directory.CreateDirectory(reviewDir);
 
@@ -218,8 +212,4 @@ public sealed class EditorMarkdownToolbarUiTests
         var testDir = Path.GetDirectoryName(callerFile)!;
         return Path.GetFullPath(Path.Combine(testDir, "Snapshots", "__review__"));
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

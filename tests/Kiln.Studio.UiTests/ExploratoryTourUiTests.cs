@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
@@ -16,9 +15,6 @@ using Kiln.Studio.Views;
 /// through several real states via the same public commands/properties a user interaction would
 /// hit, and dumps a PNG per step under Snapshots/__review__/ for manual visual review.
 ///
-/// Platform-gated (ADR-030 reference platform: macOS arm64) since headless Skia rendering output
-/// is not guaranteed pixel-identical across OS/font-rendering stacks.
-///
 /// Re. headless TreeView virtualization (see ExplorerContextMenuUiTests): only the top-level
 /// collection nodes are realized before any interaction. Explicitly toggling their IsExpanded
 /// property (rather than relying on a simulated click on a not-yet-realized expander) does cause
@@ -32,9 +28,6 @@ public sealed class ExploratoryTourUiTests
     [Test]
     public async Task Tour_ManyPosts_CapturesKeyStates()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var reviewDir = ResolveReviewDir();
         Directory.CreateDirectory(reviewDir);
 
@@ -190,8 +183,4 @@ public sealed class ExploratoryTourUiTests
         var testDir = Path.GetDirectoryName(callerFile)!;
         return Path.GetFullPath(Path.Combine(testDir, "Snapshots", "__review__"));
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }

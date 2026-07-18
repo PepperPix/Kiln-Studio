@@ -1,6 +1,5 @@
 namespace Kiln.Studio.UiTests;
 
-using System.Runtime.InteropServices;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
@@ -15,18 +14,12 @@ using Kiln.Studio.Views;
 /// heading, bold/italic text, a fenced code block and a link, opens it in the editor, and dumps a
 /// PNG under Snapshots/__review__/ for manual review that AvaloniaEdit.TextMate now renders
 /// visually distinct colors/weights instead of uniform plain text.
-///
-/// Platform-gated (ADR-030 reference platform: macOS arm64) — see ExploratoryTourUiTests for the
-/// same headless-rendering-portability rationale.
 /// </summary>
 public sealed class EditorSyntaxHighlightingUiTests
 {
     [Test]
     public async Task Tour_MarkdownFormatting_CapturesHighlightedEditor()
     {
-        if (!IsMacOsArm64())
-            return;
-
         var reviewDir = ResolveReviewDir();
         Directory.CreateDirectory(reviewDir);
 
@@ -126,8 +119,4 @@ public sealed class EditorSyntaxHighlightingUiTests
         var testDir = Path.GetDirectoryName(callerFile)!;
         return Path.GetFullPath(Path.Combine(testDir, "Snapshots", "__review__"));
     }
-
-    private static bool IsMacOsArm64() =>
-        OperatingSystem.IsMacOS() &&
-        RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 }
