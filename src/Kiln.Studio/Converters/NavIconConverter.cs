@@ -8,7 +8,7 @@ using Material.Icons;
 /// Resolves a <c>NavRailItemViewModel.IconName</c> string (deliberately just a plain string in
 /// the Avalonia-free ViewModels project, ADR-054/PLAN-072) to the actual Material.Icons.Avalonia
 /// <see cref="MaterialIconKind"/> enum value, here in the View layer where that package dependency
-/// belongs (same pattern as <c>IAssetPickerDialog</c>/<c>IImageDimensionReader</c>).
+/// belongs (same pattern as <c>IFilePicker</c>/<c>IImageDimensionReader</c>).
 /// </summary>
 public sealed class NavIconConverter : IValueConverter
 {

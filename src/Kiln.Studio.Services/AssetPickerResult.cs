@@ -3,7 +3,13 @@ namespace Kiln.Studio.Services;
 public enum AssetPickerDestination
 {
     Library,
-    PageBundle
+    PageBundle,
+
+    /// <summary>
+    /// The asset already lives in the current content item's page bundle and only needs a relative
+    /// reference inserted into the body. Path is relative to the bundle directory.
+    /// </summary>
+    PageBundleExisting,
 }
 
 /// <param name="Destination">
@@ -14,17 +20,3 @@ public enum AssetPickerDestination
 /// copy/conversion happens afterwards via <see cref="IPageBundleService"/>.
 /// </param>
 public sealed record AssetPickerResult(AssetPickerDestination Destination, string Path);
-
-/// <summary>
-/// Dialog letting the user either browse the site-wide asset library or upload a new file
-/// (ADR-050).
-/// </summary>
-public interface IAssetPickerDialog
-{
-    /// <param name="projectPath">Absolute path to the project root.</param>
-    /// <param name="canUploadToPageBundle">
-    /// Whether "insert into this page" is offered as an upload destination (requires a document
-    /// to currently be open in the editor).
-    /// </param>
-    Task<AssetPickerResult?> ShowAsync(string projectPath, bool canUploadToPageBundle);
-}

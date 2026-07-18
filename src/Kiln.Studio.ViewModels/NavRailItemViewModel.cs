@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 /// Material Design icon glyph (e.g. "Note", "CogOutline") - it is deliberately NOT a
 /// Material.Icons.Avalonia <c>MaterialIconKind</c> value, since that package is Avalonia-specific
 /// and <c>Kiln.Studio.ViewModels</c> must stay Avalonia-free (see repo memory "Lektion 15" /
-/// PLAN-069, same pattern as <c>IAssetPickerDialog</c>/<c>IImageDimensionReader</c>). The View
+/// PLAN-069, same pattern as <c>IFilePicker</c>/<c>IImageDimensionReader</c>). The View
 /// layer (<c>Kiln.Studio</c> project) resolves this string to the actual <c>MaterialIconKind</c>
 /// enum value via a converter.
 /// </summary>

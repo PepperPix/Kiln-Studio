@@ -109,10 +109,12 @@ public sealed class ExploratoryTourUiTests
             explorer.SelectedEntry = firstPost;
             Capture(window, reviewDir, "04_editor_with_content_loaded");
 
-            // 5) Toggle the inline preview column on (PLAN-072 bug review, 2026-07-13) to visually
-            //    inspect the reported "Preview overlaps buttons" defect.
-            editor.IsInlinePreviewVisible = true;
-            Capture(window, reviewDir, "05_editor_with_inline_preview_visible");
+            // 5) Select the Preview tab in the unified right panel (ADR-056/PLAN-074) to visually
+            //    inspect the Markdown preview rendering.
+            const int previewTabIndex = 2;
+            var rightPanelTabControl = window.GetVisualDescendants().OfType<TabControl>().First(tc => tc.Name == "RightPanelTabControl");
+            rightPanelTabControl.SelectedIndex = previewTabIndex;
+            Capture(window, reviewDir, "05_editor_with_preview_tab_selected");
 
             window.Close();
         }
