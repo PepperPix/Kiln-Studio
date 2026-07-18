@@ -24,9 +24,10 @@ public partial class EditorViewModel : ViewModelBase
     private readonly IContentService _contentService;
     private readonly IContentFrontmatterWriter _frontmatterWriter;
     private readonly ITaxonomyValueCache _taxonomyValueCache;
-    private readonly IAssetPickerDialog _assetPickerDialog;
+    private readonly IAssetLibraryService _assetLibraryService;
     private readonly IPageBundleService _pageBundleService;
     private readonly IImageDimensionReader _imageDimensionReader;
+    private readonly IFilePicker _filePicker;
     private readonly EngineHost _engineHost;
     private Func<string, Task>? _onPageBundleConverted;
     private bool _suppressDirty;
@@ -45,11 +46,11 @@ public partial class EditorViewModel : ViewModelBase
     private bool _isDirty;
 
     /// <summary>
-    /// Toggles the third, opt-in Markdown.Avalonia inline-preview column in the editor's two-
-    /// column layout (ADR-054: no longer a permanently-visible pane). Defaults to hidden.
+    /// Toggles the right-hand editor panel (Details/Stats/Preview/Assets tabs). Defaults to
+    /// expanded so the structured Details tab is visible when an item loads.
     /// </summary>
     [ObservableProperty]
-    private bool _isInlinePreviewVisible;
+    private bool _isRightPanelExpanded = true;
 
     [ObservableProperty]
     private string _frontMatter = "";
@@ -77,33 +78,53 @@ public partial class EditorViewModel : ViewModelBase
 
     public ObservableCollection<TaxonomyFieldViewModel> TaxonomyFields { get; } = [];
 
+    /// <summary>
+    /// Asset browser for the Assets tab, scoped to the currently open document's page bundle.
+    /// Recreated every time <see cref="Load"/> runs because the underlying directory changes.
+    /// </summary>
+    public AssetBrowserViewModel? DocumentAssets { get; private set; }
+
+    /// <summary>
+    /// Asset browser for the site-wide library Flyout opened from the Markdown toolbar. Recreated
+    /// every time <see cref="Load"/> runs because the project path may change.
+    /// </summary>
+    public AssetBrowserViewModel? FlyoutAssets { get; private set; }
+
+    /// <summary>
+    /// Callback invoked whenever an asset browser (tab or flyout) has produced a Markdown snippet
+    /// that should be inserted at the editor caret. The view subscribes to this and performs the
+    /// actual TextEditor insertion so the ViewModel stays Avalonia-free.
+    /// </summary>
+    public Action<string>? AssetSnippetReady { get; set; }
+
+#pragma warning disable S107 // Constructor mirrors the existing dependency pattern; collapsing services would break testability.
     public EditorViewModel(
         IContentService contentService,
         IContentFrontmatterWriter? frontmatterWriter = null,
         ITaxonomyValueCache? taxonomyValueCache = null,
-        IAssetPickerDialog? assetPickerDialog = null,
+        IAssetLibraryService? assetLibraryService = null,
         IPageBundleService? pageBundleService = null,
         IImageDimensionReader? imageDimensionReader = null,
+        IFilePicker? filePicker = null,
         EngineHost? engineHost = null)
     {
         _contentService = contentService;
         _frontmatterWriter = frontmatterWriter ?? new ContentFrontmatterWriter();
         _taxonomyValueCache = taxonomyValueCache ?? new TaxonomyValueCache();
-        _assetPickerDialog = assetPickerDialog ?? new NullAssetPickerDialog();
+        _assetLibraryService = assetLibraryService ?? new AssetLibraryService();
         _pageBundleService = pageBundleService ?? new PageBundleService();
         _imageDimensionReader = imageDimensionReader ?? new NullImageDimensionReader();
+        _filePicker = filePicker ?? new NullFilePicker();
         _engineHost = engineHost ?? new EngineHost();
     }
+#pragma warning restore S107
 
     /// <summary>
-    /// Registers the callback invoked after <see cref="PickAndPrepareAssetAsync"/> converts a flat
+    /// Registers the callback invoked after <see cref="PrepareAssetSnippetAsync"/> converts a flat
     /// content file into a page bundle, so the owner (ShellViewModel) can resynchronize the
     /// explorer with the moved file (analogous to <c>ProjectExplorerViewModel.SetDraftToggleHandler</c>).
     /// </summary>
     public void SetPageBundleConvertedHandler(Func<string, Task> handler) => _onPageBundleConverted = handler;
-
-    [RelayCommand]
-    private void ToggleInlinePreview() => IsInlinePreviewVisible = !IsInlinePreviewVisible;
 
     // ── Stats sub-tab (ADR-054/PLAN-072: word count/characters/reading time/referenced assets, plus
     //    file-system created/modified dates) - purely informative, computed on demand from Body/FilePath. ──
@@ -119,7 +140,7 @@ public partial class EditorViewModel : ViewModelBase
     /// <summary>
     /// Number of Markdown image/link references in <see cref="Body"/> that point at a Kiln asset
     /// (either the site asset library, "/assets/...", or a page-bundle-relative file, "./..." -
-    /// the two schemes produced by <see cref="PickAndPrepareAssetAsync"/>). Deliberately a simple
+    /// the two schemes produced by <see cref="PrepareAssetSnippetAsync"/>). Deliberately a simple
     /// forward count over the item's own body, NOT the project-wide reverse reference index
     /// (that is a separate, larger concern - see PLAN-071's <c>IAssetReferenceIndexBuilder</c>).
     /// </summary>
@@ -161,6 +182,7 @@ public partial class EditorViewModel : ViewModelBase
             IsDirty = false;
             _projectPath = projectPath;
             LoadTaxonomyFields(filePath, projectPath, names);
+            RebuildAssetBrowsers();
         }
         finally
         {
@@ -228,6 +250,8 @@ public partial class EditorViewModel : ViewModelBase
             IsDirty = false;
             _projectPath = null;
             TaxonomyFields.Clear();
+            DocumentAssets = null;
+            FlyoutAssets = null;
         }
         finally
         {
@@ -299,14 +323,13 @@ public partial class EditorViewModel : ViewModelBase
     private bool CanSave() => HasDocument && IsDirty && FilePath is not null;
 
     /// <summary>
-    /// Orchestrates the asset picker/upload/page-bundle-conversion flow and returns the finished
-    /// Markdown snippet to insert at the caret, or <see langword="null"/> if the user cancelled.
-    /// Deliberately does not touch the body editor control or caret position itself — inserting
-    /// the returned snippet is the view's responsibility (see EditorView.axaml.cs).
+    /// Converts an already-made asset picker decision into the finished Markdown snippet to insert
+    /// at the caret, or <see langword="null"/> if the result is null. Deliberately does not touch
+    /// the body editor control or caret position itself — inserting the returned snippet is the
+    /// view's responsibility (see EditorView.axaml.cs).
     /// </summary>
-    public async Task<string?> PickAndPrepareAssetAsync()
+    public async Task<string?> PrepareAssetSnippetAsync(AssetPickerResult? pickerResult)
     {
-        var pickerResult = await _assetPickerDialog.ShowAsync(_projectPath!, HasDocument).ConfigureAwait(true);
         if (pickerResult is null)
             return null;
 
@@ -327,6 +350,16 @@ public partial class EditorViewModel : ViewModelBase
             // Convert to the platform separator explicitly before combining.
             var nativeRelativePath = normalized.Replace('/', Path.DirectorySeparatorChar);
             physicalPath = _projectPath is not null ? Path.Combine(_projectPath, "static", nativeRelativePath) : null;
+        }
+        else if (pickerResult.Destination == AssetPickerDestination.PageBundleExisting)
+        {
+            // Asset already lives in the current page bundle; just reference it relatively.
+            var normalized = pickerResult.Path.Replace('\\', '/');
+            fileName = Path.GetFileName(normalized);
+            markdownPath = $"./{normalized}";
+            physicalPath = FilePath is not null
+                ? Path.Combine(Path.GetDirectoryName(FilePath)!, normalized.Replace('/', Path.DirectorySeparatorChar))
+                : null;
         }
         else
         {
@@ -462,14 +495,57 @@ public partial class EditorViewModel : ViewModelBase
         });
     }
 
-    private sealed class NullAssetPickerDialog : IAssetPickerDialog
+    private void RebuildAssetBrowsers()
     {
-        public Task<AssetPickerResult?> ShowAsync(string projectPath, bool canUploadToPageBundle) =>
-            Task.FromResult<AssetPickerResult?>(null);
+        if (DocumentAssets is not null)
+            DocumentAssets.AssetChosen = null;
+        if (FlyoutAssets is not null)
+            FlyoutAssets.AssetChosen = null;
+
+        var documentRoot = ResolveAssetDirectory(FilePath);
+        DocumentAssets = documentRoot is not null
+            ? new AssetBrowserViewModel(_assetLibraryService, _filePicker, _projectPath, documentRoot, isDocumentScoped: true)
+            : null;
+        if (DocumentAssets is not null)
+            DocumentAssets.AssetChosen = OnAssetChosenAsync;
+
+        FlyoutAssets = _projectPath is not null
+            ? new AssetBrowserViewModel(_assetLibraryService, _filePicker, _projectPath, Path.Combine(_projectPath, "static"), isDocumentScoped: false)
+            : null;
+        if (FlyoutAssets is not null)
+            FlyoutAssets.AssetChosen = OnAssetChosenAsync;
+    }
+
+    private static string? ResolveAssetDirectory(string? filePath)
+    {
+        if (filePath is null)
+            return null;
+
+        var directory = Path.GetDirectoryName(filePath);
+        if (directory is null)
+            return null;
+
+        if (Path.GetFileName(filePath).Equals("index.md", StringComparison.OrdinalIgnoreCase))
+            return directory;
+
+        var slug = Path.GetFileNameWithoutExtension(filePath);
+        return Path.Combine(directory, slug);
+    }
+
+    private async Task OnAssetChosenAsync(AssetPickerResult result)
+    {
+        var snippet = await PrepareAssetSnippetAsync(result).ConfigureAwait(true);
+        if (snippet is not null)
+            AssetSnippetReady?.Invoke(snippet);
     }
 
     private sealed class NullImageDimensionReader : IImageDimensionReader
     {
         public (int Width, int Height)? TryReadDimensions(string filePath) => null;
+    }
+
+    private sealed class NullFilePicker : IFilePicker
+    {
+        public Task<string?> PickFileAsync(string title) => Task.FromResult<string?>(null);
     }
 }

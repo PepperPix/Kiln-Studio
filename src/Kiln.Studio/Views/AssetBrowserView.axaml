@@ -1,0 +1,138 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Kiln.Studio"
+             xmlns:services="using:Kiln.Studio.Services"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             x:Class="Kiln.Studio.Views.AssetBrowserView"
+             x:DataType="vm:AssetBrowserViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
+          Margin="12"
+          HorizontalAlignment="Stretch">
+
+        <!-- Breadcrumb + up navigation -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Breadcrumb}"
+                       VerticalAlignment="Center"
+                       Classes="muted"
+                       TextTrimming="CharacterEllipsis" />
+            <Button Grid.Column="1"
+                    Classes="secondary"
+                    Content="↑ Up"
+                    Command="{Binding NavigateUpCommand}"
+                    IsVisible="{Binding CurrentFolder, Converter={x:Static local:AppConverters.IsStringNotNullOrEmpty}}" />
+        </Grid>
+
+        <!-- Mode switch (Browse / Upload) -->
+        <Button Grid.Row="1"
+                Classes="secondary"
+                Content="{Binding ModeButtonText}"
+                Command="{Binding ToggleModeCommand}"
+                HorizontalAlignment="Left"
+                Margin="0,8,0,8" />
+
+        <!-- Browse mode: folder/file list -->
+        <Border Grid.Row="2"
+                BorderThickness="1"
+                BorderBrush="{StaticResource KilnBorderBrush}"
+                CornerRadius="{StaticResource CornerRadiusControl}"
+                IsVisible="{Binding !IsUploadMode}"
+                Padding="4">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Entries}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="services:AssetLibraryEntry">
+                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                  Margin="0,2">
+                                <Button Grid.Column="0"
+                                        Classes="quiet"
+                                        HorizontalAlignment="Left"
+                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).NavigateIntoCommand}"
+                                        CommandParameter="{Binding .}">
+                                    <TextBlock Text="{Binding Name}" />
+                                </Button>
+
+                                <!-- Insert: existing file only -->
+                                <Button Grid.Column="1"
+                                        Classes="secondary"
+                                        Content="Insert"
+                                        IsVisible="{Binding !IsFolder}"
+                                        Margin="4,0,0,0"
+                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).InsertCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                <!-- Delete: document-scoped only (Rename UI deferred to PLAN-073) -->
+                                <Button Grid.Column="2"
+                                        Classes="secondary"
+                                        Content="Delete"
+                                        IsVisible="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).IsDocumentScoped}"
+                                        Margin="4,0,0,0"
+                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).DeleteCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Empty state for flat files without a bundle -->
+        <TextBlock Grid.Row="2"
+                   Text="Upload the first asset for this page."
+                   IsVisible="{Binding Entries.Count, Converter={x:Static local:AppConverters.IsCountZeroInt}}"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Classes="muted" />
+
+        <!-- Upload mode -->
+        <StackPanel Grid.Row="2"
+                    Spacing="8"
+                    IsVisible="{Binding IsUploadMode}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="secondary"
+                        Content="Choose file…"
+                        Command="{Binding ChooseFileCommand}" />
+                <TextBlock Text="{Binding ChosenFilePath, FallbackValue='No file selected'}"
+                           VerticalAlignment="Center"
+                           Classes="muted"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+
+            <StackPanel Spacing="4"
+                        IsVisible="{Binding CanChooseUploadDestination}">
+                <RadioButton Content="Insert into this page"
+                             GroupName="UploadDestination"
+                             IsChecked="{Binding UploadDestination, Converter={x:Static local:AppConverters.DestinationIsPageBundle}}" />
+                <RadioButton Content="Save to library"
+                             GroupName="UploadDestination"
+                             IsChecked="{Binding UploadDestination, Converter={x:Static local:AppConverters.DestinationIsLibrary}}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Action row -->
+        <Grid Grid.Row="3"
+              ColumnDefinitions="*,Auto"
+              Margin="0,8,0,0">
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        IsVisible="{Binding !IsUploadMode}">
+                <TextBox Text="{Binding NewFolderName}"
+                         PlaceholderText="New folder name"
+                         Width="140" />
+                <Button Classes="secondary"
+                        Content="New Folder"
+                        Command="{Binding CreateFolderCommand}" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Classes="primary"
+                    Content="Upload"
+                    IsVisible="{Binding IsUploadMode}"
+                    IsEnabled="{Binding CanUpload}"
+                    Command="{Binding UploadCommand}" />
+        </Grid>
+    </Grid>
+
+</UserControl>

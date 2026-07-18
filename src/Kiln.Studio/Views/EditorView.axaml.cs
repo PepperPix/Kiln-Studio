@@ -2,6 +2,7 @@ namespace Kiln.Studio.Views;
 
 using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
@@ -10,8 +11,11 @@ using TextMateSharp.Grammars;
 
 public partial class EditorView : UserControl
 {
+    private const int RightPanelColumnIndex = 2;
+
     private EditorViewModel? _currentVm;
     private bool _isSyncing;
+    private Flyout? _assetFlyout;
 
     public EditorView()
     {
@@ -20,18 +24,17 @@ public partial class EditorView : UserControl
         DataContextChanged += OnDataContextChanged;
         InstallMarkdownSyntaxHighlighting();
 
-        FrontmatterPanelToggle.IsCheckedChanged += OnFrontmatterPanelToggleChanged;
+        RightPanelToggle.IsCheckedChanged += OnRightPanelToggleChanged;
     }
 
-    private void OnFrontmatterPanelToggleChanged(object? sender, RoutedEventArgs e)
+    private void OnRightPanelToggleChanged(object? sender, RoutedEventArgs e)
     {
-        var isExpanded = FrontmatterPanelToggle.IsChecked == true;
-        FrontmatterPanelToggle.Content = isExpanded ? "▾ Frontmatter" : "▸ Frontmatter";
+        var isExpanded = RightPanelToggle.IsChecked == true;
 
         // The GridSplitter mutates this column's width to an explicit pixel value while dragging.
-        // Collapsing/expanding via the toggle button (rather than dragging) resets it back to its
-        // natural content size instead of leaving it pinned at whatever width the splitter left.
-        DocumentGrid.ColumnDefinitions[0].Width = isExpanded ? new GridLength(260) : new GridLength(0);
+        // Collapsing/expanding via the toggle button resets it back to its natural width instead of
+        // leaving it pinned at whatever width the splitter left.
+        DocumentGrid.ColumnDefinitions[RightPanelColumnIndex].Width = isExpanded ? new GridLength(320) : new GridLength(0);
     }
 
     private void InstallMarkdownSyntaxHighlighting()
@@ -87,19 +90,23 @@ public partial class EditorView : UserControl
 
     private void OnBlockquoteClick(object? sender, RoutedEventArgs e) => PrefixLines(_ => "> ");
 
-#pragma warning disable VSTHRD100 // must match RoutedEventHandler's void-returning signature
-    private async void OnAssetClick(object? sender, RoutedEventArgs e)
-#pragma warning restore VSTHRD100
+    private void OnAssetClick(object? sender, RoutedEventArgs e)
     {
-        if (_currentVm is null)
+        if (_currentVm?.FlyoutAssets is null)
             return;
 
-        var snippet = await _currentVm.PickAndPrepareAssetAsync().ConfigureAwait(true);
-        if (snippet is null)
-            return;
+        var assetBrowser = new AssetBrowserView
+        {
+            DataContext = _currentVm.FlyoutAssets
+        };
 
-        BodyEditor.Document.Insert(BodyEditor.CaretOffset, snippet);
-        BodyEditor.Focus();
+        _assetFlyout = new Flyout
+        {
+            Content = assetBrowser,
+            Placement = PlacementMode.BottomEdgeAlignedLeft
+        };
+
+        _assetFlyout.ShowAt(AssetButton);
     }
 
     private void PrefixLines(Func<int, string> prefixForLineIndex)
@@ -142,15 +149,25 @@ public partial class EditorView : UserControl
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (_currentVm is not null)
+        {
             _currentVm.PropertyChanged -= OnViewModelPropertyChanged;
+            _currentVm.AssetSnippetReady -= OnAssetSnippetReady;
+        }
 
         _currentVm = DataContext as EditorViewModel;
 
         if (_currentVm is not null)
         {
             _currentVm.PropertyChanged += OnViewModelPropertyChanged;
+            _currentVm.AssetSnippetReady += OnAssetSnippetReady;
             SyncEditorFromVm(_currentVm);
         }
+    }
+
+    private void OnAssetSnippetReady(string snippet)
+    {
+        BodyEditor.Document.Insert(BodyEditor.CaretOffset, snippet);
+        BodyEditor.Focus();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

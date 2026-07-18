@@ -6,6 +6,7 @@
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
              xmlns:local="using:Kiln.Studio"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:views="using:Kiln.Studio.Views"
              x:Class="Kiln.Studio.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
@@ -17,10 +18,9 @@
                    VerticalAlignment="Center"
                    Classes="muted" />
 
-        <!-- Editor mode (ADR-054/PLAN-072): breadcrumb back to the content list, then a two-column
-             layout — Frontmatter/Stats sub-tabs on the left, Title+toolbar+body on the right, with
-             the Markdown.Avalonia inline preview as an opt-in third column (no longer permanently
-             visible). -->
+        <!-- Editor mode (ADR-056/PLAN-074): breadcrumb back to the content list, then a two-column
+             layout — Title+toolbar+body on the left, a unified right panel with Details/Stats/Preview/
+             Assets tabs on the right. A single gutter hosts the only splitter/collapse toggle. -->
         <Grid x:Name="RootGrid"
               IsVisible="{Binding HasDocument}"
               RowDefinitions="Auto,*">
@@ -35,146 +35,42 @@
 
             <Grid Grid.Row="1"
                   x:Name="DocumentGrid"
-                  ColumnDefinitions="260,20,*,20,Auto">
+                  ColumnDefinitions="*,20,320">
 
-                <!-- Left column: Frontmatter / Stats sub-tabs. The collapse toggle used to live
-                     INSIDE this column (Row 0) — once collapsed to width 0 there was no way to
-                     click it again to re-expand (bug fix, 2026-07-13). It now lives in the always-
-                     visible gutter column (Grid.Column="1" below), mirroring how NavRailView pins
-                     its own expand/collapse toggle outside the width-collapsing region. -->
-                <Grid Grid.Column="0">
-                    <TabControl IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}">
+                <!-- Left column: title + Markdown toolbar + body editor -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*">
 
-                        <TabItem Header="Frontmatter">
-                            <ScrollViewer x:Name="FrontmatterScrollViewer"
-                                          VerticalScrollBarVisibility="Auto">
-                                <StackPanel>
+                    <!-- Title row with Save button and unsaved indicator -->
+                    <Grid Grid.Row="0"
+                          ColumnDefinitions="*,Auto,Auto"
+                          Margin="{StaticResource PanelMargin}">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding Title}"
+                                 PlaceholderText="Untitled"
+                                 FontSize="{StaticResource FontSizeXL}"
+                                 FontWeight="SemiBold"
+                                 BorderThickness="0"
+                                 Background="Transparent" />
 
-                                    <!-- Structured frontmatter fields: date / description (title lives
-                                         in the right column now, as the page heading — ADR-054) -->
-                                    <StackPanel Margin="{StaticResource PanelMargin}">
-                                        <TextBlock Text="Date" Classes="section-header" Margin="0,0,0,2" />
-                                        <DatePicker SelectedDate="{Binding Date}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="●"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,4,0"
+                                   Classes="muted"
+                                   IsVisible="{Binding IsDirty}" />
 
-                                        <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
-                                        <TextBox Text="{Binding Description}"
-                                                 PlaceholderText="A short summary shown in listings and previews"
-                                                 AcceptsReturn="True"
-                                                 TextWrapping="Wrap"
-                                                 Height="52" />
-                                    </StackPanel>
-
-                                    <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
-                                    <Border Classes="settings-section" Margin="{StaticResource PanelMargin}">
-                                        <ItemsControl ItemsSource="{Binding TaxonomyFields}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
-                                                    <controls:TaxonomyChipInput Label="{Binding Name}"
-                                                                                 ItemsSource="{Binding Values}"
-                                                                                 SuggestionsSource="{Binding Suggestions}"
-                                                                                 Margin="0,0,0,4" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </Border>
-
-                                    <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
-                                         editable when expanded; owned keys (title/date/description/taxonomies) are
-                                         stripped from FrontMatter so they only ever appear in the structured fields above.
-                                         A plain ToggleButton (not Expander) is used so it picks up the app's existing
-                                         Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
-                                    <StackPanel Margin="{StaticResource PanelMargin}">
-                                        <ToggleButton x:Name="RawFrontMatterToggle"
-                                                      Classes="secondary"
-                                                      HorizontalAlignment="Left"
-                                                      HorizontalContentAlignment="Left"
-                                                      Content="Raw frontmatter (advanced)" />
-                                        <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
-                                            <TextBox x:Name="FrontMatterBox"
-                                                     Text="{Binding FrontMatter}"
-                                                     AcceptsReturn="True"
-                                                     Height="120"
-                                                     Classes="monospace"
-                                                     BorderThickness="0,0,0,1"
-                                                     CornerRadius="0"
-                                                     Padding="8,6"
-                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                                     TextWrapping="NoWrap" />
-                                        </Border>
-                                    </StackPanel>
-
-                                </StackPanel>
-                            </ScrollViewer>
-                        </TabItem>
-
-                        <!-- Stats sub-tab (ADR-054/PLAN-072): purely informative word/character/reading-time
-                             counts, referenced-asset count, and file-system created/modified dates. -->
-                        <TabItem Header="Stats">
-                            <StackPanel Margin="{StaticResource PanelMargin}" Spacing="4">
-                                <TextBlock Text="Word count" Classes="section-header" Margin="0,0,0,0" />
-                                <TextBlock Text="{Binding WordCount}" />
-
-                                <TextBlock Text="Characters" Classes="section-header" />
-                                <TextBlock Text="{Binding CharacterCount}" />
-
-                                <TextBlock Text="Reading time" Classes="section-header" />
-                                <TextBlock Text="{Binding ReadingTimeMinutes, StringFormat='{}{0} min'}" />
-
-                                <TextBlock Text="Referenced assets" Classes="section-header" />
-                                <TextBlock Text="{Binding ReferencedAssetCount}" />
-
-                                <TextBlock Text="Created" Classes="section-header" />
-                                <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
-
-                                <TextBlock Text="Modified" Classes="section-header" />
-                                <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
-                            </StackPanel>
-                        </TabItem>
-
-                    </TabControl>
-                </Grid>
-
-                <!-- Gutter column: resize splitter (only draggable while expanded) plus a small,
-                     always-visible collapse/expand toggle button pinned at the top — this is the
-                     part that never disappears, unlike the old in-panel toggle (bug fix,
-                     2026-07-13). -->
-                <Grid Grid.Column="1">
-                    <GridSplitter ResizeDirection="Columns"
-                                  HorizontalAlignment="Stretch"
-                                  IsVisible="{Binding #FrontmatterPanelToggle.IsChecked}" />
-                    <ToggleButton x:Name="FrontmatterPanelToggle"
-                                  Classes="gutter-toggle"
-                                  IsChecked="True"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Top"
-                                  Margin="0,4,0,0"
-                                  ToolTip.Tip="Frontmatter ein-/ausblenden">
-                        <materialIcons:MaterialIcon Kind="{Binding #FrontmatterPanelToggle.IsChecked, Converter={x:Static local:AppConverters.ExpandedToLeftPanelCollapseIcon}}"
-                                      Width="14"
-                                      Height="14" />
-                    </ToggleButton>
-                </Grid>
-
-                <!-- Middle column: title + Markdown toolbar + body editor -->
-                <Grid Grid.Column="2" RowDefinitions="Auto,Auto,Auto,*">
-
-                    <TextBox Grid.Row="0"
-                             Text="{Binding Title}"
-                             PlaceholderText="Untitled"
-                             FontSize="{StaticResource FontSizeXL}"
-                             FontWeight="SemiBold"
-                             BorderThickness="0"
-                             Background="Transparent"
-                             Padding="{StaticResource PanelMargin}" />
+                        <Button Grid.Column="2"
+                                Content="Save"
+                                Classes="secondary"
+                                Command="{Binding SaveCommand}" />
+                    </Grid>
 
                     <!-- Markdown formatting toolbar for the body editor: wraps/prefixes the current
                          selection with Markdown syntax (PLAN-066, ADR-049 Entscheidung 5 — deliberately
                          not a WYSIWYG editor, the body stays plain Markdown text).
                          Wrapped in a horizontally-scrolling ScrollViewer (bug fix, 2026-07-13): the
-                         ten buttons are wider than the middle column once the Frontmatter panel and
-                         inline Preview column are both visible, and Avalonia's StackPanel does not
-                         clip overflowing content by default — the excess buttons painted over the
-                         Preview column instead of being confined to this column's own bounds. -->
+                         toolbar buttons are wider than the available column at narrow window sizes,
+                         and Avalonia's StackPanel does not clip overflowing content by default. -->
                     <ScrollViewer Grid.Row="1"
                                   HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Disabled">
@@ -214,35 +110,138 @@
                                       WordWrap="True" />
                 </Grid>
 
-                <!-- Gutter column: mirrors the Frontmatter gutter (Grid.Column="1") above — a small,
-                     always-visible collapse/expand toggle for the inline Preview panel, moved out of
-                     the crowded toolbar row (bug fix, 2026-07-13; the toolbar row's overflowing
-                     buttons previously painted over this panel — see the ScrollViewer fix above).
-                     Both gutters now share the same visual affordance, per discussion. -->
-                <Grid Grid.Column="3">
+                <!-- Gutter column: single splitter + collapse toggle for the unified right panel. -->
+                <Grid Grid.Column="1">
                     <GridSplitter ResizeDirection="Columns"
                                   HorizontalAlignment="Stretch"
-                                  IsVisible="{Binding IsInlinePreviewVisible}" />
-                    <ToggleButton x:Name="PreviewToggleButton"
+                                  IsVisible="{Binding IsRightPanelExpanded}" />
+                    <ToggleButton x:Name="RightPanelToggle"
                                   Classes="gutter-toggle"
-                                  IsChecked="{Binding IsInlinePreviewVisible}"
+                                  IsChecked="{Binding IsRightPanelExpanded}"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Top"
                                   Margin="0,4,0,0"
-                                  ToolTip.Tip="Preview ein-/ausblenden">
-                        <materialIcons:MaterialIcon Kind="{Binding IsInlinePreviewVisible, Converter={x:Static local:AppConverters.VisibleToRightPanelCollapseIcon}}"
+                                  ToolTip.Tip="Panel ein-/ausblenden">
+                        <materialIcons:MaterialIcon Kind="{Binding IsRightPanelExpanded, Converter={x:Static local:AppConverters.ExpandedToChevron}}"
                                       Width="14"
                                       Height="14" />
                     </ToggleButton>
                 </Grid>
 
-                <!-- Opt-in third column: Markdown.Avalonia inline preview (ADR-054 — no longer
-                     permanently visible, toggled via the Preview toggle in the gutter above). -->
-                <md:MarkdownScrollViewer Grid.Column="4"
-                                         x:Name="InlinePreview"
-                                         IsVisible="{Binding IsInlinePreviewVisible}"
-                                         Width="320"
-                                         Markdown="{Binding PreviewMarkdown}" />
+                <!-- Right column: unified panel with Details/Stats/Preview/Assets tabs. -->
+                <TabControl Grid.Column="2"
+                            x:Name="RightPanelTabControl">
+
+                    <!-- Compact header padding/font: with the panel narrowed to 320px (down from
+                         the old 260px Frontmatter-only column, ADR-056/PLAN-074), FluentTheme's
+                         default TabItem padding is wide enough that four headers
+                         (Details/Stats/Preview/Assets) wrap onto a second line, visually crowding
+                         the Details tab's own content underneath. Scoped to this TabControl only. -->
+                    <TabControl.Styles>
+                        <Style Selector="TabItem">
+                            <Setter Property="Padding" Value="8,6" />
+                            <Setter Property="FontSize" Value="{StaticResource FontSizeS}" />
+                        </Style>
+                    </TabControl.Styles>
+
+                    <TabItem Header="Details">
+                        <ScrollViewer x:Name="DetailsScrollViewer"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+
+                                <!-- Structured frontmatter fields: date / description (title lives
+                                     in the left column as the page heading — ADR-054). -->
+                                <StackPanel Margin="{StaticResource PanelMargin}">
+                                    <TextBlock Text="Date" Classes="section-header" Margin="0,0,0,2" />
+                                    <DatePicker SelectedDate="{Binding Date}" />
+
+                                    <TextBlock Text="Description" Classes="section-header" Margin="0,4,0,2" />
+                                    <TextBox Text="{Binding Description}"
+                                             PlaceholderText="A short summary shown in listings and previews"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             Height="52" />
+                                </StackPanel>
+
+                                <!-- Structured taxonomy chip inputs (one per taxonomy declared by the item's collection) -->
+                                <Border Classes="settings-section" Margin="{StaticResource PanelMargin}">
+                                    <ItemsControl ItemsSource="{Binding TaxonomyFields}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:TaxonomyFieldViewModel">
+                                                <controls:TaxonomyChipInput Label="{Binding Name}"
+                                                                             ItemsSource="{Binding Values}"
+                                                                             SuggestionsSource="{Binding Suggestions}"
+                                                                             Margin="0,0,0,4" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+                                <!-- Raw YAML front matter fallback (advanced) — collapsed by default, still freely
+                                     editable when expanded; owned keys (title/date/description/taxonomies) are
+                                     stripped from FrontMatter so they only ever appear in the structured fields above.
+                                     A plain ToggleButton (not Expander) is used so it picks up the app's existing
+                                     Button.secondary styling instead of FluentTheme's unstyled default Expander chrome. -->
+                                <StackPanel Margin="{StaticResource PanelMargin}">
+                                    <ToggleButton x:Name="RawFrontMatterToggle"
+                                                  Classes="secondary"
+                                                  HorizontalAlignment="Left"
+                                                  HorizontalContentAlignment="Left"
+                                                  Content="Raw frontmatter (advanced)" />
+                                    <Border IsVisible="{Binding #RawFrontMatterToggle.IsChecked}" Margin="0,4,0,0">
+                                        <TextBox x:Name="FrontMatterBox"
+                                                 Text="{Binding FrontMatter}"
+                                                 AcceptsReturn="True"
+                                                 Height="120"
+                                                 Classes="monospace"
+                                                 BorderThickness="0,0,0,1"
+                                                 CornerRadius="0"
+                                                 Padding="8,6"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                 TextWrapping="NoWrap" />
+                                    </Border>
+                                </StackPanel>
+
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- Stats sub-tab (ADR-054/PLAN-072): purely informative word/character/reading-time
+                         counts, referenced-asset count, and file-system created/modified dates. -->
+                    <TabItem Header="Stats">
+                        <StackPanel Margin="{StaticResource PanelMargin}" Spacing="4">
+                            <TextBlock Text="Word count" Classes="section-header" Margin="0,0,0,0" />
+                            <TextBlock Text="{Binding WordCount}" />
+
+                            <TextBlock Text="Characters" Classes="section-header" />
+                            <TextBlock Text="{Binding CharacterCount}" />
+
+                            <TextBlock Text="Reading time" Classes="section-header" />
+                            <TextBlock Text="{Binding ReadingTimeMinutes, StringFormat='{}{0} min'}" />
+
+                            <TextBlock Text="Referenced assets" Classes="section-header" />
+                            <TextBlock Text="{Binding ReferencedAssetCount}" />
+
+                            <TextBlock Text="Created" Classes="section-header" />
+                            <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+
+                            <TextBlock Text="Modified" Classes="section-header" />
+                            <TextBlock Text="{Binding ModifiedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+                        </StackPanel>
+                    </TabItem>
+
+                    <!-- Preview sub-tab: Markdown.Avalonia quick preview (ADR-056). -->
+                    <TabItem Header="Preview">
+                        <md:MarkdownScrollViewer x:Name="InlinePreview"
+                                                 Markdown="{Binding PreviewMarkdown}" />
+                    </TabItem>
+
+                    <!-- Assets sub-tab: document-scoped asset browser (ADR-056/PLAN-074). -->
+                    <TabItem Header="Assets">
+                        <views:AssetBrowserView DataContext="{Binding DocumentAssets}" />
+                    </TabItem>
+
+                </TabControl>
 
             </Grid>
         </Grid>

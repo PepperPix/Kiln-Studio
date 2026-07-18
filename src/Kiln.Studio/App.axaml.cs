@@ -50,7 +50,6 @@ public partial class App : Application
         services.AddSingleton<IFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAssetLibraryService, AssetLibraryService>();
         services.AddSingleton<IPageBundleService, PageBundleService>();
-        services.AddSingleton<IAssetPickerDialog, AvaloniaAssetPickerDialog>();
         services.AddSingleton<IImageDimensionReader, AvaloniaImageDimensionReader>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();

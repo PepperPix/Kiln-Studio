@@ -546,7 +546,7 @@ public partial class ShellViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Invoked by <see cref="EditorViewModel.PickAndPrepareAssetAsync"/> after it converts a flat
+    /// Invoked by <see cref="EditorViewModel.PrepareAssetSnippetAsync"/> after it converts a flat
     /// content file into a page bundle (moved to a new folder/index.md). Re-reads the project so
     /// the explorer reflects the moved file, then re-selects the entry at its new path — this
     /// triggers the existing <see cref="OnExplorerPropertyChanged"/> reload path, which reloads the

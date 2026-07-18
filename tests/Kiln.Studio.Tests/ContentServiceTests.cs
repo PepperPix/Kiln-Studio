@@ -539,41 +539,37 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_DialogCancelled_ReturnsNull()
+    public async Task PrepareAssetSnippetAsync_NullResult_ReturnsNull()
     {
-        var vm = new EditorViewModel(
-            new ContentService(),
-            assetPickerDialog: new FakeAssetPickerDialog(null));
+        var vm = new EditorViewModel(new ContentService());
 
-        var snippet = await vm.PickAndPrepareAssetAsync();
+        var snippet = await vm.PrepareAssetSnippetAsync(null);
 
         await Assert.That(snippet).IsNull();
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_LibraryDestination_ImageFile_ReturnsImageMarkdownWithAssetsPath()
+    public async Task PrepareAssetSnippetAsync_LibraryDestination_ImageFile_ReturnsImageMarkdownWithAssetsPath()
     {
-        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
-        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog);
+        var vm = new EditorViewModel(new ContentService());
 
-        var snippet = await vm.PickAndPrepareAssetAsync();
+        var snippet = await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
 
         await Assert.That(snippet).IsEqualTo("![](/assets/images/photo.png)");
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_LibraryDestination_NonImageFile_ReturnsLinkMarkdown()
+    public async Task PrepareAssetSnippetAsync_LibraryDestination_NonImageFile_ReturnsLinkMarkdown()
     {
-        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
-        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog);
+        var vm = new EditorViewModel(new ContentService());
 
-        var snippet = await vm.PickAndPrepareAssetAsync();
+        var snippet = await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
 
         await Assert.That(snippet).IsEqualTo("[handbuch.pdf](/assets/downloads/handbuch.pdf)");
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_PageBundleDestination_ReturnsRelativeMarkdown()
+    public async Task PrepareAssetSnippetAsync_PageBundleDestination_ReturnsRelativeMarkdown()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -582,16 +578,15 @@ public class EditorViewModelTests
             var filePath = Path.Combine(tempDir, "test.md");
             await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
             var pageBundleService = new FakePageBundleService
             {
                 UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
             };
 
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            var vm = new EditorViewModel(new ContentService(), pageBundleService: pageBundleService);
             vm.Load(filePath);
 
-            var snippet = await vm.PickAndPrepareAssetAsync();
+            var snippet = await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
 
             await Assert.That(snippet).IsEqualTo("![](./photo.png)");
             await Assert.That(pageBundleService.LastSourcePath).IsEqualTo(filePath);
@@ -604,7 +599,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_PageBundleDestination_WasConverted_InvokesConvertedHandler()
+    public async Task PrepareAssetSnippetAsync_PageBundleDestination_WasConverted_InvokesConvertedHandler()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -614,13 +609,12 @@ public class EditorViewModelTests
             await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
 
             var newSourcePath = Path.Combine(tempDir, "test", "index.md");
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/handbuch.pdf"));
             var pageBundleService = new FakePageBundleService
             {
                 UploadAssetResult = new PageBundleUploadResult(newSourcePath, "handbuch.pdf", WasConverted: true)
             };
 
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            var vm = new EditorViewModel(new ContentService(), pageBundleService: pageBundleService);
             vm.Load(filePath);
 
             string? handlerArg = null;
@@ -632,7 +626,7 @@ public class EditorViewModelTests
                 return Task.CompletedTask;
             });
 
-            var snippet = await vm.PickAndPrepareAssetAsync();
+            var snippet = await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/handbuch.pdf"));
 
             await Assert.That(snippet).IsEqualTo("[handbuch.pdf](./handbuch.pdf)");
             await Assert.That(handlerCalled).IsEqualTo(1);
@@ -645,7 +639,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_PageBundleDestination_NotConverted_DoesNotInvokeConvertedHandler()
+    public async Task PrepareAssetSnippetAsync_PageBundleDestination_NotConverted_DoesNotInvokeConvertedHandler()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -654,13 +648,12 @@ public class EditorViewModelTests
             var filePath = Path.Combine(tempDir, "test.md");
             await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
             var pageBundleService = new FakePageBundleService
             {
                 UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
             };
 
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            var vm = new EditorViewModel(new ContentService(), pageBundleService: pageBundleService);
             vm.Load(filePath);
 
             var handlerCalled = 0;
@@ -670,7 +663,7 @@ public class EditorViewModelTests
                 return Task.CompletedTask;
             });
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
 
             await Assert.That(handlerCalled).IsEqualTo(0);
         }
@@ -681,7 +674,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_PageBundleDestination_DirtyDocument_SavesBeforeUpload()
+    public async Task PrepareAssetSnippetAsync_PageBundleDestination_DirtyDocument_SavesBeforeUpload()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -690,18 +683,17 @@ public class EditorViewModelTests
             var filePath = Path.Combine(tempDir, "test.md");
             await File.WriteAllTextAsync(filePath, $"---\ntitle: {TestTitle}\n---\n\n{InitialBody}");
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
             var pageBundleService = new FakePageBundleService
             {
                 UploadAssetResult = new PageBundleUploadResult(filePath, "photo.png", WasConverted: false)
             };
 
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: pageBundleService);
+            var vm = new EditorViewModel(new ContentService(), pageBundleService: pageBundleService);
             vm.Load(filePath);
             vm.Body = ModifiedBody;
             await Assert.That(vm.IsDirty).IsTrue();
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.PageBundle, "/tmp/some/photo.png"));
 
             await Assert.That(vm.IsDirty).IsFalse();
             var written = await File.ReadAllTextAsync(filePath);
@@ -714,7 +706,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_ImageWithinMaxWidth_SetsOriginalSizeFeedback()
+    public async Task PrepareAssetSnippetAsync_ImageWithinMaxWidth_SetsOriginalSizeFeedback()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -728,12 +720,11 @@ public class EditorViewModelTests
             var imagePath = Path.Combine(staticDir, "photo.png");
             await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
             var reader = new FakeImageDimensionReader((800, 600));
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            var vm = new EditorViewModel(new ContentService(), imageDimensionReader: reader);
             vm.Load(filePath, tempDir);
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
 
             await Assert.That(vm.LastAssetFeedback)
                 .IsEqualTo("800×600px, 300 KB — bleibt beim Build in Originalgröße (Limit: 2000px).");
@@ -746,7 +737,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_ImageOptimizationDisabled_SetsDisabledFeedback()
+    public async Task PrepareAssetSnippetAsync_ImageOptimizationDisabled_SetsDisabledFeedback()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -762,12 +753,11 @@ public class EditorViewModelTests
             var imagePath = Path.Combine(staticDir, "photo.png");
             await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
             var reader = new FakeImageDimensionReader((800, 600));
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            var vm = new EditorViewModel(new ContentService(), imageDimensionReader: reader);
             vm.Load(filePath, tempDir);
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
 
             await Assert.That(vm.LastAssetFeedback)
                 .IsEqualTo("800×600px, 300 KB — Bild-Optimierung ist für dieses Projekt deaktiviert.");
@@ -779,7 +769,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_ImageExceedsMaxWidth_SetsScaledFeedback()
+    public async Task PrepareAssetSnippetAsync_ImageExceedsMaxWidth_SetsScaledFeedback()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -795,12 +785,11 @@ public class EditorViewModelTests
             var imagePath = Path.Combine(staticDir, "photo.png");
             await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
             var reader = new FakeImageDimensionReader((800, 600));
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            var vm = new EditorViewModel(new ContentService(), imageDimensionReader: reader);
             vm.Load(filePath, tempDir);
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
 
             await Assert.That(vm.LastAssetFeedback)
                 .IsEqualTo("800×600px, 300 KB — wird beim Build auf 400px Breite skaliert.");
@@ -812,7 +801,7 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_DimensionsUnreadable_LeavesFeedbackNull()
+    public async Task PrepareAssetSnippetAsync_DimensionsUnreadable_LeavesFeedbackNull()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDir);
@@ -826,12 +815,11 @@ public class EditorViewModelTests
             var imagePath = Path.Combine(staticDir, "photo.png");
             await File.WriteAllBytesAsync(imagePath, new byte[TestImageFileSizeBytes]);
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
             var reader = new FakeImageDimensionReader(null);
-            var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+            var vm = new EditorViewModel(new ContentService(), imageDimensionReader: reader);
             vm.Load(filePath, tempDir);
 
-            await vm.PickAndPrepareAssetAsync();
+            await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "images/photo.png"));
 
             await Assert.That(vm.LastAssetFeedback).IsNull();
         }
@@ -842,13 +830,12 @@ public class EditorViewModelTests
     }
 
     [Test]
-    public async Task PickAndPrepareAssetAsync_NonImageFile_LeavesFeedbackNull()
+    public async Task PrepareAssetSnippetAsync_NonImageFile_LeavesFeedbackNull()
     {
-        var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
         var reader = new FakeImageDimensionReader((800, 600));
-        var vm = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, imageDimensionReader: reader);
+        var vm = new EditorViewModel(new ContentService(), imageDimensionReader: reader);
 
-        await vm.PickAndPrepareAssetAsync();
+        await vm.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.Library, "downloads/handbuch.pdf"));
 
         await Assert.That(vm.LastAssetFeedback).IsNull();
     }

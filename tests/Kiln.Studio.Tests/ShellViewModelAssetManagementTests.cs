@@ -20,8 +20,7 @@ public class ShellViewModelAssetManagementTests
             var uploadedFile = Path.Combine(uploadSourceDir, "photo.png");
             await File.WriteAllTextAsync(uploadedFile, "fake-png");
 
-            var dialog = new FakeAssetPickerDialog(new AssetPickerResult(AssetPickerDestination.PageBundle, uploadedFile));
-            var editor = new EditorViewModel(new ContentService(), assetPickerDialog: dialog, pageBundleService: new PageBundleService());
+            var editor = new EditorViewModel(new ContentService(), pageBundleService: new PageBundleService());
 
             var vm = new ShellViewModel(
                 new ProjectService(new EngineHost()),
@@ -58,7 +57,7 @@ public class ShellViewModelAssetManagementTests
             var slug = Path.GetFileNameWithoutExtension(oldSourcePath);
             var expectedNewSourcePath = Path.Combine(Path.GetDirectoryName(oldSourcePath)!, slug, "index.md");
 
-            var snippet = await vm.Editor.PickAndPrepareAssetAsync();
+            var snippet = await vm.Editor.PrepareAssetSnippetAsync(new AssetPickerResult(AssetPickerDestination.PageBundle, uploadedFile));
 
             await Assert.That(snippet).IsEqualTo("![](./photo.png)");
             await Assert.That(File.Exists(oldSourcePath)).IsFalse();

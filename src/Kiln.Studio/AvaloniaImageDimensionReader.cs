@@ -6,7 +6,7 @@ using Kiln.Studio.Services;
 /// <summary>
 /// Avalonia-backed <see cref="IImageDimensionReader"/> implementation (PLAN-069). Lives in the
 /// app project, not <c>Kiln.Studio.ViewModels</c>, because that layer is deliberately Avalonia-free
-/// (see <c>AvaloniaAssetPickerDialog</c> for the established interface/implementation split).
+/// (see <c>AssetBrowserView</c>/<c>AssetBrowserViewModel</c> for the established interface/implementation split).
 /// </summary>
 public sealed class AvaloniaImageDimensionReader : IImageDimensionReader
 {
