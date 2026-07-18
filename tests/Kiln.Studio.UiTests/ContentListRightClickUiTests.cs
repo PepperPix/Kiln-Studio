@@ -97,8 +97,8 @@ public sealed class ContentListRightClickUiTests
         }
         finally
         {
-            TryDelete(parentDir);
-            TryDelete(storeDir);
+            DirectoryHelper.TryDeleteRecursive(parentDir);
+            DirectoryHelper.TryDeleteRecursive(storeDir);
         }
     }
 
@@ -128,19 +128,4 @@ public sealed class ContentListRightClickUiTests
             """);
     }
 
-    private static void TryDelete(string path)
-    {
-        try
-        {
-            Directory.Delete(path, recursive: true);
-        }
-        catch (IOException)
-        {
-            // Best-effort cleanup only.
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Best-effort cleanup only.
-        }
-    }
 }
