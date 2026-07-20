@@ -1,6 +1,7 @@
 namespace Kiln.Studio;
 
 using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
 using Kiln.Studio.Services;
 using Material.Icons;
 
@@ -58,4 +59,37 @@ internal static class AppConverters
     /// </summary>
     public static readonly FuncValueConverter<bool, MaterialIconKind> ExpandedToChevron =
         new(isExpanded => isExpanded ? MaterialIconKind.ChevronLeft : MaterialIconKind.ChevronRight);
+
+    /// <summary>
+    /// Loads a thumbnail preview from an absolute file path for use in an Avalonia Image control.
+    /// Treats all failures gracefully by returning null so the image simply does not render.
+    /// </summary>
+    public static readonly FuncValueConverter<string?, Bitmap?> ThumbnailPathToBitmap =
+        new(path =>
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return null;
+
+            try
+            {
+                return new Bitmap(path);
+            }
+            catch
+            {
+                return null;
+            }
+        });
+
+    /// <summary>
+    /// Returns true when the thumbnail source path is non-empty and the file exists.
+    /// </summary>
+    public static readonly FuncValueConverter<string?, bool> ThumbnailPathToVisibility =
+        new(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path));
+
+    /// <summary>
+    /// Returns true when a collection is non-null and contains at least one item.
+    /// Used for "referenced by" lines that should only appear for referenced assets.
+    /// </summary>
+    public static readonly FuncValueConverter<System.Collections.IEnumerable?, bool> CollectionToVisibility =
+        new(items => items is not null && items.Cast<object?>().Any());
 }
