@@ -509,13 +509,19 @@ public partial class EditorViewModel : ViewModelBase
             ? new AssetBrowserViewModel(_assetLibraryService, _filePicker, _projectPath, documentRoot, isDocumentScoped: true)
             : null;
         if (DocumentAssets is not null)
+        {
             DocumentAssets.AssetChosen = OnAssetChosenAsync;
+            _ = DocumentAssets.RefreshAsync();
+        }
 
         FlyoutAssets = _projectPath is not null
             ? new AssetBrowserViewModel(_assetLibraryService, _filePicker, _projectPath, Path.Combine(_projectPath, "static"), isDocumentScoped: false)
             : null;
         if (FlyoutAssets is not null)
+        {
             FlyoutAssets.AssetChosen = OnAssetChosenAsync;
+            _ = FlyoutAssets.RefreshAsync();
+        }
     }
 
     private static string? ResolveAssetDirectory(string? filePath)

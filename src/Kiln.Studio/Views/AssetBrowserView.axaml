@@ -43,33 +43,79 @@
                 <ItemsControl ItemsSource="{Binding Entries}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="services:AssetLibraryEntry">
-                            <Grid ColumnDefinitions="*,Auto,Auto"
-                                  Margin="0,2">
-                                <Button Grid.Column="0"
-                                        Classes="quiet"
-                                        HorizontalAlignment="Left"
-                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).NavigateIntoCommand}"
-                                        CommandParameter="{Binding .}">
-                                    <TextBlock Text="{Binding Name}" />
-                                </Button>
+                            <Grid RowDefinitions="Auto,Auto">
+                                <Grid Grid.Row="0"
+                                      ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                                      Margin="0,2">
+                                    <!-- Thumbnail preview for image assets -->
+                                    <Image Grid.Column="0"
+                                           Width="32"
+                                           Height="32"
+                                           Margin="0,0,8,0"
+                                           Source="{Binding ThumbnailSource, Converter={x:Static local:AppConverters.ThumbnailPathToBitmap}}"
+                                           IsVisible="{Binding ThumbnailSource, Converter={x:Static local:AppConverters.ThumbnailPathToVisibility}}" />
 
-                                <!-- Insert: existing file only -->
-                                <Button Grid.Column="1"
-                                        Classes="secondary"
-                                        Content="Insert"
-                                        IsVisible="{Binding !IsFolder}"
-                                        Margin="4,0,0,0"
-                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).InsertCommand}"
-                                        CommandParameter="{Binding .}" />
+                                    <Button Grid.Column="1"
+                                            Classes="quiet"
+                                            HorizontalAlignment="Left"
+                                            Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).NavigateIntoCommand}"
+                                            CommandParameter="{Binding .}">
+                                        <TextBlock Text="{Binding Name}" />
+                                    </Button>
 
-                                <!-- Delete: document-scoped only (Rename UI deferred to PLAN-073) -->
-                                <Button Grid.Column="2"
-                                        Classes="secondary"
-                                        Content="Delete"
-                                        IsVisible="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).IsDocumentScoped}"
-                                        Margin="4,0,0,0"
-                                        Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).DeleteCommand}"
-                                        CommandParameter="{Binding .}" />
+                                    <!-- Insert: existing file only, host can hide in non-editor contexts -->
+                                    <ContentControl Grid.Column="2"
+                                                    IsVisible="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).IsInsertVisible}">
+                                        <Button Classes="secondary"
+                                                Content="Insert"
+                                                IsVisible="{Binding !IsFolder}"
+                                                Margin="4,0,0,0"
+                                                Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).InsertCommand}"
+                                                CommandParameter="{Binding .}" />
+                                    </ContentControl>
+
+                                    <Button Grid.Column="3"
+                                            Classes="secondary"
+                                            Content="Rename"
+                                            IsVisible="{Binding !IsFolder}"
+                                            Margin="4,0,0,0"
+                                            Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).RenameCommand}"
+                                            CommandParameter="{Binding .}" />
+
+                                    <!-- Delete -->
+                                    <Button Grid.Column="4"
+                                            Classes="secondary"
+                                            Content="Delete"
+                                            IsVisible="{Binding !IsFolder}"
+                                            Margin="4,0,0,0"
+                                            Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).DeleteCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+
+                                <!-- Referenced by list (site-scope library assets only) -->
+                                <ItemsControl Grid.Row="1"
+                                              Margin="40,0,0,4"
+                                              IsVisible="{Binding References, Converter={x:Static local:AppConverters.CollectionToVisibility}}"
+                                              ItemsSource="{Binding References}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="services:AssetContentReference">
+                                            <Button Classes="quiet"
+                                                    Margin="0,0,8,0"
+                                                    Padding="0"
+                                                    Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).NavigateToReferenceCommand}"
+                                                    CommandParameter="{Binding .}">
+                                                <TextBlock Text="{Binding Title}"
+                                                           Classes="muted"
+                                                           TextDecorations="Underline" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

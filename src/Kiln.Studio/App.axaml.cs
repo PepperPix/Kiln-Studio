@@ -51,6 +51,8 @@ public partial class App : Application
         services.AddSingleton<IAssetLibraryService, AssetLibraryService>();
         services.AddSingleton<IPageBundleService, PageBundleService>();
         services.AddSingleton<IImageDimensionReader, AvaloniaImageDimensionReader>();
+        services.AddSingleton<IAssetThumbnailCache, AvaloniaAssetThumbnailCache>();
+        services.AddSingleton<IContentBodyReferenceRewriter, ContentBodyReferenceRewriter>();
         services.AddSingleton<IInputDialog, AvaloniaInputDialog>();
         services.AddSingleton<INewPageDialog, AvaloniaNewPageDialog>();
         services.AddSingleton<IUnsavedChangesDialog, AvaloniaUnsavedChangesDialog>();
@@ -69,6 +71,7 @@ public partial class App : Application
         services.AddSingleton<ProjectExplorerViewModel>();
         services.AddSingleton<EditorViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<AssetManagerViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         return services.BuildServiceProvider();

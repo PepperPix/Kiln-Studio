@@ -75,6 +75,7 @@ public partial class ShellViewModel : ViewModelBase
     public EditorViewModel Editor { get; }
     public PreviewViewModel Preview { get; }
     public SettingsViewModel Settings { get; }
+    public AssetManagerViewModel? AssetManager { get; }
 
     /// <summary>Drives the persistent left navigation rail (ADR-054/PLAN-072).</summary>
     public NavRailViewModel NavRail { get; } = new();
@@ -114,6 +115,7 @@ public partial class ShellViewModel : ViewModelBase
         IDeploymentConfigStore deploymentConfigStore,
         IPublishService publishService,
         IContentFrontmatterWriter contentFrontmatterWriter,
+        AssetManagerViewModel? assetManager = null,
         IFolderRevealer? folderRevealer = null,
         IUnsavedChangesDialog? unsavedChangesDialog = null)
 #pragma warning restore S107
@@ -141,6 +143,9 @@ public partial class ShellViewModel : ViewModelBase
         Editor.PropertyChanged += OnEditorPropertyChangedForContentMode;
         Preview = preview;
         Settings = settings;
+        AssetManager = assetManager;
+        if (AssetManager is not null)
+            AssetManager.NavigateToContentItem = NavigateToContentItem;
 
         Explorer.PropertyChanged += OnExplorerPropertyChanged;
         NavRail.PropertyChanged += OnNavRailPropertyChanged;
@@ -231,6 +236,7 @@ public partial class ShellViewModel : ViewModelBase
         CurrentProjectName = null;
         IsProjectOpen = false;
         CurrentDeploymentVariant = DeploymentVariant.None;
+        AssetManager?.ClearProject();
         NavRail.Selected = NavTarget.Content;
         StatusMessage = "Ready";
     }
@@ -343,6 +349,7 @@ public partial class ShellViewModel : ViewModelBase
             CurrentProjectName = project.SiteTitle;
             StatusMessage = $"Opened {project.SiteTitle}";
             IsProjectOpen = true;
+            AssetManager?.LoadProject(project.ProjectPath);
             _recentProjectsStore.Add(project.ProjectPath, project.SiteTitle);
             RefreshRecentProjects();
 
@@ -635,6 +642,32 @@ public partial class ShellViewModel : ViewModelBase
     }
 
     private static string FormatWarnings(int count) => count > 0 ? $" ({count} warning(s))" : string.Empty;
+
+    public void NavigateToContentItem(string sourcePath)
+    {
+        if (!IsProjectOpen)
+            return;
+
+        NavRail.Selected = NavTarget.Content;
+
+        var sourceFullPath = Path.GetFullPath(sourcePath);
+
+        ContentEntryViewModel? FindEntry() => Explorer.Collections
+            .SelectMany(c => c.FilteredEntries)
+            .FirstOrDefault(entry => Path.GetFullPath(entry.SourcePath) == sourceFullPath);
+
+        var match = FindEntry();
+        if (match is null)
+        {
+            Explorer.SearchText = null;
+            Explorer.DraftFilter = DraftFilter.All;
+            Explorer.SortMode = ContentSortMode.Default;
+            match = FindEntry();
+        }
+
+        if (match is not null)
+            Explorer.SelectedEntry = match;
+    }
 
     private static string GetFirstOrDefault(IReadOnlyList<string> items, string fallback) => items.Count > 0 ? items[0] : fallback;
 

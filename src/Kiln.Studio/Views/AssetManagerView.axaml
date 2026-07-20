@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             xmlns:views="using:Kiln.Studio.Views"
+             x:Class="Kiln.Studio.Views.AssetManagerView"
+             x:DataType="vm:AssetManagerViewModel">
+
+    <Grid RowDefinitions="Auto,*"
+          Margin="12">
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Margin="0,0,0,8">
+            <Button Classes="secondary"
+                    Content="Bibliothek"
+                    Command="{Binding ShowLibraryCommand}" />
+            <Button Classes="secondary"
+                    Content="Nach Content"
+                    Command="{Binding ShowByContentCommand}" />
+            <CheckBox Content="Nur verwaiste"
+                      IsVisible="{Binding IsLibraryMode}"
+                      IsChecked="{Binding ShowOnlyOrphans}" />
+            <Button Classes="secondary"
+                    Content="Aktualisieren"
+                    Command="{Binding RefreshCommand}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1"
+              IsVisible="{Binding IsLibraryMode}">
+            <views:AssetBrowserView DataContext="{Binding Library}" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      IsVisible="{Binding IsByContentMode}"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding ContentGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AssetManagerContentGroupViewModel">
+                        <Border BorderThickness="1"
+                                BorderBrush="{StaticResource KilnBorderBrush}"
+                                CornerRadius="{StaticResource CornerRadiusControl}"
+                                Padding="8"
+                                Margin="0,0,0,8">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{Binding Title}"
+                                           FontWeight="SemiBold" />
+                                <views:AssetBrowserView DataContext="{Binding Browser}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

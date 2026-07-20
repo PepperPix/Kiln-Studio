@@ -135,9 +135,10 @@
                         </Grid>
                     </Grid>
 
-                    <!-- Placeholder nav destinations (ADR-054 "Umfang dieser Iteration"): Assets'
-                         real browsing surface is PLAN-073, Menus/Theme/Deployment follow later. -->
-                    <views:PlaceholderView Header="Assets" IsVisible="{Binding IsAssetsTargetSelected}" />
+                    <!-- Placeholder nav destinations (ADR-054 "Umfang dieser Iteration"): Menus/
+                         Theme/Deployment follow later. Assets is provided by PLAN-073. -->
+                    <views:AssetManagerView DataContext="{Binding AssetManager}"
+                                            IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsAssetsTargetSelected}" />
                     <views:PlaceholderView Header="Menus" IsVisible="{Binding IsMenusTargetSelected}" />
                     <views:PlaceholderView Header="Theme" IsVisible="{Binding IsThemeTargetSelected}" />
                     <views:PlaceholderView Header="Deployment" IsVisible="{Binding IsDeploymentTargetSelected}" />
@@ -154,4 +155,3 @@
     </DockPanel>
 
 </Window>
-
