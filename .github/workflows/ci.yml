@@ -47,7 +47,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --blame-hang-timeout 2m --blame-hang-dump-type mini
+        run: dotnet test --no-build --configuration Release
 
       # Uploaded unconditionally (even on a red run) so Phase B (ADR-043) can pull down the
       # windows-latest/ubuntu-latest baselines generated on the very first run for manual review.
