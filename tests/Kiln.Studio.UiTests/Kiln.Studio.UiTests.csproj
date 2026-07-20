@@ -13,6 +13,7 @@
     <PackageReference Include="Avalonia.Headless" Version="12.1.0" />
     <PackageReference Include="Avalonia.Skia" Version="12.1.0" />
     <PackageReference Include="jcamp.Avalonia.Headless.TUnit" Version="0.1.1" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.2" />
     <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
