@@ -43,7 +43,7 @@ public class AssetBrowserViewModelTests
     }
 
     [Test]
-    public async Task Delete_WithActiveReferences_AndNoConfirmation_DoesNotDelete()
+    public async Task Delete_WithActiveReferences_IsBlocked()
     {
         var projectPath = CreateTempProject();
         try
@@ -56,6 +56,7 @@ public class AssetBrowserViewModelTests
                 ["/assets/logo.png"] = [new AssetContentReference("/posts/hello.md", "Hello")]
             };
 
+            var notified = false;
             var vm = new AssetBrowserViewModel(
                 new AssetLibraryService(),
                 new NullFilePicker(),
@@ -64,7 +65,11 @@ public class AssetBrowserViewModelTests
                 isDocumentScoped: false)
             {
                 ReferenceIndex = references,
-                ConfirmDeleteWithReferences = (_, _) => Task.FromResult(false)
+                NotifyDeleteBlocked = (_, _) =>
+                {
+                    notified = true;
+                    return Task.CompletedTask;
+                }
             };
 
             await vm.RefreshAsync();
@@ -73,45 +78,7 @@ public class AssetBrowserViewModelTests
             await vm.DeleteCommand.ExecuteAsync(entry);
 
             await Assert.That(File.Exists(filePath)).IsTrue();
-        }
-        finally
-        {
-            Directory.Delete(projectPath, recursive: true);
-        }
-    }
-
-    [Test]
-    public async Task Delete_WithActiveReferences_AndConfirmation_DeletesFile()
-    {
-        var projectPath = CreateTempProject();
-        try
-        {
-            var filePath = Path.Combine(projectPath, "static", "logo.png");
-            await File.WriteAllTextAsync(filePath, "fake");
-
-            var references = new Dictionary<string, IReadOnlyList<AssetContentReference>>(StringComparer.Ordinal)
-            {
-                ["/assets/logo.png"] = [new AssetContentReference("/posts/hello.md", "Hello")]
-            };
-
-            var vm = new AssetBrowserViewModel(
-                new AssetLibraryService(),
-                new NullFilePicker(),
-                projectPath,
-                Path.Combine(projectPath, "static"),
-                isDocumentScoped: false)
-            {
-                ReferenceIndex = references,
-                ConfirmDeleteWithReferences = (_, _) => Task.FromResult(true),
-                BeforeDelete = _ => Task.FromResult(true)
-            };
-
-            await vm.RefreshAsync();
-            var entry = vm.Entries.First(e => e.Name == "logo.png");
-
-            await vm.DeleteCommand.ExecuteAsync(entry);
-
-            await Assert.That(File.Exists(filePath)).IsFalse();
+            await Assert.That(notified).IsTrue();
         }
         finally
         {
@@ -163,6 +130,100 @@ public class AssetBrowserViewModelTests
         finally
         {
             Directory.Delete(projectPath, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task DocumentScope_ExcludesIndexMd()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(Path.Combine(dir, "content", "posts", "bundle"));
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(dir, "content", "posts", "bundle", "index.md"), "---\ntitle: Bundle\n---");
+            await File.WriteAllTextAsync(Path.Combine(dir, "content", "posts", "bundle", "photo.png"), "fake");
+
+            var vm = new AssetBrowserViewModel(
+                new AssetLibraryService(),
+                new NullFilePicker(),
+                dir,
+                Path.Combine(dir, "content", "posts", "bundle"),
+                isDocumentScoped: true);
+
+            await vm.RefreshAsync();
+
+            await Assert.That(vm.Entries.Any(e => e.Name == "index.md")).IsFalse();
+            await Assert.That(vm.Entries.Any(e => e.Name == "photo.png")).IsTrue();
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task Replace_OverwritesFileInPlace()
+    {
+        var projectPath = CreateTempProject();
+        var sourceDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(sourceDir);
+        try
+        {
+            var filePath = Path.Combine(projectPath, "static", "logo.png");
+            var replacementPath = Path.Combine(sourceDir, "new-logo.png");
+            await File.WriteAllTextAsync(filePath, "old");
+            await File.WriteAllTextAsync(replacementPath, "new");
+
+            var vm = new AssetBrowserViewModel(
+                new AssetLibraryService(),
+                new FixedFilePicker(replacementPath),
+                projectPath,
+                Path.Combine(projectPath, "static"),
+                isDocumentScoped: false);
+
+            await vm.RefreshAsync();
+            var entry = vm.Entries.First(e => e.Name == "logo.png");
+
+            await vm.ReplaceCommand.ExecuteAsync(entry);
+
+            await Assert.That(await File.ReadAllTextAsync(filePath)).IsEqualTo("new");
+            await Assert.That(vm.Entries.Any(e => e.Name == "logo.png")).IsTrue();
+        }
+        finally
+        {
+            Directory.Delete(projectPath, recursive: true);
+            Directory.Delete(sourceDir, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task DocumentScope_ProvidesThumbnails_WhenCacheAvailable()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(Path.Combine(dir, "content", "posts", "bundle"));
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(dir, "content", "posts", "bundle", "index.md"), "---\ntitle: Bundle\n---");
+            await File.WriteAllTextAsync(Path.Combine(dir, "content", "posts", "bundle", "photo.png"), "fake");
+
+            var vm = new AssetBrowserViewModel(
+                new AssetLibraryService(),
+                new NullFilePicker(),
+                dir,
+                Path.Combine(dir, "content", "posts", "bundle"),
+                isDocumentScoped: true)
+            {
+                ThumbnailCache = new FakeThumbnailCache()
+            };
+
+            await vm.RefreshAsync();
+            var entry = vm.Entries.First(e => e.Name == "photo.png");
+
+            await Assert.That(entry.ThumbnailSource).IsEqualTo("/thumbs/photo.png");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
         }
     }
 

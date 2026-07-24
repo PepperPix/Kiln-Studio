@@ -45,7 +45,7 @@
                         <DataTemplate x:DataType="services:AssetLibraryEntry">
                             <Grid RowDefinitions="Auto,Auto">
                                 <Grid Grid.Row="0"
-                                      ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                                      ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto"
                                       Margin="0,2">
                                     <!-- Thumbnail preview for image assets -->
                                     <Image Grid.Column="0"
@@ -76,6 +76,14 @@
 
                                     <Button Grid.Column="3"
                                             Classes="secondary"
+                                            Content="Replace"
+                                            IsVisible="{Binding !IsFolder}"
+                                            Margin="4,0,0,0"
+                                            Command="{Binding $parent[UserControl].((vm:AssetBrowserViewModel)DataContext).ReplaceCommand}"
+                                            CommandParameter="{Binding .}" />
+
+                                    <Button Grid.Column="4"
+                                            Classes="secondary"
                                             Content="Rename"
                                             IsVisible="{Binding !IsFolder}"
                                             Margin="4,0,0,0"
@@ -83,7 +91,7 @@
                                             CommandParameter="{Binding .}" />
 
                                     <!-- Delete -->
-                                    <Button Grid.Column="4"
+                                    <Button Grid.Column="5"
                                             Classes="secondary"
                                             Content="Delete"
                                             IsVisible="{Binding !IsFolder}"
@@ -151,7 +159,7 @@
                 <RadioButton Content="Insert into this page"
                              GroupName="UploadDestination"
                              IsChecked="{Binding UploadDestination, Converter={x:Static local:AppConverters.DestinationIsPageBundle}}" />
-                <RadioButton Content="Save to library"
+                <RadioButton Content="Add to library"
                              GroupName="UploadDestination"
                              IsChecked="{Binding UploadDestination, Converter={x:Static local:AppConverters.DestinationIsLibrary}}" />
             </StackPanel>

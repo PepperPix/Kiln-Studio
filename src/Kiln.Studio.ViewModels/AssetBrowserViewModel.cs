@@ -75,16 +75,21 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
     public Func<AssetLibraryEntry, bool>? EntryFilter { get; set; }
 
     /// <summary>
-    /// Optional callback used when deleting a referenced library asset.
-    /// Return true to continue, false to cancel.
+    /// Optional callback used when deleting a referenced asset.
+    /// Informs the host so it can show an explanatory "delete blocked" message.
     /// </summary>
-    public Func<AssetLibraryEntry, IReadOnlyList<AssetContentReference>, Task<bool>>? ConfirmDeleteWithReferences { get; set; }
+    public Func<AssetLibraryEntry, IReadOnlyList<AssetContentReference>, Task>? NotifyDeleteBlocked { get; set; }
 
     /// <summary>
     /// Optional callback used before deleting any file (e.g. document-scoped reference checks).
     /// Return true to continue, false to cancel.
     /// </summary>
     public Func<AssetLibraryEntry, Task<bool>>? BeforeDelete { get; set; }
+
+    /// <summary>
+    /// Optional callback invoked after a file was successfully replaced.
+    /// </summary>
+    public Func<AssetLibraryEntry, Task>? Replaced { get; set; }
 
     /// <summary>
     /// Optional callback used to ask the host for a new file name.
@@ -121,11 +126,9 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
         _rootFolderAbsolute = rootFolderAbsolute;
         _isDocumentScoped = isDocumentScoped;
 
-        if (!isDocumentScoped)
-        {
-            // In site scope uploads default to the library unless a page bundle is available.
-            UploadDestination = AssetPickerDestination.Library;
-        }
+        // Only the document-scoped editor tab can insert into the current page.
+        // Site scope and global asset manager always upload to the library.
+        UploadDestination = isDocumentScoped ? AssetPickerDestination.PageBundle : AssetPickerDestination.Library;
 
         Entries.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmptyStateVisible));
     }
@@ -134,7 +137,7 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
 
     public bool IsSiteScoped => !_isDocumentScoped;
 
-    public bool CanChooseUploadDestination => !_isDocumentScoped;
+    public bool CanChooseUploadDestination => _isDocumentScoped;
 
     public bool CanUpload => !string.IsNullOrEmpty(ChosenFilePath);
 
@@ -225,7 +228,7 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
             return;
 
         AssetPickerResult result;
-        if (_isDocumentScoped || UploadDestination == AssetPickerDestination.PageBundle)
+        if (_isDocumentScoped && UploadDestination == AssetPickerDestination.PageBundle)
         {
             result = new AssetPickerResult(AssetPickerDestination.PageBundle, sourcePath);
         }
@@ -254,12 +257,9 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
         var references = GetReferences(entry);
         if (references.Count > 0)
         {
-            if (ConfirmDeleteWithReferences is null)
-                return;
-
-            var approved = await ConfirmDeleteWithReferences(entry, references).ConfigureAwait(true);
-            if (!approved)
-                return;
+            if (NotifyDeleteBlocked is not null)
+                await NotifyDeleteBlocked(entry, references).ConfigureAwait(true);
+            return;
         }
 
         if (BeforeDelete is not null)
@@ -347,6 +347,38 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
             await AssetChosen(result).ConfigureAwait(true);
     }
 
+    [RelayCommand]
+    private async Task ReplaceAsync(AssetLibraryEntry? entry)
+    {
+        if (entry?.IsFolder == true || entry is null)
+            return;
+
+        var picked = await _filePicker.PickFileAsync($"Replace '{entry.Name}'").ConfigureAwait(true);
+        if (string.IsNullOrEmpty(picked))
+            return;
+
+        var absolutePath = ResolveAbsolutePath(entry.RelativePath);
+        if (!File.Exists(absolutePath))
+            return;
+
+        var references = GetReferences(entry);
+        if (references.Count > 0)
+        {
+            if (NotifyDeleteBlocked is not null)
+            {
+                // Re-use the same notification mechanism: replacing keeps the path, so this is
+                // informational rather than a hard block. The host may still choose to abort.
+                await NotifyDeleteBlocked(entry, references).ConfigureAwait(true);
+            }
+        }
+
+        File.Copy(picked, absolutePath, overwrite: true);
+        await RefreshAsync().ConfigureAwait(true);
+
+        if (Replaced is not null)
+            await Replaced(entry).ConfigureAwait(true);
+    }
+
     public Task RefreshAsync()
     {
         Entries.Clear();
@@ -381,6 +413,9 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
             foreach (var file in Directory.GetFiles(currentAbsolute).OrderBy(Path.GetFileName))
             {
                 var name = Path.GetFileName(file);
+                if (name.Equals("index.md", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 var relativePath = string.IsNullOrEmpty(CurrentFolder) ? name : $"{CurrentFolder}/{name}";
                 temp.Add(MakeEntry(name, false, relativePath, file));
             }
