@@ -44,8 +44,9 @@
                     BorderThickness="1"
                     Margin="0,0,12,0">
                 <ScrollViewer>
-                    <ItemsControl ItemsSource="{Binding ThemeFiles}">
-                        <ItemsControl.ItemTemplate>
+                    <ListBox ItemsSource="{Binding ThemeFiles}"
+                             SelectedItem="{Binding SelectedFile}">
+                        <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:ThemeFileEntryViewModel">
                                 <StackPanel Orientation="Horizontal"
                                             Spacing="6"
@@ -58,8 +59,8 @@
                                                VerticalAlignment="Center" />
                                 </StackPanel>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </ScrollViewer>
             </Border>
 
