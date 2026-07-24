@@ -25,6 +25,14 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanSave))]
     [NotifyPropertyChangedFor(nameof(HasSelectedMenu))]
+    [NotifyCanExecuteChangedFor(nameof(RenameMenuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteMenuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AddItemCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
+    [NotifyCanExecuteChangedFor(nameof(IndentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OutdentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private MenuViewModel? _selectedMenu;
 
     [ObservableProperty]
@@ -32,6 +40,12 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedItem))]
     [NotifyPropertyChangedFor(nameof(SelectedItemIsRef))]
     [NotifyPropertyChangedFor(nameof(SelectedItemIsUrl))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteItemCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
+    [NotifyCanExecuteChangedFor(nameof(IndentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OutdentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private MenuItemViewModel? _selectedItem;
 
     public ObservableCollection<MenuViewModel> Menus { get; } = [];
@@ -85,6 +99,9 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
             RefSuggestions.Add(r);
         foreach (var r in _menuRefProvider.GetItemRefs(projectPath))
             RefSuggestions.Add(r);
+
+        AddMenuCommand.NotifyCanExecuteChanged();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     public void ClearProject()
@@ -96,6 +113,8 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         SelectedItem = null;
         RefSuggestions.Clear();
         StatusMessage = null;
+        AddMenuCommand.NotifyCanExecuteChanged();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanAddMenu))]
@@ -109,6 +128,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         AttachValidation(menu);
         Menus.Add(menu);
         SelectedMenu = menu;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanAddMenu() => !string.IsNullOrWhiteSpace(_projectPath);
@@ -138,6 +158,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
         Menus.Remove(SelectedMenu);
         SelectedMenu = Menus.FirstOrDefault();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(HasSelectedMenu))]
@@ -150,6 +171,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         AttachValidation(item);
         SelectedMenu.Items.Add(item);
         SelectedItem = item;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(HasSelectedItem))]
@@ -164,6 +186,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
         RemoveItemFrom(SelectedItem, SelectedMenu.Items);
         SelectedItem = null;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanMoveSelectedItemUp))]
@@ -311,6 +334,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
         SelectedItem = draggedItem;
         OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSelectedMenuChanged(MenuViewModel? value)
@@ -334,7 +358,10 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     private void OnMenuPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MenuViewModel.Name) || e.PropertyName == nameof(MenuViewModel.HasError))
+        {
             OnPropertyChanged(nameof(CanSave));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
     }
 
     private void AttachValidation(MenuViewModel menu)
@@ -373,6 +400,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     private void OnItemValidationRequested()
     {
         OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     private static void ValidateItem(MenuItemViewModel item)
