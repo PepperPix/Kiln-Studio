@@ -3,6 +3,7 @@ namespace Kiln.Studio.UiTests;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaEdit;
 using Services;
 using TestSupport;
 using ViewModels;
@@ -67,6 +68,7 @@ public sealed class ThemeManagerUiTests
         {
             var projectService = new ProjectService(new EngineHost());
             var sitePath = projectService.CreateSite(parentDir, "my-blog");
+            SeedThemeFile(sitePath);
 
             var vm = BuildShellViewModel(sitePath, storeDir);
             var window = new ShellWindow { DataContext = vm, Width = 1200, Height = 760 };
@@ -82,11 +84,21 @@ public sealed class ThemeManagerUiTests
             var listBox = themeManager.GetVisualDescendants().OfType<ListBox>().First();
             await Assert.That(listBox.Items.Count).IsGreaterThan(0);
 
-            var firstItem = listBox.ContainerFromIndex(0)!;
-            listBox.SelectedIndex = 0;
+            var firstFileIndex = listBox.Items
+                .OfType<ThemeFileEntryViewModel>()
+                .Select((item, index) => new { item, index })
+                .First(x => !x.item.IsDirectory)
+                .index;
+
+            listBox.SelectedIndex = firstFileIndex;
             Dispatcher.UIThread.RunJobs();
 
             await Assert.That(vm.ThemeManager!.SelectedFile).IsNotNull();
+            await Assert.That(vm.ThemeManager!.SelectedFile!.IsDirectory).IsFalse();
+
+            var editor = themeManager.GetVisualDescendants().OfType<TextEditor>().First();
+            await Assert.That(editor).IsNotNull();
+            await Assert.That(vm.ThemeManager!.SelectedFileContent).IsNotNullOrEmpty();
 
             window.Close();
         }
@@ -135,5 +147,12 @@ public sealed class ThemeManagerUiTests
                 new NullFilePicker(),
                 new NullInputDialog()),
             assetManager);
+    }
+
+    private static void SeedThemeFile(string sitePath)
+    {
+        var layoutsDir = Path.Combine(sitePath, "themes", "default", "layouts");
+        Directory.CreateDirectory(layoutsDir);
+        File.WriteAllText(Path.Combine(layoutsDir, "default.html"), "<html><body>Hello</body></html>");
     }
 }
