@@ -1,9 +1,5 @@
 namespace Kiln.Studio.Services;
 
-public enum DraftFilter { All, PublishedOnly, DraftsOnly }
-
-public enum ContentSortMode { Default, DateNewest, DateOldest, TitleAscending, TitleDescending }
-
 public static class ContentQuery
 {
     public static IReadOnlyList<ContentEntry> Apply(
