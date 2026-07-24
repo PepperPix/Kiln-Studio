@@ -63,7 +63,11 @@ public sealed class EditorFrontmatterFormUiTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
+                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             var window = new ShellWindow { DataContext = vm, Width = 1200, Height = 760 };
             window.Show();

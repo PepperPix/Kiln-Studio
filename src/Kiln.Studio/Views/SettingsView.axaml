@@ -31,11 +31,6 @@
                            IsVisible="{Binding HasLanguageWarning}"
                            FontSize="{StaticResource FontSizeXS}"
                            Foreground="{StaticResource KilnErrorBrush}" />
-
-                <TextBlock Text="Theme" Classes="section-header" Margin="0,4,0,2" />
-                <ComboBox ItemsSource="{Binding AvailableThemes}"
-                          SelectedItem="{Binding SelectedTheme}"
-                          HorizontalAlignment="Stretch" />
             </StackPanel>
 
             <!-- Raw YAML editor (shown in advanced mode) -->

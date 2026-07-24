@@ -32,7 +32,11 @@ public class ShellViewModelPreviewTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await Assert.That(vm.StartFullPreviewCommand.CanExecute(null)).IsFalse();
         }
@@ -72,7 +76,11 @@ public class ShellViewModelPreviewTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm2.IsProjectOpen).IsTrue();
@@ -122,7 +130,11 @@ public class ShellViewModelPreviewTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm2.NewSiteCommand.ExecuteAsync(null);
             await vm2.StartFullPreviewCommand.ExecuteAsync(null);
@@ -169,7 +181,11 @@ public class ShellViewModelPreviewTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.StartFullPreviewCommand.ExecuteAsync(null);

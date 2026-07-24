@@ -61,7 +61,11 @@ public class ShellViewModelBuildDeployTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -118,7 +122,11 @@ public class ShellViewModelBuildDeployTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.BuildCommand.ExecuteAsync(null);
@@ -162,7 +170,11 @@ public class ShellViewModelBuildDeployTests
                 configStore,
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.CanPublish).IsFalse();
@@ -219,7 +231,11 @@ public class ShellViewModelBuildDeployTests
                 configStore,
                 publishService,
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -272,7 +288,11 @@ public class ShellViewModelBuildDeployTests
                 configStore,
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
 
@@ -322,7 +342,11 @@ public class ShellViewModelBuildDeployTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await vm.SetUpGitHubPagesCommand.ExecuteAsync(null);
@@ -366,7 +390,11 @@ public class ShellViewModelBuildDeployTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 writer,
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();
@@ -425,7 +453,11 @@ public class ShellViewModelBuildDeployTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
             return (vm, storeDir);
         }
     }

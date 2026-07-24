@@ -1,6 +1,5 @@
 namespace Kiln.Studio.ViewModels;
 
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Services;
@@ -10,6 +9,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly ISiteSettingsService _settings;
     private readonly IDeploymentConfigStore _deploymentConfigStore;
     private string? _projectPath;
+    private string _currentTheme = string.Empty;
 
     [ObservableProperty]
     private string _title = string.Empty;
@@ -22,9 +22,6 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _language = string.Empty;
-
-    [ObservableProperty]
-    private string? _selectedTheme;
 
     [ObservableProperty]
     private string _rawYaml = string.Empty;
@@ -46,8 +43,6 @@ public partial class SettingsViewModel : ViewModelBase
     private FilesystemMode _deploymentFilesystemMode;
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
-
-    public ObservableCollection<string> AvailableThemes { get; } = [];
 
     public bool IsDeploymentFilesystem => DeploymentVariant == DeploymentVariant.Filesystem;
 
@@ -76,12 +71,7 @@ public partial class SettingsViewModel : ViewModelBase
         Description = s.Description;
         BaseUrl = s.BaseUrl;
         Language = s.Language;
-
-        AvailableThemes.Clear();
-        foreach (var theme in _settings.ListThemes(projectPath))
-            AvailableThemes.Add(theme);
-
-        SelectedTheme = s.Theme;
+        _currentTheme = s.Theme;
         RawYaml = _settings.ReadRawYaml(projectPath);
         StatusMessage = null;
 
@@ -120,7 +110,7 @@ public partial class SettingsViewModel : ViewModelBase
             Description = s.Description;
             BaseUrl = s.BaseUrl;
             Language = s.Language;
-            SelectedTheme = s.Theme;
+            _currentTheme = s.Theme;
             StatusMessage = "Unsaved raw YAML changes have been discarded.";
         }
     }
@@ -139,7 +129,7 @@ public partial class SettingsViewModel : ViewModelBase
             }
             else
             {
-                var s = new SiteSettings(Title, Description, BaseUrl, Language, SelectedTheme ?? string.Empty);
+                var s = new SiteSettings(Title, Description, BaseUrl, Language, _currentTheme);
                 await Task.Run(() => _settings.Save(_projectPath, s)).ConfigureAwait(true);
             }
 

@@ -49,7 +49,11 @@ public class ShellViewModelEditorTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -105,7 +109,11 @@ public class ShellViewModelEditorTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -156,7 +164,11 @@ public class ShellViewModelEditorTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -213,7 +225,11 @@ public class ShellViewModelEditorTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);

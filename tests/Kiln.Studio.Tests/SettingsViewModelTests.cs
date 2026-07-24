@@ -23,25 +23,23 @@ public class SettingsViewModelTests
         await Assert.That(vm.Description).IsEqualTo("Desc");
         await Assert.That(vm.BaseUrl).IsEqualTo("http://example.com/");
         await Assert.That(vm.Language).IsEqualTo("de");
-        await Assert.That(vm.SelectedTheme).IsEqualTo("dark");
     }
 
     [Test]
-    public async Task Load_FillsAvailableThemesAndSelectsCurrent()
+    public async Task SaveAsync_KeepsCurrentTheme()
     {
-        const int expectedThemeCount = 3;
         var fake = new FakeSiteSettingsService
         {
-            CurrentSettings = new("Site", "", "http://localhost/", "en", "default"),
-            Themes = ["dark", "default", "light"]
+            CurrentSettings = new("Site", "", "http://localhost/", "en", "default")
         };
         var vm = new SettingsViewModel(fake, new NullDeploymentConfigStore());
-
         vm.Load(ProjectPath);
 
-        await Assert.That(vm.AvailableThemes.Count).IsEqualTo(expectedThemeCount);
-        await Assert.That(vm.AvailableThemes.Contains("default")).IsTrue();
-        await Assert.That(vm.SelectedTheme).IsEqualTo("default");
+        vm.Title = "New Title";
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        await Assert.That(fake.LastSavedSettings).IsNotNull();
+        await Assert.That(fake.LastSavedSettings!.Theme).IsEqualTo("default");
     }
 
     [Test]

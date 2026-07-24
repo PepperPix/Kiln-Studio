@@ -36,7 +36,11 @@ public class ShellViewModelPreviewAutoSaveTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             var post = vm.Explorer.Collections.First(c => c.Name == "posts").FilteredEntries.First();
@@ -88,7 +92,11 @@ public class ShellViewModelPreviewAutoSaveTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             var post = vm.Explorer.Collections.First(c => c.Name == "posts").FilteredEntries.First();

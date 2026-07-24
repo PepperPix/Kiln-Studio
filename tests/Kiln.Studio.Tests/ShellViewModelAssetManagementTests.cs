@@ -40,7 +40,11 @@ public class ShellViewModelAssetManagementTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                MenuEditorTestFactory.CreateDummy());
+                MenuEditorTestFactory.CreateDummy(),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();

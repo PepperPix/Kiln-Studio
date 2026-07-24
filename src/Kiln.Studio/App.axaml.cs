@@ -49,6 +49,7 @@ public partial class App : Application
         services.AddSingleton<IFolderPicker, AvaloniaFolderPicker>();
         services.AddSingleton<IFilePicker, AvaloniaFilePicker>();
         services.AddSingleton<IAssetLibraryService, AssetLibraryService>();
+        services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<IPageBundleService, PageBundleService>();
         services.AddSingleton<IImageDimensionReader, AvaloniaImageDimensionReader>();
         services.AddSingleton<IAssetThumbnailCache, AvaloniaAssetThumbnailCache>();
@@ -73,6 +74,7 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<AssetManagerViewModel>();
         services.AddSingleton<MenuEditorViewModel>();
+        services.AddSingleton<ThemeManagerViewModel>();
         services.AddSingleton<ShellViewModel>();
 
         services.AddSingleton<IMenuService, MenuService>();

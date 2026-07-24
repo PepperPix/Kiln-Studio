@@ -254,6 +254,10 @@ public sealed class AssetManagerUiTests
             new NullPublishService(),
             new FakeContentFrontmatterWriter(),
             new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()),
             assetManager);
     }
 

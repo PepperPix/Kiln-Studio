@@ -156,7 +156,11 @@ public sealed class EditorAssetsTabUiTests
             new NullDeploymentConfigStore(),
             new NullPublishService(),
             new FakeContentFrontmatterWriter(),
-            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
+            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
     }
 
     private static async Task SelectPostAsync(ShellViewModel vm, string postPath)
