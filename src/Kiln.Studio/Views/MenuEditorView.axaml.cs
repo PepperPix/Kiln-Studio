@@ -1,5 +1,6 @@
 namespace Kiln.Studio.Views;
 
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -8,38 +9,64 @@ using ViewModels;
 
 public partial class MenuEditorView : UserControl
 {
+    private const double DragThreshold = 5;
+
     private MenuItemViewModel? _draggedItem;
     private TreeViewItem? _dropTarget;
     private DropPosition _dropPosition;
+    private PointerPressedEventArgs? _dragStartEventArgs;
+    private Point _dragStartPosition;
+    private bool _isDragging;
 
     public MenuEditorView()
     {
         InitializeComponent();
 
         MenuTree.AddHandler(PointerPressedEvent, OnTreePointerPressed, handledEventsToo: true);
+        MenuTree.AddHandler(PointerMovedEvent, OnTreePointerMoved, handledEventsToo: true);
+        MenuTree.AddHandler(PointerReleasedEvent, OnTreePointerReleased, handledEventsToo: true);
         MenuTree.AddHandler(DragDrop.DragOverEvent, OnTreeDragOver);
         MenuTree.AddHandler(DragDrop.DropEvent, OnTreeDrop);
     }
 
+    private void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(MenuTree).Properties.IsLeftButtonPressed)
+            return;
+
+        var item = GetItemAt(e.GetPosition(MenuTree));
+        if (item is null)
+            return;
+
+        _draggedItem = item;
+        _dragStartEventArgs = e;
+        _dragStartPosition = e.GetPosition(this);
+        _dropTarget = null;
+        _isDragging = false;
+    }
+
+    private void OnTreePointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_draggedItem is null || _isDragging || _dragStartEventArgs is null)
+            return;
+
+        var currentPosition = e.GetPosition(this);
+        var delta = currentPosition - _dragStartPosition;
+        if (Math.Abs(delta.X) <= DragThreshold && Math.Abs(delta.Y) <= DragThreshold)
+            return;
+
+        _isDragging = true;
+        StartDragAsync(_dragStartEventArgs);
+    }
+
 #pragma warning disable VSTHRD100 // Event handler signature requires void return.
-    private async void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
+    private async void StartDragAsync(PointerPressedEventArgs e)
 #pragma warning restore VSTHRD100
     {
         try
         {
-            if (!e.GetCurrentPoint(MenuTree).Properties.IsLeftButtonPressed)
-                return;
-
-            var item = GetItemAt(e.GetPosition(MenuTree));
-            if (item is null)
-                return;
-
-            _draggedItem = item;
-            _dropTarget = null;
-
             using var data = new DataTransfer();
-            var format = DataFormat.CreateInProcessFormat<MenuItemViewModel>("application/x-kiln-menu-item");
-            data.Add(DataTransferItem.Create(format, _draggedItem));
+            data.Add(DataTransferItem.Create(DataFormat.Text, "application/x-kiln-menu-item"));
 
             await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move).ConfigureAwait(true);
         }
@@ -50,7 +77,17 @@ public partial class MenuEditorView : UserControl
         finally
         {
             _draggedItem = null;
+            _dragStartEventArgs = null;
+            _isDragging = false;
             ClearAdorner();
+        }
+    }
+
+    private void OnTreePointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDragging)
+        {
+            _draggedItem = null;
         }
     }
 
@@ -93,6 +130,7 @@ public partial class MenuEditorView : UserControl
         }
 
         _draggedItem = null;
+        _isDragging = false;
         ClearAdorner();
     }
 
