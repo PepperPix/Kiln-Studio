@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
-using Kiln.Studio.Services;
+using Services;
 
 internal sealed class AvaloniaNewPageDialog : INewPageDialog
 {

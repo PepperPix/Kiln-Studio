@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
+using Services;
+using TestSupport;
+using ViewModels;
 
 public class SettingsViewModelTests
 {

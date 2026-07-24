@@ -2,7 +2,7 @@ namespace Kiln.Studio.Tests;
 
 using System.IO.Compression;
 using Kiln.Services;
-using Kiln.Studio.Services;
+using Services;
 using Microsoft.Extensions.DependencyInjection;
 
 public class PublishServiceTests

@@ -2,7 +2,7 @@ namespace Kiln.Studio.Converters;
 
 using System.Globalization;
 using Avalonia.Data.Converters;
-using Kiln.Studio.Services;
+using Services;
 
 public sealed class EnumDisplayConverter : IValueConverter
 {

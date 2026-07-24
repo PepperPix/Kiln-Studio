@@ -3,9 +3,9 @@ namespace Kiln.Studio.ViewModels;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Models;
+using Models;
 using Kiln.Services;
-using Kiln.Studio.Services;
+using Services;
 using Microsoft.Extensions.DependencyInjection;
 
 public sealed partial class AssetManagerViewModel : ViewModelBase

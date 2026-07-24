@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
+using Services;
+using TestSupport;
+using ViewModels;
 
 public class ShellViewModelAssetManagementTests
 {
@@ -39,7 +39,8 @@ public class ShellViewModelAssetManagementTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             await Assert.That(vm.IsProjectOpen).IsTrue();

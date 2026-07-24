@@ -17,7 +17,7 @@ public partial class ContentListView : UserControl
         // (root -> leaf, runs before ListBoxItem's own Bubble-phase selection handler) and marking
         // the event Handled for the right button suppresses the selection change while leaving
         // the separate ContextRequested/ContextMenu-opening event untouched.
-        EntryListBox.AddHandler(InputElement.PointerPressedEvent, OnEntryListPointerPressedTunnel, RoutingStrategies.Tunnel);
+        EntryListBox.AddHandler(PointerPressedEvent, OnEntryListPointerPressedTunnel, RoutingStrategies.Tunnel);
     }
 
     private static void OnEntryListPointerPressedTunnel(object? sender, PointerPressedEventArgs e)

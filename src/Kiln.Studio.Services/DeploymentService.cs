@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Services;
 
-using Kiln.Models;
+using Models;
 using Kiln.Services;
-using Kiln.Studio.Services.Dto;
+using Dto;
 using Microsoft.Extensions.DependencyInjection;
 
 public sealed class DeploymentService : IDeploymentService

@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Studio.Services;
+using Services;
 
 /// <summary>
 /// Drives the visual tree editor for <c>site.yaml.menus</c> (PLAN-079). Supports multiple named
@@ -70,16 +70,26 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         foreach (var menu in _menuService.LoadMenus(projectPath))
             Menus.Add(new MenuViewModel(menu));
 
+        foreach (var menu in Menus)
+        {
+            AttachValidation(menu);
+            foreach (var item in menu.Items.DescendantsAndSelf())
+                AttachValidation(item);
+        }
+
         SelectedMenu = Menus.FirstOrDefault();
         SelectedItem = null;
 
         RefSuggestions.Clear();
+        foreach (var r in _menuRefProvider.GetCollectionRefs(projectPath))
+            RefSuggestions.Add(r);
         foreach (var r in _menuRefProvider.GetItemRefs(projectPath))
             RefSuggestions.Add(r);
     }
 
     public void ClearProject()
     {
+        DetachAllValidation();
         _projectPath = null;
         Menus.Clear();
         SelectedMenu = null;
@@ -96,7 +106,6 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
             return;
 
         var menu = new MenuViewModel(new MenuDefinition(name.Trim(), []));
-        menu.PropertyChanged += OnMenuPropertyChanged;
         AttachValidation(menu);
         Menus.Add(menu);
         SelectedMenu = menu;
@@ -123,6 +132,10 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         if (SelectedMenu is null)
             return;
 
+        DetachValidation(SelectedMenu);
+        foreach (var item in SelectedMenu.Items.DescendantsAndSelf())
+            DetachValidation(item);
+
         Menus.Remove(SelectedMenu);
         SelectedMenu = Menus.FirstOrDefault();
     }
@@ -145,10 +158,11 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         if (SelectedItem is null || SelectedMenu is null)
             return;
 
-        RemoveItemFrom(SelectedItem, SelectedMenu.Items);
-        if (SelectedItem.Parent is not null)
-            SelectedItem.Parent.Children.Remove(SelectedItem);
+        DetachValidation(SelectedItem);
+        foreach (var child in SelectedItem.Children.DescendantsAndSelf())
+            DetachValidation(child);
 
+        RemoveItemFrom(SelectedItem, SelectedMenu.Items);
         SelectedItem = null;
     }
 
@@ -325,15 +339,35 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
     private void AttachValidation(MenuViewModel menu)
     {
-        menu.PropertyChanged -= OnMenuPropertyChanged;
+        DetachValidation(menu);
         menu.PropertyChanged += OnMenuPropertyChanged;
     }
 
     private void AttachValidation(MenuItemViewModel item)
     {
-        item.ValidationRequested -= OnItemValidationRequested;
+        DetachValidation(item);
         item.ValidationRequested += OnItemValidationRequested;
         ValidateItem(item);
+    }
+
+    private void DetachValidation(MenuViewModel menu)
+    {
+        menu.PropertyChanged -= OnMenuPropertyChanged;
+    }
+
+    private void DetachValidation(MenuItemViewModel item)
+    {
+        item.ValidationRequested -= OnItemValidationRequested;
+    }
+
+    private void DetachAllValidation()
+    {
+        foreach (var menu in Menus)
+        {
+            DetachValidation(menu);
+            foreach (var item in menu.Items.DescendantsAndSelf())
+                DetachValidation(item);
+        }
     }
 
     private void OnItemValidationRequested()

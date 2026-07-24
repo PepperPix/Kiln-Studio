@@ -6,10 +6,10 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
-using Kiln.Studio.Views;
+using Services;
+using TestSupport;
+using ViewModels;
+using Views;
 
 /// <summary>
 /// Bug fix regression (2026-07-13): a right-click on a content list row used to also select the
@@ -56,7 +56,8 @@ public sealed class ContentListRightClickUiTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
 
             var window = new ShellWindow { DataContext = vm, Width = 1200, Height = 760 };
             window.Show();

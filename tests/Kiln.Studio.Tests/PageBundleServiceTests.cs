@@ -1,6 +1,6 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Studio.Services;
+using Services;
 
 public class PageBundleServiceTests
 {

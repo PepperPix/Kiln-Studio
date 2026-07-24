@@ -6,10 +6,10 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
-using Kiln.Studio.Views;
+using Services;
+using TestSupport;
+using ViewModels;
+using Views;
 
 /// <summary>
 /// PLAN-066: seeds a post, opens it in the editor, and drives each Markdown-toolbar button
@@ -73,7 +73,8 @@ public sealed class EditorMarkdownToolbarUiTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
 
             var window = new ShellWindow { DataContext = vm, Width = 1200, Height = 760 };
             window.Show();

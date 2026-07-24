@@ -6,10 +6,10 @@ using Avalonia.Headless;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
-using Kiln.Studio.Views;
+using Services;
+using TestSupport;
+using ViewModels;
+using Views;
 
 /// <summary>
 /// PLAN-065: seeds a post with title/date/description, opens it in the editor and asserts that
@@ -62,7 +62,8 @@ public sealed class EditorFrontmatterFormUiTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
 
             var window = new ShellWindow { DataContext = vm, Width = 1200, Height = 760 };
             window.Show();

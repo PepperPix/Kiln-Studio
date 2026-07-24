@@ -1,6 +1,6 @@
 namespace Kiln.Studio.Services;
 
-using Kiln.Studio.Services.Dto;
+using Dto;
 
 public interface IDeploymentService
 {

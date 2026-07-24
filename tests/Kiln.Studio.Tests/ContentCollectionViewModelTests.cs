@@ -1,7 +1,7 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Studio.Services;
-using Kiln.Studio.ViewModels;
+using Services;
+using ViewModels;
 
 public sealed class ContentCollectionViewModelTests
 {

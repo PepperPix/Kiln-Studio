@@ -6,9 +6,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Models;
+using Models;
 using Kiln.Services;
-using Kiln.Studio.Services;
+using Services;
 using Microsoft.Extensions.DependencyInjection;
 
 public partial class EditorViewModel : ViewModelBase

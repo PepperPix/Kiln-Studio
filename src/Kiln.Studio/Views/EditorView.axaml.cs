@@ -6,7 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
-using Kiln.Studio.ViewModels;
+using ViewModels;
 using TextMateSharp.Grammars;
 
 public partial class EditorView : UserControl

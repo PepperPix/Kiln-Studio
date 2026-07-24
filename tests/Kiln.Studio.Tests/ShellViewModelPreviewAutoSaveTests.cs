@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
+using Services;
+using TestSupport;
+using ViewModels;
 
 public class ShellViewModelPreviewAutoSaveTests
 {
@@ -35,7 +35,8 @@ public class ShellViewModelPreviewAutoSaveTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             var post = vm.Explorer.Collections.First(c => c.Name == "posts").FilteredEntries.First();
@@ -86,7 +87,8 @@ public class ShellViewModelPreviewAutoSaveTests
                 new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
-                new FakeContentFrontmatterWriter());
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 
             await vm.NewSiteCommand.ExecuteAsync(null);
             var post = vm.Explorer.Collections.First(c => c.Name == "posts").FilteredEntries.First();

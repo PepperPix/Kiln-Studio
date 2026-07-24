@@ -1,7 +1,7 @@
 namespace Kiln.Studio.ViewModels;
 
 using System.Collections.ObjectModel;
-using Kiln.Studio.Services;
+using Services;
 
 public sealed class ContentCollectionViewModel : ViewModelBase
 {

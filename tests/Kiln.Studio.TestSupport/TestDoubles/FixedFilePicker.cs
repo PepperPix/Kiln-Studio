@@ -1,6 +1,6 @@
 namespace Kiln.Studio.TestSupport;
 
-using Kiln.Studio.Services;
+using Services;
 
 /// <summary>Test double for <see cref="IFilePicker"/> that always returns a predetermined path.</summary>
 public sealed class FixedFilePicker : IFilePicker

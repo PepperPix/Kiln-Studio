@@ -2,7 +2,7 @@ namespace Kiln.Studio.ViewModels;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Kiln.Studio.Services;
+using Services;
 
 public sealed partial class MenuItemViewModel : ObservableObject
 {

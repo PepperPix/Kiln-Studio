@@ -1,6 +1,6 @@
 namespace Kiln.Studio.TestSupport;
 
-using Kiln.Studio.Services;
+using Services;
 
 public sealed class FakeTaxonomyValueCache : ITaxonomyValueCache
 {

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Avalonia;
 using Avalonia.Media.Imaging;
-using Kiln.Studio.Services;
+using Services;
 
 public sealed class AvaloniaAssetThumbnailCache : IAssetThumbnailCache
 {

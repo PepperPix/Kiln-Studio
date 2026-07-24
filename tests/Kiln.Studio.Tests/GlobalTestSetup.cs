@@ -21,7 +21,7 @@ public static class GlobalTestSetup
 {
     private static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromSeconds(30);
 
-    [Before(HookType.TestDiscovery)]
+    [Before(TestDiscovery)]
     public static Task Configure(BeforeTestDiscoveryContext context)
     {
         context.Settings.Timeouts.DefaultTestTimeout = DefaultTestTimeout;

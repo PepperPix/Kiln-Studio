@@ -1,7 +1,7 @@
 namespace Kiln.Studio.Services;
 
 using System.IO.Compression;
-using Kiln.Abstractions;
+using Abstractions;
 using Kiln.Services;
 using Microsoft.Extensions.DependencyInjection;
 

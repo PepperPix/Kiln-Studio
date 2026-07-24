@@ -1,7 +1,7 @@
 namespace Kiln.Studio.TestSupport;
 
-using Kiln.Studio.Services;
-using Kiln.Studio.Services.Dto;
+using Services;
+using Services.Dto;
 
 public sealed class NullBuildService : IBuildService
 {

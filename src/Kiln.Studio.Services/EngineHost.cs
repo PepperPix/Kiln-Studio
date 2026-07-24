@@ -1,6 +1,6 @@
 namespace Kiln.Studio.Services;
 
-using Kiln.DependencyInjection;
+using DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>

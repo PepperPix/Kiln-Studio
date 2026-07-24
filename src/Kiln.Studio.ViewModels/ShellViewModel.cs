@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Studio.Services;
-using Kiln.Studio.Services.Dto;
+using Services;
+using Services.Dto;
 
 public partial class ShellViewModel : ViewModelBase
 {
@@ -116,10 +116,10 @@ public partial class ShellViewModel : ViewModelBase
         IDeploymentConfigStore deploymentConfigStore,
         IPublishService publishService,
         IContentFrontmatterWriter contentFrontmatterWriter,
+        MenuEditorViewModel menuEditor,
         AssetManagerViewModel? assetManager = null,
         IFolderRevealer? folderRevealer = null,
-        IUnsavedChangesDialog? unsavedChangesDialog = null,
-        MenuEditorViewModel? menuEditor = null)
+        IUnsavedChangesDialog? unsavedChangesDialog = null)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -145,10 +145,7 @@ public partial class ShellViewModel : ViewModelBase
         Editor.PropertyChanged += OnEditorPropertyChangedForContentMode;
         Preview = preview;
         Settings = settings;
-        MenuEditor = menuEditor ?? new MenuEditorViewModel(
-            new NullMenuService(),
-            new NullMenuRefProvider(),
-            new NullInputDialogForMenuEditor());
+        MenuEditor = menuEditor;
         AssetManager = assetManager;
         if (AssetManager is not null)
             AssetManager.NavigateToContentItem = NavigateToContentItem;
@@ -709,24 +706,4 @@ public partial class ShellViewModel : ViewModelBase
             Task.FromResult(UnsavedChangesDecision.Discard);
     }
 
-    private sealed class NullMenuService : IMenuService
-    {
-        public IReadOnlyList<MenuDefinition> LoadMenus(string projectPath) => [];
-
-        public void SaveMenus(string projectPath, IReadOnlyList<MenuDefinition> menus)
-        {
-        }
-    }
-
-    private sealed class NullMenuRefProvider : IMenuRefProvider
-    {
-        public IReadOnlyList<string> GetCollectionRefs(string projectPath) => [];
-
-        public IReadOnlyList<string> GetItemRefs(string projectPath) => [];
-    }
-
-    private sealed class NullInputDialogForMenuEditor : IInputDialog
-    {
-        public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
-    }
 }

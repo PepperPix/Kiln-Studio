@@ -1,10 +1,10 @@
 namespace Kiln.Studio.Tests;
 
-using Kiln.Models;
+using Models;
 using Kiln.Services;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
+using Services;
+using TestSupport;
+using ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 public class ContentServiceLoadSaveTests
@@ -955,7 +955,11 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
+                new NullDeploymentConfigStore(),
+                new NullPublishService(),
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -1007,7 +1011,11 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
+                new NullDeploymentConfigStore(),
+                new NullPublishService(),
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -1054,7 +1062,11 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
+                new NullDeploymentConfigStore(),
+                new NullPublishService(),
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);
@@ -1107,7 +1119,11 @@ public class ShellViewModelEditorTests
                 new PreviewViewModel(),
                 new FakeBuildService(),
                 new FakeDeploymentService(),
-                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+                new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
+                new NullDeploymentConfigStore(),
+                new NullPublishService(),
+                new FakeContentFrontmatterWriter(),
+                MenuEditorTestFactory.CreateDummy());
 #pragma warning restore S107
 
             await vm.OpenProjectCommand.ExecuteAsync(null);

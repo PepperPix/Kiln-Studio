@@ -3,10 +3,10 @@ namespace Kiln.Studio.UiTests;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
-using Kiln.Studio.Views;
+using Services;
+using TestSupport;
+using ViewModels;
+using Views;
 
 /// <summary>
 /// PLAN-073: headless UI tests for the new Assets nav destination (Asset Manager).
@@ -253,6 +253,7 @@ public sealed class AssetManagerUiTests
             new NullDeploymentConfigStore(),
             new NullPublishService(),
             new FakeContentFrontmatterWriter(),
+            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
             assetManager);
     }
 

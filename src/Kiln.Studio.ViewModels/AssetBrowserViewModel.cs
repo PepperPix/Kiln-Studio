@@ -3,7 +3,7 @@ namespace Kiln.Studio.ViewModels;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Studio.Services;
+using Services;
 
 /// <summary>
 /// Reusable, Avalonia-free view model for browsing and managing assets either in the site-wide

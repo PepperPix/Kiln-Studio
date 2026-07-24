@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Tests;
 
 using Kiln.Services;
-using Kiln.Studio.Services;
-using Kiln.Studio.Services.Dto;
+using Services;
+using Services.Dto;
 using Microsoft.Extensions.DependencyInjection;
 
 public class BuildServiceTests

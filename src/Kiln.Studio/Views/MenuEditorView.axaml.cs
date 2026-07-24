@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
-using Kiln.Studio.ViewModels;
+using ViewModels;
 
 public partial class MenuEditorView : UserControl
 {
@@ -25,23 +25,33 @@ public partial class MenuEditorView : UserControl
     private async void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
 #pragma warning restore VSTHRD100
     {
-        if (!e.GetCurrentPoint(MenuTree).Properties.IsLeftButtonPressed)
-            return;
+        try
+        {
+            if (!e.GetCurrentPoint(MenuTree).Properties.IsLeftButtonPressed)
+                return;
 
-        var item = GetItemAt(e.GetPosition(MenuTree));
-        if (item is null)
-            return;
+            var item = GetItemAt(e.GetPosition(MenuTree));
+            if (item is null)
+                return;
 
-        _draggedItem = item;
-        _dropTarget = null;
+            _draggedItem = item;
+            _dropTarget = null;
 
-        using var data = new DataTransfer();
-        var format = DataFormat.CreateInProcessFormat<MenuItemViewModel>("application/x-kiln-menu-item");
-        data.Add(DataTransferItem.Create(format, _draggedItem));
+            using var data = new DataTransfer();
+            var format = DataFormat.CreateInProcessFormat<MenuItemViewModel>("application/x-kiln-menu-item");
+            data.Add(DataTransferItem.Create(format, _draggedItem));
 
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move).ConfigureAwait(true);
-        _draggedItem = null;
-        ClearAdorner();
+            await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move).ConfigureAwait(true);
+        }
+        catch (InvalidOperationException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Menu drag start failed: {ex}");
+        }
+        finally
+        {
+            _draggedItem = null;
+            ClearAdorner();
+        }
     }
 
     private void OnTreeDragOver(object? sender, DragEventArgs e)
@@ -111,7 +121,11 @@ public partial class MenuEditorView : UserControl
             return DropPosition.After;
 
         var bounds = container.Bounds;
-        var relativeY = position.Y - container.TranslatePoint(new Point(0, 0), this)!.Value.Y;
+        var origin = container.TranslatePoint(new Point(0, 0), this);
+        if (!origin.HasValue)
+            return DropPosition.After;
+
+        var relativeY = position.Y - origin.Value.Y;
         var third = bounds.Height / 3;
 
         if (relativeY < third)

@@ -1,9 +1,9 @@
 namespace Kiln.Studio.Tests;
 
 using Kiln.Services;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
+using Services;
+using TestSupport;
+using ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 public class ProjectServiceTests
@@ -160,7 +160,11 @@ public class ShellViewModelOpenTests
             new PreviewViewModel(),
             new FakeBuildService(),
             new FakeDeploymentService(),
-            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()), new NullDeploymentConfigStore(), new NullPublishService(), new FakeContentFrontmatterWriter());
+            new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
+            new NullDeploymentConfigStore(),
+            new NullPublishService(),
+            new FakeContentFrontmatterWriter(),
+            MenuEditorTestFactory.CreateDummy());
     }
 
     [Test]

@@ -5,10 +5,10 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AvaloniaEdit;
-using Kiln.Studio.Services;
-using Kiln.Studio.TestSupport;
-using Kiln.Studio.ViewModels;
-using Kiln.Studio.Views;
+using Services;
+using TestSupport;
+using ViewModels;
+using Views;
 
 /// <summary>
 /// PLAN-074: verifies the document-scoped Assets tab in the editor's unified right panel and the
@@ -155,7 +155,8 @@ public sealed class EditorAssetsTabUiTests
             new SettingsViewModel(new FakeSiteSettingsService(), new NullDeploymentConfigStore()),
             new NullDeploymentConfigStore(),
             new NullPublishService(),
-            new FakeContentFrontmatterWriter());
+            new FakeContentFrontmatterWriter(),
+            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
     }
 
     private static async Task SelectPostAsync(ShellViewModel vm, string postPath)

@@ -5,7 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Layout;
-using Kiln.Studio.Services;
+using Services;
 
 internal sealed class AvaloniaInputDialog : IInputDialog
 {

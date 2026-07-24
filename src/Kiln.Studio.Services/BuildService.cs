@@ -1,8 +1,8 @@
 namespace Kiln.Studio.Services;
 
-using Kiln.Abstractions;
+using Abstractions;
 using Kiln.Services;
-using Kiln.Studio.Services.Dto;
+using Dto;
 using Microsoft.Extensions.DependencyInjection;
 
 public sealed class BuildService : IBuildService

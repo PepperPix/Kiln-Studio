@@ -2,7 +2,7 @@ namespace Kiln.Studio.ViewModels;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kiln.Studio.Services;
+using Services;
 
 public sealed partial class ContentEntryViewModel : ViewModelBase
 {

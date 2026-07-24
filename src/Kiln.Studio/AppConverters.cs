@@ -2,7 +2,7 @@ namespace Kiln.Studio;
 
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
-using Kiln.Studio.Services;
+using Services;
 using Material.Icons;
 
 /// <summary>Shared view-layer value converters (no ViewModel dependency).</summary>

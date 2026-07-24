@@ -87,7 +87,7 @@ public sealed class MenuService : IMenuService
             if (node is not YamlMappingNode mapping)
                 continue;
 
-            var title = GetScalar(mapping, "title") ?? string.Empty;
+            var title = GetOptionalScalar(mapping, "title") ?? string.Empty;
             var refValue = GetOptionalScalar(mapping, "ref");
             var url = GetOptionalScalar(mapping, "url");
             var external = GetBoolean(mapping, "external");
@@ -103,14 +103,6 @@ public sealed class MenuService : IMenuService
         }
 
         return result;
-    }
-
-    private static string? GetScalar(YamlMappingNode mapping, string key)
-    {
-        var node = mapping.Children.FirstOrDefault(kvp =>
-            kvp.Key is YamlScalarNode keyNode && keyNode.Value == key).Value;
-
-        return node is YamlScalarNode scalar ? scalar.Value : node?.ToString();
     }
 
     private static string? GetOptionalScalar(YamlMappingNode mapping, string key)

@@ -1,7 +1,7 @@
 namespace Kiln.Studio;
 
 using Avalonia.Media.Imaging;
-using Kiln.Studio.Services;
+using Services;
 
 /// <summary>
 /// Avalonia-backed <see cref="IImageDimensionReader"/> implementation (PLAN-069). Lives in the
