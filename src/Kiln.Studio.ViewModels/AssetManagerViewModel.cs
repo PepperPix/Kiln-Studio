@@ -124,7 +124,7 @@ public sealed partial class AssetManagerViewModel : ViewModelBase
             ThumbnailSize = 96,
             EntryFilter = ShowOnlyOrphans ? IsOrphan : null,
             PromptForRename = PromptForRenameAsync,
-            ConfirmDeleteWithReferences = ConfirmDeleteWithReferencesAsync,
+            NotifyDeleteBlocked = NotifyDeleteBlockedAsync,
             RewriteReferencesOnRename = RewriteLibraryReferencesOnRenameAsync,
             NavigateToReference = NavigateToReferenceAsync,
             BeforeRename = (_, _) => Task.FromResult(true),
@@ -150,10 +150,12 @@ public sealed partial class AssetManagerViewModel : ViewModelBase
                 isDocumentScoped: true)
             {
                 IsInsertVisible = false,
+                ReferenceIndex = _referenceIndex,
                 ThumbnailCache = _thumbnailCache,
                 ThumbnailSize = 96,
                 PromptForRename = PromptForRenameAsync,
-                BeforeDelete = entry => BeforeDeleteBundleAssetAsync(item.SourcePath, entry),
+                NotifyDeleteBlocked = NotifyDeleteBlockedAsync,
+                BeforeDelete = entry => BeforeDeleteBundleAssetAsync(item.SourcePath, item.AssetDirectory, entry),
                 BeforeRename = (oldPath, newPath) => BeforeRenameBundleAssetAsync(item.SourcePath, oldPath, newPath)
             };
 
@@ -223,14 +225,12 @@ public sealed partial class AssetManagerViewModel : ViewModelBase
         return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
-    private async Task<bool> ConfirmDeleteWithReferencesAsync(AssetLibraryEntry entry, IReadOnlyList<AssetContentReference> references)
+    private async Task NotifyDeleteBlockedAsync(AssetLibraryEntry entry, IReadOnlyList<AssetContentReference> references)
     {
         var refsText = string.Join(", ", references.Select(r => r.Title));
-        var confirmation = await _inputDialog
-            .PromptAsync("Delete referenced asset", $"'{entry.Name}' is referenced by: {refsText}. Type DELETE to confirm.")
+        await _inputDialog
+            .PromptAsync("Cannot delete asset", $"'{entry.Name}' is referenced by: {refsText}. Remove references first.")
             .ConfigureAwait(true);
-
-        return string.Equals(confirmation, "DELETE", StringComparison.Ordinal);
     }
 
     private Task<bool> RewriteLibraryReferencesOnRenameAsync(string oldPath, string newPath, IReadOnlyList<AssetContentReference> references)
@@ -268,13 +268,30 @@ public sealed partial class AssetManagerViewModel : ViewModelBase
         return Task.FromResult(true);
     }
 
-    private Task<bool> BeforeDeleteBundleAssetAsync(string sourcePath, AssetLibraryEntry entry)
+    private Task<bool> BeforeDeleteBundleAssetAsync(string sourcePath, string assetDirectory, AssetLibraryEntry entry)
     {
-        var path = "./" + entry.RelativePath.TrimStart('/');
+        // 1. Block if referenced inside the owning content body.
+        var localPath = "./" + entry.RelativePath.TrimStart('/');
         var document = _contentService.Load(sourcePath);
+        if (document.Body.Contains(localPath, StringComparison.Ordinal))
+            return Task.FromResult(false);
 
-        // bundle assets affect only their owning content file; delete is blocked when still referenced
-        return Task.FromResult(!document.Body.Contains(path, StringComparison.Ordinal));
+        // 2. Block if referenced from any other content item via the global reference index.
+        //    Bundle assets that were resolved during build appear under /assets/<relative-to-static>
+        //    if they are co-located in the content tree and copied by the engine. The index builder
+        //    scans rendered HtmlContent, so both ./photo.png and /assets/... forms converge there.
+        var assetDirectoryRelativeToProject = Path.GetRelativePath(_projectPath!, assetDirectory).Replace('\\', '/').TrimEnd('/') + "/";
+        var absoluteWebPath = "/assets/" + assetDirectoryRelativeToProject + entry.RelativePath.Replace('\\', '/');
+        var normalizedKey = absoluteWebPath.Replace("//", "/", StringComparison.Ordinal);
+
+        if (_referenceIndex.TryGetValue(normalizedKey, out var refs))
+        {
+            // The owner itself was already checked above; external references block the delete.
+            if (refs.Any(r => !r.SourcePath.Equals(sourcePath, StringComparison.OrdinalIgnoreCase)))
+                return Task.FromResult(false);
+        }
+
+        return Task.FromResult(true);
     }
 
     private Task<bool> BeforeRenameBundleAssetAsync(string sourcePath, string oldRelativePath, string newRelativePath)
