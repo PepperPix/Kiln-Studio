@@ -76,6 +76,7 @@ public partial class ShellViewModel : ViewModelBase
     public PreviewViewModel Preview { get; }
     public SettingsViewModel Settings { get; }
     public AssetManagerViewModel? AssetManager { get; }
+    public MenuEditorViewModel MenuEditor { get; }
 
     /// <summary>Drives the persistent left navigation rail (ADR-054/PLAN-072).</summary>
     public NavRailViewModel NavRail { get; } = new();
@@ -117,7 +118,8 @@ public partial class ShellViewModel : ViewModelBase
         IContentFrontmatterWriter contentFrontmatterWriter,
         AssetManagerViewModel? assetManager = null,
         IFolderRevealer? folderRevealer = null,
-        IUnsavedChangesDialog? unsavedChangesDialog = null)
+        IUnsavedChangesDialog? unsavedChangesDialog = null,
+        MenuEditorViewModel? menuEditor = null)
 #pragma warning restore S107
     {
         _projectService = projectService;
@@ -143,6 +145,10 @@ public partial class ShellViewModel : ViewModelBase
         Editor.PropertyChanged += OnEditorPropertyChangedForContentMode;
         Preview = preview;
         Settings = settings;
+        MenuEditor = menuEditor ?? new MenuEditorViewModel(
+            new NullMenuService(),
+            new NullMenuRefProvider(),
+            new NullInputDialogForMenuEditor());
         AssetManager = assetManager;
         if (AssetManager is not null)
             AssetManager.NavigateToContentItem = NavigateToContentItem;
@@ -237,6 +243,7 @@ public partial class ShellViewModel : ViewModelBase
         IsProjectOpen = false;
         CurrentDeploymentVariant = DeploymentVariant.None;
         AssetManager?.ClearProject();
+        MenuEditor.ClearProject();
         NavRail.Selected = NavTarget.Content;
         StatusMessage = "Ready";
     }
@@ -350,6 +357,7 @@ public partial class ShellViewModel : ViewModelBase
             StatusMessage = $"Opened {project.SiteTitle}";
             IsProjectOpen = true;
             AssetManager?.LoadProject(project.ProjectPath);
+            MenuEditor.LoadProject(project.ProjectPath);
             _recentProjectsStore.Add(project.ProjectPath, project.SiteTitle);
             RefreshRecentProjects();
 
@@ -699,5 +707,26 @@ public partial class ShellViewModel : ViewModelBase
     {
         public Task<UnsavedChangesDecision> ConfirmAsync(string contentName, bool allowCancel) =>
             Task.FromResult(UnsavedChangesDecision.Discard);
+    }
+
+    private sealed class NullMenuService : IMenuService
+    {
+        public IReadOnlyList<MenuDefinition> LoadMenus(string projectPath) => [];
+
+        public void SaveMenus(string projectPath, IReadOnlyList<MenuDefinition> menus)
+        {
+        }
+    }
+
+    private sealed class NullMenuRefProvider : IMenuRefProvider
+    {
+        public IReadOnlyList<string> GetCollectionRefs(string projectPath) => [];
+
+        public IReadOnlyList<string> GetItemRefs(string projectPath) => [];
+    }
+
+    private sealed class NullInputDialogForMenuEditor : IInputDialog
+    {
+        public Task<string?> PromptAsync(string title, string message) => Task.FromResult<string?>(null);
     }
 }

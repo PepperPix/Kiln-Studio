@@ -72,7 +72,11 @@ public partial class App : Application
         services.AddSingleton<EditorViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<AssetManagerViewModel>();
+        services.AddSingleton<MenuEditorViewModel>();
         services.AddSingleton<ShellViewModel>();
+
+        services.AddSingleton<IMenuService, MenuService>();
+        services.AddSingleton<IMenuRefProvider, MenuRefProvider>();
 
         return services.BuildServiceProvider();
     }

@@ -25,7 +25,7 @@ public partial class NavRailViewModel : ViewModelBase
     {
         Items.Add(new NavRailItemViewModel(NavTarget.Content, "Content", "Note", isPlaceholder: false));
         Items.Add(new NavRailItemViewModel(NavTarget.Assets, "Assets", "ImageMultipleOutline", isPlaceholder: false));
-        Items.Add(new NavRailItemViewModel(NavTarget.Menus, "Menus", "Menu", isPlaceholder: true));
+        Items.Add(new NavRailItemViewModel(NavTarget.Menus, "Menus", "Menu", isPlaceholder: false));
         Items.Add(new NavRailItemViewModel(NavTarget.Theme, "Theme", "PaletteOutline", isPlaceholder: true));
         Items.Add(new NavRailItemViewModel(NavTarget.Deployment, "Deployment", "CloudUploadOutline", isPlaceholder: true));
         Items.Add(new NavRailItemViewModel(NavTarget.Settings, "Settings", "CogOutline", isPlaceholder: false));

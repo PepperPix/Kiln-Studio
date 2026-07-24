@@ -139,7 +139,8 @@
                          Theme/Deployment follow later. Assets is provided by PLAN-073. -->
                     <views:AssetManagerView DataContext="{Binding AssetManager}"
                                             IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsAssetsTargetSelected}" />
-                    <views:PlaceholderView Header="Menus" IsVisible="{Binding IsMenusTargetSelected}" />
+                    <views:MenuEditorView DataContext="{Binding MenuEditor}"
+                                          IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsMenusTargetSelected}" />
                     <views:PlaceholderView Header="Theme" IsVisible="{Binding IsThemeTargetSelected}" />
                     <views:PlaceholderView Header="Deployment" IsVisible="{Binding IsDeploymentTargetSelected}" />
 
