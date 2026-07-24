@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kiln.Studio.ViewModels"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:conv="using:Kiln.Studio.Converters"
+             x:Class="Kiln.Studio.Views.ThemeManagerView"
+             x:DataType="vm:ThemeManagerViewModel">
+
+    <UserControl.Resources>
+        <conv:DepthToThicknessConverter x:Key="DepthToThicknessConverter" />
+        <conv:FilePathToBitmapConverter x:Key="FilePathToBitmapConverter" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,*" Margin="12">
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Margin="0,0,0,12">
+            <ComboBox ItemsSource="{Binding AvailableThemes}"
+                      SelectedItem="{Binding SelectedTheme}"
+                      MinWidth="160"
+                      VerticalAlignment="Center" />
+            <Button Content="Apply"
+                    Command="{Binding ApplyThemeCommand}"
+                    Classes="primary" />
+            <Button Content="Duplicate…"
+                    Command="{Binding DuplicateThemeCommand}"
+                    Classes="secondary" />
+            <Button Content="Install from ZIP…"
+                    Command="{Binding InstallFromZipCommand}"
+                    Classes="secondary" />
+            <Button Content="Refresh"
+                    Command="{Binding RefreshCommand}"
+                    Classes="secondary" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+
+            <!-- Theme structure -->
+            <Border Grid.Column="0"
+                    BorderBrush="{StaticResource KilnBorderBrush}"
+                    BorderThickness="1"
+                    Margin="0,0,12,0">
+                <ScrollViewer>
+                    <ItemsControl ItemsSource="{Binding ThemeFiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ThemeFileEntryViewModel">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="6"
+                                            Margin="{Binding Depth, Converter={StaticResource DepthToThicknessConverter}}">
+                                    <materialIcons:MaterialIcon Kind="{Binding IconKind}"
+                                                                Width="16"
+                                                                Height="16"
+                                                                VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding RelativePath}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Preview -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <TextBlock Grid.Row="0"
+                           Text="Preview"
+                           FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSizeL}"
+                           Margin="0,0,0,12" />
+
+                <Image Grid.Row="1"
+                       Source="{Binding SelectedFilePath, Converter={StaticResource FilePathToBitmapConverter}}"
+                       IsVisible="{Binding IsImageSelected}"
+                       Stretch="Uniform" />
+
+                <TextBox Grid.Row="1"
+                         Text="{Binding SelectedFileContent}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding !IsImageSelected}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible" />
+            </Grid>
+        </Grid>
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding StatusMessage}"
+                   Classes="status-text"
+                   VerticalAlignment="Bottom"
+                   HorizontalAlignment="Left"
+                   IsVisible="{Binding HasStatusMessage}" />
+    </Grid>
+</UserControl>

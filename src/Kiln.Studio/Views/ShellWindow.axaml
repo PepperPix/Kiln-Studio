@@ -141,7 +141,8 @@
                                             IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsAssetsTargetSelected}" />
                     <views:MenuEditorView DataContext="{Binding MenuEditor}"
                                           IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsMenusTargetSelected}" />
-                    <views:PlaceholderView Header="Theme" IsVisible="{Binding IsThemeTargetSelected}" />
+                    <views:ThemeManagerView DataContext="{Binding ThemeManager}"
+                                            IsVisible="{Binding $parent[Window].((vm:ShellViewModel)DataContext).IsThemeTargetSelected}" />
                     <views:PlaceholderView Header="Deployment" IsVisible="{Binding IsDeploymentTargetSelected}" />
 
                     <!-- Settings: real nav destination, replaces the former modal SettingsWindow (amends ADR-027) -->

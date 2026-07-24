@@ -77,6 +77,7 @@ public partial class ShellViewModel : ViewModelBase
     public SettingsViewModel Settings { get; }
     public AssetManagerViewModel? AssetManager { get; }
     public MenuEditorViewModel MenuEditor { get; }
+    public ThemeManagerViewModel ThemeManager { get; }
 
     /// <summary>Drives the persistent left navigation rail (ADR-054/PLAN-072).</summary>
     public NavRailViewModel NavRail { get; } = new();
@@ -117,6 +118,7 @@ public partial class ShellViewModel : ViewModelBase
         IPublishService publishService,
         IContentFrontmatterWriter contentFrontmatterWriter,
         MenuEditorViewModel menuEditor,
+        ThemeManagerViewModel themeManager,
         AssetManagerViewModel? assetManager = null,
         IFolderRevealer? folderRevealer = null,
         IUnsavedChangesDialog? unsavedChangesDialog = null)
@@ -146,6 +148,7 @@ public partial class ShellViewModel : ViewModelBase
         Preview = preview;
         Settings = settings;
         MenuEditor = menuEditor;
+        ThemeManager = themeManager;
         AssetManager = assetManager;
         if (AssetManager is not null)
             AssetManager.NavigateToContentItem = NavigateToContentItem;
@@ -169,6 +172,9 @@ public partial class ShellViewModel : ViewModelBase
 
         if (NavRail.Selected == NavTarget.Settings && CurrentProjectPath is not null)
             Settings.Load(CurrentProjectPath);
+
+        if (NavRail.Selected == NavTarget.Theme && CurrentProjectPath is not null)
+            ThemeManager.LoadProject(CurrentProjectPath);
     }
 
 #pragma warning disable VSTHRD100 // must match PropertyChangedEventHandler's void signature
@@ -241,6 +247,7 @@ public partial class ShellViewModel : ViewModelBase
         CurrentDeploymentVariant = DeploymentVariant.None;
         AssetManager?.ClearProject();
         MenuEditor.ClearProject();
+        ThemeManager.ClearProject();
         NavRail.Selected = NavTarget.Content;
         StatusMessage = "Ready";
     }
@@ -355,6 +362,7 @@ public partial class ShellViewModel : ViewModelBase
             IsProjectOpen = true;
             AssetManager?.LoadProject(project.ProjectPath);
             MenuEditor.LoadProject(project.ProjectPath);
+            ThemeManager.LoadProject(project.ProjectPath);
             _recentProjectsStore.Add(project.ProjectPath, project.SiteTitle);
             RefreshRecentProjects();
 

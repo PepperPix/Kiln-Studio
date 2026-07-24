@@ -97,7 +97,11 @@ public sealed class ShellWindowUiTests
                 new NullDeploymentConfigStore(),
                 new NullPublishService(),
                 new FakeContentFrontmatterWriter(),
-                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
+                new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
             var window = new ShellWindow { DataContext = vm };
             window.Show();
@@ -139,7 +143,11 @@ public sealed class ShellWindowUiTests
             new NullDeploymentConfigStore(),
             new NullPublishService(),
             new FakeContentFrontmatterWriter(),
-            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()));
+            new MenuEditorViewModel(new NullMenuService(), new NullMenuRefProvider(), new NullInputDialog()),
+                new ThemeManagerViewModel(
+                new ThemeService(new SiteSettingsService(new EngineHost())),
+                new NullFilePicker(),
+                new NullInputDialog()));
 
         return new ShellWindow { DataContext = vm };
     }
