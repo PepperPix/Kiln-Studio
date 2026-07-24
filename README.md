@@ -32,6 +32,11 @@ tests/
   Kiln.Studio.Tests/       — TUnit tests
 ```
 
+### Conventions
+
+Every `.cs` file contains exactly one top-level type. Nested types are used only as a deliberate
+encapsulation aid.
+
 ## Building
 
 ### Prerequisites
