@@ -45,14 +45,22 @@
                           SelectedItem="{Binding SelectedItem}"
                           DragDrop.AllowDrop="True">
                     <TreeView.Styles>
-                        <Style Selector="TreeViewItem">
+                        <Style Selector="TreeViewItem"
+                               x:DataType="vm:MenuItemViewModel">
                             <Setter Property="DragDrop.AllowDrop" Value="True" />
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                        </Style>
+                        <Style Selector="Border.menuItemContent">
+                            <Setter Property="CornerRadius" Value="4" />
+                            <Setter Property="Padding" Value="4,2" />
                         </Style>
                     </TreeView.Styles>
                     <TreeView.ItemTemplate>
                         <TreeDataTemplate ItemsSource="{Binding Children}"
                                           DataType="vm:MenuItemViewModel">
-                            <TextBlock Text="{Binding Title}" />
+                            <Border Classes="menuItemContent">
+                                <TextBlock Text="{Binding Title}" />
+                            </Border>
                         </TreeDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
