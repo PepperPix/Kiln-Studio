@@ -93,17 +93,13 @@ public sealed class ThemeManagerUiTests
             listBox.SelectedIndex = firstFileIndex;
             Dispatcher.UIThread.RunJobs();
 
-
-            var themeManagerVm = vm.ThemeManager;
-            await Assert.That(themeManagerVm).IsNotNull();
-            ArgumentNullException.ThrowIfNull(themeManagerVm);
-            await Assert.That(themeManagerVm.SelectedFile).IsNotNull();
-            await Assert.That(themeManagerVm.SelectedFile.IsDirectory).IsFalse();
+            await Assert.That(vm.ThemeManager.SelectedFile).IsNotNull();
+            var selectedFile = vm.ThemeManager.SelectedFile!;
+            await Assert.That(selectedFile.IsDirectory).IsFalse();
 
             var editor = themeManager.GetVisualDescendants().OfType<TextEditor>().First();
             await Assert.That(editor).IsNotNull();
-            await Assert.That(themeManagerVm.SelectedFileContent).IsNotNullOrEmpty();
-
+            await Assert.That(vm.ThemeManager.SelectedFileContent).IsNotNullOrEmpty();
 
             window.Close();
         }
