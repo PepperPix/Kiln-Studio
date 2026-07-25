@@ -2,8 +2,10 @@ namespace Kiln.Studio.Views;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using ViewModels;
 
 /// <summary>
@@ -53,8 +55,9 @@ internal sealed class DropTargetAdorner : Control
         if (adorned is null || _target is null)
             return;
 
-        var targetBounds = _target.Bounds;
-        var topLeft = _target.TranslatePoint(new Point(0, 0), adorned);
+        var header = (Control?)GetHeaderPresenter(_target) ?? _target;
+        var targetBounds = header.Bounds;
+        var topLeft = header.TranslatePoint(new Point(0, 0), adorned);
         if (!topLeft.HasValue)
             return;
 
@@ -79,5 +82,12 @@ internal sealed class DropTargetAdorner : Control
                 context.DrawRectangle(new Pen(LineBrush, thickness), rect);
                 break;
         }
+    }
+
+    private static ContentPresenter? GetHeaderPresenter(TreeViewItem container)
+    {
+        return container.GetVisualDescendants()
+            .OfType<ContentPresenter>()
+            .FirstOrDefault(p => p.Name == "PART_HeaderPresenter");
     }
 }

@@ -333,7 +333,6 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         SelectedItem = null;
         if (value is not null)
         {
-            value.PropertyChanged += OnMenuPropertyChanged;
             AttachValidation(value);
             foreach (var item in value.Items.DescendantsAndSelf())
                 AttachValidation(item);
@@ -439,7 +438,8 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         if (item.Parent is not null)
             return item.Parent.Children;
 
-        return SelectedMenu?.Items ?? new ObservableCollection<MenuItemViewModel>();
+        return SelectedMenu?.Items
+            ?? throw new InvalidOperationException("No menu is selected.");
     }
 
     private bool CanMoveItem(MenuItemViewModel? item, int direction)
