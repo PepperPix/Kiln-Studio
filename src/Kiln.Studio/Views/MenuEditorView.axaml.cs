@@ -3,6 +3,7 @@ namespace Kiln.Studio.Views;
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.VisualTree;
@@ -172,7 +173,9 @@ public partial class MenuEditorView : UserControl
 
     /// <summary>
     /// Computes the drop position relative to the target item based on the pointer
-    /// position within the item's bounds.
+    /// position within the item's header bounds. Using the header (rather than the
+    /// full TreeViewItem bounds, which include expanded children) keeps the three
+    /// drop zones consistent for collapsed leaves and expanded parents.
     /// </summary>
     private DropPosition ComputeDropPosition(MenuItemViewModel? target, Point positionRelativeToTree)
     {
@@ -183,8 +186,9 @@ public partial class MenuEditorView : UserControl
         if (container is null)
             return DropPosition.After;
 
-        var bounds = container.Bounds;
-        var origin = container.TranslatePoint(new Point(0, 0), this);
+        var header = (Control?)GetHeaderPresenter(container) ?? container;
+        var bounds = header.Bounds;
+        var origin = header.TranslatePoint(new Point(0, 0), this);
         if (!origin.HasValue)
             return DropPosition.After;
 
@@ -193,10 +197,20 @@ public partial class MenuEditorView : UserControl
         return MenuEditorDragService.ComputeDropPosition(target, relativeY, bounds.Height);
     }
 
+    private static ContentPresenter? GetHeaderPresenter(TreeViewItem container)
+    {
+        return container.GetVisualDescendants()
+            .OfType<ContentPresenter>()
+            .FirstOrDefault(p => p.Name == "PART_HeaderPresenter");
+    }
+
     private void UpdateAdorner()
     {
         if (_dropTarget is null)
+        {
+            ClearAdorner();
             return;
+        }
 
         var layer = AdornerLayer.GetAdornerLayer(MenuTree);
         if (layer is null)
