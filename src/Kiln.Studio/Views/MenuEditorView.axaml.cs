@@ -3,20 +3,28 @@ namespace Kiln.Studio.Views;
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using ViewModels;
 
+/// <summary>
+/// Code-behind for the menu editor. Handles pointer/gesture input, native
+/// drag-and-drop, and visual drop-zone feedback via an adorner.
+/// Domain logic lives in <see cref="MenuEditorViewModel"/> and
+/// <see cref="MenuEditorDragService"/>.
+/// </summary>
 public partial class MenuEditorView : UserControl
 {
-    private const double DragThreshold = 5;
-
     private MenuItemViewModel? _draggedItem;
     private TreeViewItem? _dropTarget;
     private DropPosition _dropPosition;
+    private DropTargetAdorner? _adorner;
     private PointerPressedEventArgs? _dragStartEventArgs;
     private Point _dragStartPosition;
     private bool _isDragging;
+    private MenuItemViewModel? _expandCandidate;
+    private DateTime _expandCandidateSince;
 
     public MenuEditorView()
     {
@@ -52,7 +60,10 @@ public partial class MenuEditorView : UserControl
 
         var currentPosition = e.GetPosition(this);
         var delta = currentPosition - _dragStartPosition;
-        if (Math.Abs(delta.X) <= DragThreshold && Math.Abs(delta.Y) <= DragThreshold)
+
+        // Only start a drag once the pointer has moved past the configured threshold.
+        if (Math.Abs(delta.X) <= MenuEditorDragService.DragThreshold
+            && Math.Abs(delta.Y) <= MenuEditorDragService.DragThreshold)
             return;
 
         _isDragging = true;
@@ -70,9 +81,10 @@ public partial class MenuEditorView : UserControl
 
             await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move).ConfigureAwait(true);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            System.Diagnostics.Debug.WriteLine($"Menu drag start failed: {ex}");
+            // Drag start can fail if the pointer is released before the drag begins.
+            // No further cleanup is needed; the finally block resets the drag state.
         }
         finally
         {
@@ -107,18 +119,22 @@ public partial class MenuEditorView : UserControl
         {
             e.DragEffects = DragDropEffects.None;
             ClearAdorner();
+            CancelExpandHover();
             return;
         }
 
         e.DragEffects = DragDropEffects.Move;
         _dropTarget = target is null ? null : GetContainer(target);
         UpdateAdorner();
+        HandleExpandOnHover(target);
     }
 
     private void OnTreeDrop(object? sender, DragEventArgs e)
     {
         if (_draggedItem is null || DataContext is not MenuEditorViewModel vm)
             return;
+
+        CancelExpandHover();
 
         var position = e.GetPosition(MenuTree);
         var target = GetItemAt(position);
@@ -134,9 +150,14 @@ public partial class MenuEditorView : UserControl
         ClearAdorner();
     }
 
-    private MenuItemViewModel? GetItemAt(Point position)
+    /// <summary>
+    /// Computes the drop position relative to the target item based on the pointer
+    /// position within the item's bounds.
+    /// </summary>
+    private MenuItemViewModel? GetItemAt(Point positionRelativeToTree)
     {
-        var control = this.InputHitTest(position) as Control;
+        var positionRelativeToView = positionRelativeToTree.Transform(MenuTree.TransformToVisual(this) ?? Matrix.Identity);
+        var control = this.InputHitTest(positionRelativeToView) as Control;
         var container = control?.FindAncestorOfType<TreeViewItem>();
         if (container is null)
             return null;
@@ -149,7 +170,11 @@ public partial class MenuEditorView : UserControl
         return MenuTree.ContainerFromItem(item) as TreeViewItem;
     }
 
-    private DropPosition ComputeDropPosition(MenuItemViewModel? target, Point position)
+    /// <summary>
+    /// Computes the drop position relative to the target item based on the pointer
+    /// position within the item's bounds.
+    /// </summary>
+    private DropPosition ComputeDropPosition(MenuItemViewModel? target, Point positionRelativeToTree)
     {
         if (target is null)
             return DropPosition.After;
@@ -163,33 +188,77 @@ public partial class MenuEditorView : UserControl
         if (!origin.HasValue)
             return DropPosition.After;
 
-        var relativeY = position.Y - origin.Value.Y;
-        var third = bounds.Height / 3;
-
-        if (relativeY < third)
-            return DropPosition.Before;
-
-        if (relativeY > bounds.Height - third)
-            return DropPosition.After;
-
-        return DropPosition.Inside;
+        var positionRelativeToView = positionRelativeToTree.Transform(MenuTree.TransformToVisual(this) ?? Matrix.Identity);
+        var relativeY = positionRelativeToView.Y - origin.Value.Y;
+        return MenuEditorDragService.ComputeDropPosition(target, relativeY, bounds.Height);
     }
 
     private void UpdateAdorner()
     {
-        ClearAdorner();
         if (_dropTarget is null)
             return;
 
-        _dropTarget.Classes.Add("drag-over");
+        var layer = AdornerLayer.GetAdornerLayer(MenuTree);
+        if (layer is null)
+            return;
+
+        if (_adorner is null)
+        {
+            _adorner = new DropTargetAdorner();
+            layer.Children.Add(_adorner);
+            AdornerLayer.SetAdornedElement(_adorner, MenuTree);
+        }
+
+        _adorner.Update(_dropTarget, _dropPosition);
     }
 
     private void ClearAdorner()
     {
-        if (_dropTarget is not null)
+        if (_adorner is not null)
         {
-            _dropTarget.Classes.Remove("drag-over");
-            _dropTarget = null;
+            var layer = AdornerLayer.GetAdornerLayer(MenuTree);
+            layer?.Children.Remove(_adorner);
+            _adorner = null;
         }
+
+        _dropTarget = null;
+    }
+
+    /// <summary>
+    /// Expands a collapsed item with children after the pointer has hovered over it
+    /// for <see cref="MenuEditorDragService.ExpandDelayMilliseconds"/>.
+    /// </summary>
+    /// <remarks>
+    /// We poll <see cref="DateTime.UtcNow"/> instead of using a dispatcher timer
+    /// because on macOS the native drag loop suspends the dispatcher timer, so the
+    /// timer would never fire while a drag is in progress.
+    /// </remarks>
+    private void HandleExpandOnHover(MenuItemViewModel? target)
+    {
+        if (target is null || target.IsExpanded || target.Children.Count == 0)
+        {
+            CancelExpandHover();
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        if (target != _expandCandidate)
+        {
+            _expandCandidate = target;
+            _expandCandidateSince = now;
+            return;
+        }
+
+        var elapsed = now - _expandCandidateSince;
+        if (elapsed.TotalMilliseconds >= MenuEditorDragService.ExpandDelayMilliseconds)
+        {
+            _expandCandidate.IsExpanded = true;
+            CancelExpandHover();
+        }
+    }
+
+    private void CancelExpandHover()
+    {
+        _expandCandidate = null;
     }
 }

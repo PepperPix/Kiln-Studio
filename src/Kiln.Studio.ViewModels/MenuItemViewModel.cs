@@ -26,13 +26,7 @@ public sealed partial class MenuItemViewModel : ObservableObject
     private bool _external;
 
     [ObservableProperty]
-    private bool _isExpanded = true;
-
-    [ObservableProperty]
-    private bool _isSelected;
-
-    [ObservableProperty]
-    private bool _isDragOver;
+    private bool _isExpanded;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
