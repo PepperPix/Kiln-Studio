@@ -89,7 +89,7 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
     /// <summary>
     /// Optional callback invoked after a file was successfully replaced.
     /// </summary>
-    public Func<AssetLibraryEntry, Task>? Replaced { get; set; }
+    public Func<AssetLibraryEntry, Task>? Replaced { get; init; }
 
     /// <summary>
     /// Optional callback used to ask the host for a new file name.

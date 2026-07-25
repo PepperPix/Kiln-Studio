@@ -45,6 +45,11 @@ resharper_unused_parameter_in_partial_method_highlighting = none
 [src/Kiln.Studio.ViewModels/ContentEntryViewModel.cs]
 resharper_unused_auto_property_accessor_global_highlighting = none
 
+# AssetBrowserViewModel exposes optional host callbacks (e.g. Replaced) that are part of the public
+# API but not yet consumed by any host; the accessors are kept for future/documented use.
+[src/Kiln.Studio.ViewModels/AssetBrowserViewModel.cs]
+resharper_unused_auto_property_accessor_global_highlighting = none
+
 # Test doubles expose "LastXxx" spy properties consumed only by some call sites/tests.
 [tests/Kiln.Studio.TestSupport/TestDoubles/*.cs]
 resharper_unused_auto_property_accessor_global_highlighting = none
