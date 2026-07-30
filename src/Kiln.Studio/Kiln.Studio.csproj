@@ -5,10 +5,23 @@
     <StaticAnalysisCodeType>ProdExe</StaticAnalysisCodeType>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>Assets/kiln-studio.ico</ApplicationIcon>
+
+    <!-- NuGet packaging for dotnet tool distribution -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>kiln-studio</ToolCommandName>
+    <PackageId>PepperPix.Kiln.Studio</PackageId>
+    <PackageDescription>Desktop CMS for Kiln static sites.</PackageDescription>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/PepperPix/Kiln-Studio</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>kiln-studio.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="Assets\kiln-studio.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

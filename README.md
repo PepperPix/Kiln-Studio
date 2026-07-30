@@ -37,6 +37,26 @@ tests/
 Every `.cs` file contains exactly one top-level type. Nested types are used only as a deliberate
 encapsulation aid.
 
+## Installation
+
+### For developers with the .NET SDK
+
+Install Kiln Studio as a global tool:
+
+```bash
+dotnet tool install --global PepperPix.Kiln.Studio
+kiln-studio
+```
+
+Update:
+
+```bash
+dotnet tool update --global PepperPix.Kiln.Studio
+```
+
+> Note: `dotnet tool` does not provide OS integration (Dock, Start menu, `.app` bundle).
+> For end-user installation, use Homebrew Cask or winget.
+
 ## Building
 
 ### Prerequisites

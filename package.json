@@ -9,6 +9,8 @@
 	"devDependencies": {
 		"@commitlint/cli": "^21.0.1",
 		"@commitlint/config-conventional": "^21.0.1",
+		"@droidsolutions-oss/semantic-release-nuget": "^2.0.1",
+		"@droidsolutions-oss/semantic-release-update-file": "^1.4.0",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/git": "^10.0.1",
 		"@semantic-release/github": "^10.0.0",
@@ -28,6 +30,34 @@
 			"@semantic-release/release-notes-generator",
 			"@semantic-release/changelog",
 			[
+				"@droidsolutions-oss/semantic-release-update-file",
+				{
+					"files": [
+						{
+							"path": [
+								"Directory.Build.props"
+							],
+							"type": "xml",
+							"replacements": [
+								{
+									"key": "Version",
+									"value": "${nextRelease.version}"
+								},
+								{
+									"key": "InformationalVersion",
+									"value": "${nextRelease.version}"
+								},
+								{
+									"key": "RepositoryCommit",
+									"value": "${nextRelease.gitHead}"
+								}
+							]
+						}
+					]
+				}
+			],
+			"@droidsolutions-oss/semantic-release-nuget",
+			[
 				"@semantic-release/git",
 				{
 					"assets": [
@@ -39,6 +69,11 @@
 			],
 			"@semantic-release/github"
 		],
-		"npmPublish": false
+		"includeSymbols": true,
+		"projectPath": [
+			"src/Kiln.Studio/Kiln.Studio.csproj"
+		],
+		"npmPublish": false,
+		"usePackageVersion": true
 	}
 }
