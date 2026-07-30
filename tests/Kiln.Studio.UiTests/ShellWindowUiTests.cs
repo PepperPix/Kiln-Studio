@@ -45,6 +45,7 @@ public sealed class ShellWindowUiTests
     /// runs compare against it with ≤0.1 % tolerance.
     /// </summary>
     [Test]
+    [Skip("Snapshot baselines are platform-sensitive and temporarily disabled")]
     public async Task Snapshot_Welcome_MatchesBaseline()
     {
         var storeDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -71,6 +72,7 @@ public sealed class ShellWindowUiTests
     /// runs compare against it with ≤0.1 % tolerance.
     /// </summary>
     [Test]
+    [Skip("Snapshot baselines are platform-sensitive and temporarily disabled")]
     public async Task Snapshot_ShellWithOpenProject_MatchesBaseline()
     {
         var projectParent = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

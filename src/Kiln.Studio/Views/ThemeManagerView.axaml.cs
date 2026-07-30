@@ -21,7 +21,7 @@ public partial class ThemeManagerView : UserControl
         if (DataContext is not ThemeManagerViewModel vm)
             return;
 
-        vm.PropertyChanged += (s, args) =>
+        vm.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName is nameof(ThemeManagerViewModel.SelectedFile)
                 or nameof(ThemeManagerViewModel.SelectedFileContent))
