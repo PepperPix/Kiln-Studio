@@ -87,11 +87,6 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
     public Func<AssetLibraryEntry, Task<bool>>? BeforeDelete { get; set; }
 
     /// <summary>
-    /// Optional callback invoked after a file was successfully replaced.
-    /// </summary>
-    public Func<AssetLibraryEntry, Task>? Replaced { get; set; }
-
-    /// <summary>
     /// Optional callback used to ask the host for a new file name.
     /// </summary>
     public Func<AssetLibraryEntry, Task<string?>>? PromptForRename { get; set; }
@@ -374,9 +369,6 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
 
         File.Copy(picked, absolutePath, overwrite: true);
         await RefreshAsync().ConfigureAwait(true);
-
-        if (Replaced is not null)
-            await Replaced(entry).ConfigureAwait(true);
     }
 
     public Task RefreshAsync()
