@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    branches: ["main", "beta"]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta') && vars.RELEASE_ENABLED == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Install release tooling
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Restore .NET
+        run: dotnet restore --locked-mode
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release -- --maximum-parallel-tests 4
+
+      - name: InspectCode gate
+        run: |
+          dotnet tool install -g JetBrains.ReSharper.GlobalTools
+          jb inspectcode KilnStudio.slnx -e=WARNING -f=Text -o=inspect.txt
+          if grep -qE '\.cs:[0-9]+' inspect.txt; then
+            echo "::error::InspectCode found issues — release blocked"
+            grep -E '\.cs:[0-9]+' inspect.txt
+            exit 1
+          fi
+          echo "InspectCode clean — no findings"
+
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: nuget_login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          NUGET_TOKEN: ${{ steps.nuget_login.outputs.NUGET_API_KEY }}
+        run: npx semantic-release
+
+      # After a stable release, main gains a `chore(release): x.y.z [skip ci]` commit that beta
+      # never sees. If that commit (and its tag) isn't merged back into beta, semantic-release has
+      # no way to know a stable release already happened when it's running on beta — it just keeps
+      # incrementing the prerelease counter (e.g. `1.1.0-beta.4`), which sorts *below* `1.1.0` per
+      # semver even though it was published later. Fast-forwarding beta to main's tip right after
+      # every main release keeps that from happening. See CONTRIBUTING.md, "Keeping beta in sync
+      # with main" for the full story and the manual fallback.
+      - name: Sync main back into beta
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+        run: |
+          git fetch origin beta main
+          if git merge-base --is-ancestor origin/beta origin/main; then
+            echo "beta has no unreleased commits ahead of main — fast-forwarding beta to $(git rev-parse origin/main)"
+            if git push origin origin/main:refs/heads/beta; then
+              echo "beta synced successfully"
+            else
+              echo "::warning title=beta sync failed::Fast-forward push to beta was rejected (likely branch protection). Merge main into beta manually — see CONTRIBUTING.md, 'Keeping beta in sync with main'."
+            fi
+          else
+            echo "::warning title=beta already diverged::beta already has unreleased commits ahead of this release, so it can't be fast-forwarded. Merge main into beta manually before the next beta prerelease — see CONTRIBUTING.md, 'Keeping beta in sync with main'. Otherwise semantic-release will keep computing beta versions that sort below the release that was just published."
+          fi

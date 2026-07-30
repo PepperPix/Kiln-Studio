@@ -633,24 +633,6 @@
         "resolved": "18.1.0",
         "contentHash": "5K+9KFg2TdTl7VXv88Qzi/0lqK6JFoNP3lRuImPYGRV7K/QYklDyTrj4+A+KAki1JsQi6qKY+hDyY7d6WRqjrw=="
       },
-      "kiln.studio": {
-        "type": "Project",
-        "dependencies": {
-          "Avalonia": "[12.1.0, )",
-          "Avalonia.AvaloniaEdit": "[12.*, )",
-          "Avalonia.Desktop": "[12.1.0, )",
-          "Avalonia.Fonts.Inter": "[12.1.0, )",
-          "Avalonia.Themes.Fluent": "[12.1.0, )",
-          "AvaloniaEdit.TextMate": "[12.*, )",
-          "CommunityToolkit.Mvvm": "[8.4.2, )",
-          "Kiln.Studio.Services": "[0.1.0, )",
-          "Kiln.Studio.ViewModels": "[0.1.0, )",
-          "Markdown.Avalonia": "[12.0.0-a3, )",
-          "Material.Icons.Avalonia": "[3.0.2, )",
-          "Microsoft.Extensions.DependencyInjection": "[10.0.10, )",
-          "TextMateSharp.Grammars": "[2.0.4, )"
-        }
-      },
       "kiln.studio.services": {
         "type": "Project",
         "dependencies": {
@@ -672,6 +654,24 @@
         "dependencies": {
           "CommunityToolkit.Mvvm": "[8.4.2, )",
           "Kiln.Studio.Services": "[0.1.0, )"
+        }
+      },
+      "PepperPix.Kiln.Studio": {
+        "type": "Project",
+        "dependencies": {
+          "Avalonia": "[12.1.0, )",
+          "Avalonia.AvaloniaEdit": "[12.*, )",
+          "Avalonia.Desktop": "[12.1.0, )",
+          "Avalonia.Fonts.Inter": "[12.1.0, )",
+          "Avalonia.Themes.Fluent": "[12.1.0, )",
+          "AvaloniaEdit.TextMate": "[12.*, )",
+          "CommunityToolkit.Mvvm": "[8.4.2, )",
+          "Kiln.Studio.Services": "[0.1.0, )",
+          "Kiln.Studio.ViewModels": "[0.1.0, )",
+          "Markdown.Avalonia": "[12.0.0-a3, )",
+          "Material.Icons.Avalonia": "[3.0.2, )",
+          "Microsoft.Extensions.DependencyInjection": "[10.0.10, )",
+          "TextMateSharp.Grammars": "[2.0.4, )"
         }
       }
     }
