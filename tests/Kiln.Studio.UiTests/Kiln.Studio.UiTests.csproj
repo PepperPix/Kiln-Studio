@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TUnit" Version="1.62.0" />
+    <PackageReference Include="TUnit" Version="1.63.0" />
     <PackageReference Include="Avalonia.Headless" Version="12.1.1" />
     <PackageReference Include="Avalonia.Skia" Version="12.1.1" />
     <PackageReference Include="jcamp.Avalonia.Headless.TUnit" Version="0.1.1" />

@@ -39,7 +39,15 @@ public partial class MenuEditorView : UserControl
 
             using var data = new DataTransfer();
             var format = DataFormat.CreateInProcessFormat<MenuItemViewModel>("application/x-kiln-menu-item");
-            data.Add(DataTransferItem.Create(format, _draggedItem));
+            var transferItem = DataTransferItem.Create(format, _draggedItem);
+
+            // Also expose a plain text representation. Some platform backends (e.g. macOS)
+            // strip in-process-only formats before handing data to the native pasteboard,
+            // which can leave the dragging item with zero pasteboard-writable types and
+            // crash native AppKit code ("There are 0 items on the pasteboard, but 1 drag
+            // images."). Adding a real, cross-process format keeps the pasteboard non-empty.
+            transferItem.SetText(_draggedItem.Title);
+            data.Add(transferItem);
 
             await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move).ConfigureAwait(true);
         }
