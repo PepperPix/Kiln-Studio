@@ -25,6 +25,14 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanSave))]
     [NotifyPropertyChangedFor(nameof(HasSelectedMenu))]
+    [NotifyCanExecuteChangedFor(nameof(RenameMenuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteMenuCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AddItemCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
+    [NotifyCanExecuteChangedFor(nameof(IndentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OutdentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private MenuViewModel? _selectedMenu;
 
     [ObservableProperty]
@@ -32,6 +40,12 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedItem))]
     [NotifyPropertyChangedFor(nameof(SelectedItemIsRef))]
     [NotifyPropertyChangedFor(nameof(SelectedItemIsUrl))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteItemCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
+    [NotifyCanExecuteChangedFor(nameof(IndentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OutdentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     private MenuItemViewModel? _selectedItem;
 
     public ObservableCollection<MenuViewModel> Menus { get; } = [];
@@ -85,6 +99,9 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
             RefSuggestions.Add(r);
         foreach (var r in _menuRefProvider.GetItemRefs(projectPath))
             RefSuggestions.Add(r);
+
+        AddMenuCommand.NotifyCanExecuteChanged();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     public void ClearProject()
@@ -96,6 +113,8 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         SelectedItem = null;
         RefSuggestions.Clear();
         StatusMessage = null;
+        AddMenuCommand.NotifyCanExecuteChanged();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanAddMenu))]
@@ -109,6 +128,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         AttachValidation(menu);
         Menus.Add(menu);
         SelectedMenu = menu;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanAddMenu() => !string.IsNullOrWhiteSpace(_projectPath);
@@ -138,6 +158,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
         Menus.Remove(SelectedMenu);
         SelectedMenu = Menus.FirstOrDefault();
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(HasSelectedMenu))]
@@ -150,33 +171,38 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         AttachValidation(item);
         SelectedMenu.Items.Add(item);
         SelectedItem = item;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(HasSelectedItem))]
     private void DeleteItem()
     {
-        if (SelectedItem is null || SelectedMenu is null)
+        var selectedItem = SelectedItem;
+        if (selectedItem is null || SelectedMenu is null)
             return;
 
-        DetachValidation(SelectedItem);
-        foreach (var child in SelectedItem.Children.DescendantsAndSelf())
+        DetachValidation(selectedItem);
+        foreach (var child in selectedItem.Children.DescendantsAndSelf())
             DetachValidation(child);
 
-        RemoveItemFrom(SelectedItem, SelectedMenu.Items);
+        RemoveItemFrom(selectedItem, SelectedMenu.Items);
         SelectedItem = null;
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanMoveSelectedItemUp))]
     private void MoveUp()
     {
-        if (SelectedItem is null)
+        var selectedItem = SelectedItem;
+        if (selectedItem is null)
             return;
 
-        var container = GetContainer(SelectedItem);
-        var index = container.IndexOf(SelectedItem);
+        var container = GetContainer(selectedItem);
+        var index = container.IndexOf(selectedItem);
         if (index > 0)
         {
             container.Move(index, index - 1);
+            NotifyMoveCommandCanExecuteChanged();
             OnPropertyChanged(nameof(CanSave));
         }
     }
@@ -186,14 +212,16 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanMoveSelectedItemDown))]
     private void MoveDown()
     {
-        if (SelectedItem is null)
+        var selectedItem = SelectedItem;
+        if (selectedItem is null)
             return;
 
-        var container = GetContainer(SelectedItem);
-        var index = container.IndexOf(SelectedItem);
+        var container = GetContainer(selectedItem);
+        var index = container.IndexOf(selectedItem);
         if (index >= 0 && index < container.Count - 1)
         {
             container.Move(index, index + 1);
+            NotifyMoveCommandCanExecuteChanged();
             OnPropertyChanged(nameof(CanSave));
         }
     }
@@ -203,19 +231,21 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanIndentSelectedItem))]
     private void Indent()
     {
-        if (SelectedItem is null)
+        var selectedItem = SelectedItem;
+        if (selectedItem is null)
             return;
 
-        var container = GetContainer(SelectedItem);
-        var index = container.IndexOf(SelectedItem);
+        var container = GetContainer(selectedItem);
+        var index = container.IndexOf(selectedItem);
         if (index <= 0)
             return;
 
         var previous = container[index - 1];
         container.RemoveAt(index);
-        SelectedItem.Parent = previous;
-        previous.Children.Add(SelectedItem);
+        selectedItem.Parent = previous;
+        previous.Children.Add(selectedItem);
         previous.IsExpanded = true;
+        NotifyMoveCommandCanExecuteChanged();
         OnPropertyChanged(nameof(CanSave));
     }
 
@@ -224,16 +254,18 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanOutdentSelectedItem))]
     private void Outdent()
     {
-        if (SelectedItem is null || SelectedItem.Parent is null || SelectedMenu is null)
+        var selectedItem = SelectedItem;
+        if (selectedItem is null || selectedItem.Parent is null || SelectedMenu is null)
             return;
 
-        var parent = SelectedItem.Parent;
+        var parent = selectedItem.Parent;
         var parentContainer = GetContainer(parent);
         var parentIndex = parentContainer.IndexOf(parent);
 
-        parent.Children.Remove(SelectedItem);
-        SelectedItem.Parent = parent.Parent;
-        parentContainer.Insert(parentIndex + 1, SelectedItem);
+        parent.Children.Remove(selectedItem);
+        selectedItem.Parent = parent.Parent;
+        parentContainer.Insert(parentIndex + 1, selectedItem);
+        NotifyMoveCommandCanExecuteChanged();
         OnPropertyChanged(nameof(CanSave));
     }
 
@@ -264,17 +296,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     /// <paramref name="targetItem"/> at the given <paramref name="position"/>.
     /// </summary>
     public static bool CanDrop(MenuItemViewModel draggedItem, MenuItemViewModel? targetItem, DropPosition position)
-    {
-        ArgumentNullException.ThrowIfNull(draggedItem);
-
-        if (targetItem is null)
-            return true;
-
-        if (IsDescendant(targetItem, draggedItem))
-            return false;
-
-        return position != DropPosition.Inside || draggedItem != targetItem;
-    }
+        => MenuEditorDragService.CanDrop(draggedItem, targetItem, position);
 
     /// <summary>
     /// Performs the drop. The view calls this from its drag-and-drop event handlers.
@@ -288,29 +310,22 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
 
         DetachFromParent(draggedItem);
 
-        if (targetItem is null || position == DropPosition.Before)
-        {
-            var targetContainer = targetItem is null ? SelectedMenu!.Items : GetContainer(targetItem);
-            var targetIndex = targetItem is null ? targetContainer.Count : targetContainer.IndexOf(targetItem);
-            draggedItem.Parent = targetItem;
-            targetContainer.Insert(targetIndex, draggedItem);
-        }
-        else if (position == DropPosition.After)
-        {
-            var targetContainer = GetContainer(targetItem);
-            var targetIndex = targetContainer.IndexOf(targetItem) + 1;
-            draggedItem.Parent = targetItem.Parent;
-            targetContainer.Insert(targetIndex, draggedItem);
-        }
-        else
-        {
-            draggedItem.Parent = targetItem;
-            targetItem.Children.Add(draggedItem);
+        var rootItems = SelectedMenu?.Items ?? throw new InvalidOperationException("No menu is selected.");
+        var (container, index) = MenuEditorDragService.ResolveDropLocation(draggedItem, targetItem, position, rootItems);
+
+        draggedItem.Parent = position == DropPosition.Inside
+            ? targetItem
+            : targetItem?.Parent;
+
+        container.Insert(index, draggedItem);
+
+        if (position == DropPosition.Inside && targetItem is not null)
             targetItem.IsExpanded = true;
-        }
 
         SelectedItem = draggedItem;
+        NotifyMoveCommandCanExecuteChanged();
         OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSelectedMenuChanged(MenuViewModel? value)
@@ -318,7 +333,6 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         SelectedItem = null;
         if (value is not null)
         {
-            value.PropertyChanged += OnMenuPropertyChanged;
             AttachValidation(value);
             foreach (var item in value.Items.DescendantsAndSelf())
                 AttachValidation(item);
@@ -334,7 +348,10 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     private void OnMenuPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MenuViewModel.Name) || e.PropertyName == nameof(MenuViewModel.HasError))
+        {
             OnPropertyChanged(nameof(CanSave));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
     }
 
     private void AttachValidation(MenuViewModel menu)
@@ -373,6 +390,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     private void OnItemValidationRequested()
     {
         OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 
     private static void ValidateItem(MenuItemViewModel item)
@@ -420,7 +438,8 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         if (item.Parent is not null)
             return item.Parent.Children;
 
-        return SelectedMenu?.Items ?? new ObservableCollection<MenuItemViewModel>();
+        return SelectedMenu?.Items
+            ?? throw new InvalidOperationException("No menu is selected.");
     }
 
     private bool CanMoveItem(MenuItemViewModel? item, int direction)
@@ -443,17 +462,12 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         return index > 0;
     }
 
-    private static bool IsDescendant(MenuItemViewModel candidate, MenuItemViewModel ancestor)
+    private void NotifyMoveCommandCanExecuteChanged()
     {
-        var current = candidate.Parent;
-        while (current is not null)
-        {
-            if (current == ancestor)
-                return true;
-            current = current.Parent;
-        }
-
-        return false;
+        MoveUpCommand.NotifyCanExecuteChanged();
+        MoveDownCommand.NotifyCanExecuteChanged();
+        IndentCommand.NotifyCanExecuteChanged();
+        OutdentCommand.NotifyCanExecuteChanged();
     }
 
     private void DetachFromParent(MenuItemViewModel item)

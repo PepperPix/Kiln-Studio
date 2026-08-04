@@ -87,6 +87,11 @@ public sealed partial class AssetBrowserViewModel : ViewModelBase
     public Func<AssetLibraryEntry, Task<bool>>? BeforeDelete { get; set; }
 
     /// <summary>
+    /// Optional callback invoked after a file was successfully replaced.
+    /// </summary>
+    public Func<AssetLibraryEntry, Task>? Replaced { get; init; }
+
+    /// <summary>
     /// Optional callback used to ask the host for a new file name.
     /// </summary>
     public Func<AssetLibraryEntry, Task<string?>>? PromptForRename { get; set; }
