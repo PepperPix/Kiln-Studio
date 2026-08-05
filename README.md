@@ -68,7 +68,30 @@ dotnet tool update --global PepperPix.Kiln.Studio
 
 ```bash
 dotnet build
+```
+
+### Running tests
+
+We use TUnit. Run the full suite with:
+
+```bash
 dotnet test
+```
+
+Run a single test project, class, or test with:
+
+```bash
+dotnet test tests/Projekt.Tests
+dotnet test --treenode-filter "/*/*/ClassName/*"
+dotnet test --treenode-filter "/*/*/ClassName/TestName"
+```
+
+Do not use `dotnet test --filter "FullyQualifiedName~..."` here — that is VSTest syntax and does
+not work with TUnit.
+
+### Running the app
+
+```bash
 dotnet run --project src/Kiln.Studio
 ```
 
