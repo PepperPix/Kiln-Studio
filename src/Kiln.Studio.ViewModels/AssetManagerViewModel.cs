@@ -253,7 +253,7 @@ public sealed partial class AssetManagerViewModel : ViewModelBase
                 _contentService.Save(sourcePath, original.FrontMatter, body);
             }
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Best-effort rollback: any failed rewrite restores the original asset references.
         catch (Exception)
 #pragma warning restore CA1031
         {

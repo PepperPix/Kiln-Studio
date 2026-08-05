@@ -1,13 +1,12 @@
 namespace Kiln.Studio.UiTests;
 
-#pragma warning disable S1128 // Sonar flags Headless/Input but they are required for extension methods
 using Avalonia;
 using Avalonia.Controls;
+// Required for headless/input extension methods such as CaptureRenderedFrame/MouseDown/MouseUp.
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-#pragma warning restore S1128
 
 /// <summary>
 /// Regression: entry Grid must have a non-null Background + ContextMenu with

@@ -61,7 +61,7 @@ public sealed class ContentService : IContentService
 
     private static string Slugify(string title)
     {
-#pragma warning disable CA1308
+#pragma warning disable CA1308 // Slug generation intentionally normalizes titles to lowercase output.
         var lower = title.ToLowerInvariant();
 #pragma warning restore CA1308
         var sb = new StringBuilder();
