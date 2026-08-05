@@ -76,7 +76,7 @@ public sealed class PublishService : IPublishService
         {
             return MakeFailure("Publish was cancelled.");
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Publishing should return a failure summary instead of tearing down the caller.
         catch (Exception ex)
         {
             return MakeFailure(ex.Message);

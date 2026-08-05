@@ -7,9 +7,7 @@ public sealed record MenuItemDefinition
     public string? Ref { get; }
 
     // The engine schema stores menu URLs as plain strings; keep the DTO symmetric.
-#pragma warning disable S3996, CA1056, CA1054
     public string? Url { get; }
-#pragma warning restore S3996, CA1056, CA1054
 
     public bool External { get; }
     public IReadOnlyList<MenuItemDefinition> Children { get; }
@@ -18,9 +16,7 @@ public sealed record MenuItemDefinition
         string title,
         MenuLinkType linkType,
         string? @ref,
-#pragma warning disable CA1054
         string? url,
-#pragma warning restore CA1054
         bool external,
         IReadOnlyList<MenuItemDefinition> children)
     {

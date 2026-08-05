@@ -13,9 +13,7 @@ public partial class ShellWindow : Window
         Closing += OnClosing;
     }
 
-#pragma warning disable VSTHRD100 // must match Window.Closing's void-returning EventHandler signature
     private async void OnClosing(object? sender, WindowClosingEventArgs e)
-#pragma warning restore VSTHRD100
     {
         if (_forceClose)
             return;
@@ -31,4 +29,3 @@ public partial class ShellWindow : Window
         Close();
     }
 }
-

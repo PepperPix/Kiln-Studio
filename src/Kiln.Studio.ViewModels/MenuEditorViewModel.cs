@@ -283,7 +283,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
             await Task.Run(() => _menuService.SaveMenus(_projectPath, definitions)).ConfigureAwait(true);
             StatusMessage = "Menus saved.";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Save errors should surface in the menu editor status banner instead of crashing the view.
         catch (Exception ex)
         {
             StatusMessage = $"Save failed: {ex.Message}";

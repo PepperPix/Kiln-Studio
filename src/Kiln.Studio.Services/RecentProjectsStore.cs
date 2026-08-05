@@ -55,7 +55,7 @@ public sealed class RecentProjectsStore : IRecentProjectsStore
             }
             return deduplicated;
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Missing/corrupt recent-project storage should degrade to an empty list.
         catch
         {
             return [];

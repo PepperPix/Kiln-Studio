@@ -71,9 +71,7 @@ public partial class MenuEditorView : UserControl
         StartDragAsync(_dragStartEventArgs);
     }
 
-#pragma warning disable VSTHRD100 // Event handler signature requires void return.
     private async void StartDragAsync(PointerPressedEventArgs e)
-#pragma warning restore VSTHRD100
     {
         if (_draggedItem is null)
             return;

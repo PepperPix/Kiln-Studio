@@ -30,7 +30,7 @@ public class ShellViewModelEditorTests
             var explorer = new ProjectExplorerViewModel();
             var editor = new EditorViewModel(new ContentService());
             var store = new RecentProjectsStore(storeDir);
-#pragma warning disable S107
+#pragma warning disable S107 // The test intentionally wires the full shell constructor to exercise the real composition path.
             var vm = new ShellViewModel(
                 new ProjectService(new EngineHost()),
                 new FixedFolderPicker(projectPath),
@@ -90,7 +90,7 @@ public class ShellViewModelEditorTests
             var projectPath = scaffoldResult.ProjectPath;
 
             var editor = new EditorViewModel(new ContentService());
-#pragma warning disable S107
+#pragma warning disable S107 // The test intentionally wires the full shell constructor to exercise the real composition path.
             var vm = new ShellViewModel(
                 new ProjectService(new EngineHost()),
                 new FixedFolderPicker(projectPath),
@@ -145,7 +145,7 @@ public class ShellViewModelEditorTests
 
             var explorer = new ProjectExplorerViewModel();
             var editor = new EditorViewModel(new ContentService());
-#pragma warning disable S107
+#pragma warning disable S107 // The test intentionally wires the full shell constructor to exercise the real composition path.
             var vm = new ShellViewModel(
                 new ProjectService(new EngineHost()),
                 new FixedFolderPicker(projectPath),
@@ -206,7 +206,7 @@ public class ShellViewModelEditorTests
 
             var explorer = new ProjectExplorerViewModel();
             var editor = new EditorViewModel(new ContentService(), new ContentFrontmatterWriter(), new TaxonomyValueCache());
-#pragma warning disable S107
+#pragma warning disable S107 // The test intentionally wires the full shell constructor to exercise the real composition path.
             var vm = new ShellViewModel(
                 new ProjectService(new EngineHost()),
                 new FixedFolderPicker(projectPath),

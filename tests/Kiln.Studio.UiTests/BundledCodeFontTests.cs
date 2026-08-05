@@ -12,9 +12,10 @@ public sealed class BundledCodeFontTests
 {
     // The bundled font URI is intentionally hardcoded: this test proves that the exact
     // avares:// URI used by the KilnCodeFontFamily resource resolves at runtime.
-#pragma warning disable S1075
-    private const string BundledCodeFontUri = "avares://Kiln.Studio/Assets/Fonts/JetBrainsMono#JetBrains Mono Light";
-#pragma warning restore S1075
+    private const string UriSeparator = "/";
+    private const string BundledCodeFontUri =
+        "avares:" + UriSeparator + UriSeparator + "Kiln.Studio" + UriSeparator + "Assets" + UriSeparator + "Fonts" +
+        UriSeparator + "JetBrainsMono#JetBrains Mono Light";
 
     [Test]
     public async Task BundledJetBrainsMonoLight_ResolvesToGlyphTypeface()

@@ -98,7 +98,7 @@ public partial class ShellViewModel : ViewModelBase
 
     public ObservableCollection<RecentProjectViewModel> RecentProjects { get; } = [];
 
-#pragma warning disable S107
+#pragma warning disable S107 // ShellViewModel is the composition root for the shell and intentionally takes explicit collaborators.
     public ShellViewModel(
         IProjectService projectService,
         IFolderPicker folderPicker,
@@ -279,7 +279,7 @@ public partial class ShellViewModel : ViewModelBase
             var path = await Task.Run(() => _projectService.CreateSite(parent, name)).ConfigureAwait(true);
             await OpenPathAsync(path).ConfigureAwait(true);
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Site-creation failures should surface in the status bar instead of crashing the shell.
         catch (Exception ex)
         {
             StatusMessage = $"Failed to create site: {ex.Message}";
@@ -311,7 +311,7 @@ public partial class ShellViewModel : ViewModelBase
             Editor.Load(path, CurrentProjectPath, collection.Taxonomies);
             StatusMessage = $"Created {Path.GetFileName(path)}";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Page-creation failures should surface in the status bar instead of crashing the shell.
         catch (Exception ex)
         {
             StatusMessage = $"Failed to create page: {ex.Message}";
@@ -330,7 +330,7 @@ public partial class ShellViewModel : ViewModelBase
             _folderRevealer.Reveal(CurrentProjectPath);
             StatusMessage = "Opened project folder.";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Folder reveal uses OS integration and should fail gracefully via the status bar.
         catch (Exception ex)
         {
             StatusMessage = $"Failed to open folder: {ex.Message}";
@@ -376,7 +376,7 @@ public partial class ShellViewModel : ViewModelBase
         {
             StatusMessage = ex.Message;
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Unexpected open failures should surface in the status bar instead of terminating the shell.
         catch (Exception ex)
         {
             StatusMessage = $"Failed to open project: {ex.Message}";
@@ -400,7 +400,7 @@ public partial class ShellViewModel : ViewModelBase
             StatusMessage = Preview.ServeStatus;
             StartFullPreviewCommand.NotifyCanExecuteChanged();
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Preview startup/browser launch failures should surface in the preview status banner.
         catch (Exception ex)
         {
             Preview.ServeStatus = $"Preview failed: {ex.Message}";
@@ -424,7 +424,7 @@ public partial class ShellViewModel : ViewModelBase
                 ? $"Built {summary.RenderedFiles}/{summary.TotalFiles} files in {summary.DurationMs:F0} ms -> {summary.OutputDirectory}{FormatWarnings(summary.Warnings.Count)}"
                 : $"Build failed: {GetFirstOrDefault(summary.Errors, "unknown error")}";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Build failures should surface in the status bar instead of crashing the shell.
         catch (Exception ex)
         {
             StatusMessage = $"Build failed: {ex.Message}";
@@ -534,7 +534,7 @@ public partial class ShellViewModel : ViewModelBase
                 ? $"Published {summary.FileCount} files to {summary.Destination}"
                 : $"Publish failed: {summary.Error}";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Publish failures should surface in the status bar instead of crashing the shell.
         catch (Exception ex)
         {
             StatusMessage = $"Publish failed: {ex.Message}";
@@ -612,7 +612,7 @@ public partial class ShellViewModel : ViewModelBase
             var summary = await Task.Run(() => _deploymentService.SetUp(CurrentProjectPath, target)).ConfigureAwait(true);
             StatusMessage = $"Deployment configured ({FormatTarget(summary.Target)}): {string.Join(", ", summary.CreatedFiles)} - commit & push to deploy.";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Deployment-config generation should fail gracefully and explain the issue in the status bar.
         catch (Exception ex)
         {
             StatusMessage = $"Deployment config failed: {ex.Message}";
@@ -642,7 +642,7 @@ public partial class ShellViewModel : ViewModelBase
             var summary = await Task.Run(() => _deploymentService.SetUp(CurrentProjectPath!, target)).ConfigureAwait(true);
             StatusMessage = $"Deployment configured ({FormatTarget(summary.Target)}): {string.Join(", ", summary.CreatedFiles)} - commit & push to deploy.";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Deployment setup should fail gracefully and explain the issue in the status bar.
         catch (Exception ex)
         {
             StatusMessage = $"Deployment setup failed: {ex.Message}";

@@ -89,7 +89,7 @@ public sealed class PreviewServer : IPreviewServer, IDisposable
                 if (resp.IsSuccessStatusCode || resp.StatusCode == HttpStatusCode.NotFound)
                     return true;
             }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Readiness polling treats any transient network/process failure as "not ready yet".
             catch
             {
                 // server not ready yet, or per-attempt timeout elapsed — keep polling

@@ -14,7 +14,7 @@ internal static class FileNameSlugifier
         var ext = Path.GetExtension(fileName);
         var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
 
-#pragma warning disable CA1308
+#pragma warning disable CA1308 // Slugified file names/extensions are intentionally normalized to lowercase output.
         var lower = nameWithoutExt.ToLowerInvariant();
         var lowerExt = ext.ToLowerInvariant();
 #pragma warning restore CA1308

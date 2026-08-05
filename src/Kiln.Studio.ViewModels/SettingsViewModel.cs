@@ -139,7 +139,7 @@ public partial class SettingsViewModel : ViewModelBase
             Load(_projectPath);
             StatusMessage = "Settings saved.";
         }
-#pragma warning disable CA1031
+#pragma warning disable CA1031 // Save errors should surface in the settings status banner instead of crashing the dialog.
         catch (Exception ex)
         {
             StatusMessage = $"Save failed: {ex.Message}";

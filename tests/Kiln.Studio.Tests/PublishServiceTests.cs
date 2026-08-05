@@ -63,7 +63,7 @@ public class PublishServiceTests
             await Assert.That(result.Destination).IsEqualTo(zipPath);
             await Assert.That(File.Exists(zipPath)).IsTrue();
 
-#pragma warning disable S6966
+#pragma warning disable S6966 // ZipArchive only supports synchronous disposal; using is the correct API here.
             using var archive = ZipFile.OpenRead(zipPath);
 #pragma warning restore S6966
             var entryNames = archive.Entries.Select(e => e.FullName).ToList();

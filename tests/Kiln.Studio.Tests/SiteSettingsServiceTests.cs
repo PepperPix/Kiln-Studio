@@ -54,8 +54,7 @@ public class SiteSettingsServiceTests
         Directory.CreateDirectory(tempDir);
         try
         {
-#pragma warning disable S3353
-            var siteYaml =
+            const string siteYaml =
                 """
                 title: Original Title
                 description: A test site
@@ -78,7 +77,6 @@ public class SiteSettingsServiceTests
                   tags:
                     permalink: /tags/:slug/
                 """;
-#pragma warning restore S3353
             var projectPath = Path.Combine(tempDir, "mysite");
             Directory.CreateDirectory(projectPath);
             await File.WriteAllTextAsync(Path.Combine(projectPath, "site.yaml"), siteYaml);
@@ -110,8 +108,7 @@ public class SiteSettingsServiceTests
         Directory.CreateDirectory(tempDir);
         try
         {
-#pragma warning disable S3353
-            var siteYaml =
+            const string siteYaml =
                 """
                 title: My Site
                 baseUrl: http://localhost:5555
@@ -125,7 +122,6 @@ public class SiteSettingsServiceTests
                   posts:
                     directory: content/posts
                 """;
-#pragma warning restore S3353
             var projectPath = Path.Combine(tempDir, "nodescrip");
             Directory.CreateDirectory(projectPath);
             await File.WriteAllTextAsync(Path.Combine(projectPath, "site.yaml"), siteYaml);
@@ -179,9 +175,8 @@ public class SiteSettingsServiceTests
         Directory.CreateDirectory(tempDir);
         try
         {
-#pragma warning disable S3353
             // Use trailing slash on baseUrl so Load→Save does not normalize it
-            var siteYaml =
+            const string siteYaml =
                 """
                 title: Preserve Test
                 description: keep this
@@ -197,7 +192,6 @@ public class SiteSettingsServiceTests
                     directory: content/posts
                     permalink: /blog/:slug/
                 """;
-#pragma warning restore S3353
             var projectPath = Path.Combine(tempDir, "preserve");
             Directory.CreateDirectory(projectPath);
             await File.WriteAllTextAsync(Path.Combine(projectPath, "site.yaml"), siteYaml);
