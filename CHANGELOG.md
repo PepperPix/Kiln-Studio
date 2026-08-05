@@ -1,3 +1,10 @@
+# [1.0.0-beta.2](https://github.com/PepperPix/Kiln-Studio/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* **release:** disable github issue comments to unblock release pipeline ([33d0e2b](https://github.com/PepperPix/Kiln-Studio/commit/33d0e2be48dc021348aaa3d48a98129bcab251fc)), closes [#79](https://github.com/PepperPix/Kiln-Studio/issues/79)
+
 # 1.0.0-beta.1 (2026-08-05)
 
 
