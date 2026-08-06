@@ -3,7 +3,6 @@ namespace Kiln.Studio.Views;
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.VisualTree;
@@ -196,7 +195,7 @@ public partial class MenuEditorView : UserControl
         if (container is null)
             return DropPosition.After;
 
-        var header = (Control?)GetHeaderPresenter(container) ?? container;
+        var header = (Control?)container.GetHeaderPresenter() ?? container;
         var bounds = header.Bounds;
         var origin = header.TranslatePoint(new Point(0, 0), this);
         if (!origin.HasValue)
@@ -205,13 +204,6 @@ public partial class MenuEditorView : UserControl
         var positionRelativeToView = positionRelativeToTree.Transform(MenuTree.TransformToVisual(this) ?? Matrix.Identity);
         var relativeY = positionRelativeToView.Y - origin.Value.Y;
         return MenuEditorDragService.ComputeDropPosition(target, relativeY, bounds.Height);
-    }
-
-    private static ContentPresenter? GetHeaderPresenter(TreeViewItem container)
-    {
-        return container.GetVisualDescendants()
-            .OfType<ContentPresenter>()
-            .FirstOrDefault(p => p.Name == "PART_HeaderPresenter");
     }
 
     private void UpdateAdorner()
