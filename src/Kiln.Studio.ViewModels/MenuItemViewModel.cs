@@ -25,6 +25,7 @@ public sealed partial class MenuItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _external;
 
+    // Collapsed by default so that hover-expand has meaningful work to do and large menus stay overview-friendly.
     [ObservableProperty]
     private bool _isExpanded;
 
@@ -38,7 +39,7 @@ public sealed partial class MenuItemViewModel : ObservableObject
 
     public bool HasError => !string.IsNullOrEmpty(Error);
 
-    public Action? ValidationRequested { get; set; }
+    public event EventHandler? ValidationRequested;
 
     public MenuItemViewModel(MenuItemDefinition definition, MenuItemViewModel? parent)
     {
@@ -66,11 +67,11 @@ public sealed partial class MenuItemViewModel : ObservableObject
             Children.Select(c => c.ToDefinition()).ToList());
     }
 
-    partial void OnTitleChanged(string value) => ValidationRequested?.Invoke();
+    partial void OnTitleChanged(string value) => ValidationRequested?.Invoke(this, EventArgs.Empty);
 
-    partial void OnLinkTypeChanged(MenuLinkType value) => ValidationRequested?.Invoke();
+    partial void OnLinkTypeChanged(MenuLinkType value) => ValidationRequested?.Invoke(this, EventArgs.Empty);
 
-    partial void OnRefChanged(string? value) => ValidationRequested?.Invoke();
+    partial void OnRefChanged(string? value) => ValidationRequested?.Invoke(this, EventArgs.Empty);
 
     partial void OnUrlChanged(string? value)
     {
@@ -86,8 +87,8 @@ public sealed partial class MenuItemViewModel : ObservableObject
             }
         }
 
-        ValidationRequested?.Invoke();
+        ValidationRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    partial void OnExternalChanged(bool value) => ValidationRequested?.Invoke();
+    partial void OnExternalChanged(bool value) => ValidationRequested?.Invoke(this, EventArgs.Empty);
 }

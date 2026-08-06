@@ -102,6 +102,26 @@ public class MenuEditorDragServiceTests
     }
 
     [Test]
+    public async Task CanDrop_TargetIsGrandchildOfDragged_ReturnsFalse()
+    {
+        var grandparent = new MenuItemViewModel(
+            new MenuItemDefinition("Grandparent", MenuLinkType.Ref, null, null, false,
+            [
+                new MenuItemDefinition("Parent", MenuLinkType.Ref, null, null, false,
+                [
+                    new MenuItemDefinition("Grandchild", MenuLinkType.Ref, null, null, false, []),
+                ]),
+            ]),
+            null);
+        var parent = grandparent.Children[0];
+        var grandchild = parent.Children[0];
+
+        var result = MenuEditorDragService.CanDrop(grandparent, grandchild, DropPosition.Before);
+
+        await Assert.That(result).IsFalse();
+    }
+
+    [Test]
     public async Task ResolveDropLocation_BeforeTarget_InsertsAtTargetIndex()
     {
         var first = new MenuItemViewModel(new MenuItemDefinition("First", MenuLinkType.Ref, null, null, false, []), null);
@@ -151,5 +171,22 @@ public class MenuEditorDragServiceTests
 
         await Assert.That(container).IsEqualTo(root);
         await Assert.That(index).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task ResolveDropLocation_BeforeNestedTarget_InsertsWithinParentChildren()
+    {
+        var parent = new MenuItemViewModel(new MenuItemDefinition("Parent", MenuLinkType.Ref, null, null, false, []), null);
+        var firstChild = new MenuItemViewModel(new MenuItemDefinition("FirstChild", MenuLinkType.Ref, null, null, false, []), parent);
+        var secondChild = new MenuItemViewModel(new MenuItemDefinition("SecondChild", MenuLinkType.Ref, null, null, false, []), parent);
+        parent.Children.Add(firstChild);
+        parent.Children.Add(secondChild);
+        var dragged = new MenuItemViewModel(new MenuItemDefinition("Dragged", MenuLinkType.Ref, null, null, false, []), null);
+        var root = new ObservableCollection<MenuItemViewModel> { parent, dragged };
+
+        var (container, index) = MenuEditorDragService.ResolveDropLocation(dragged, secondChild, DropPosition.Before, root);
+
+        await Assert.That(container).IsEqualTo(parent.Children);
+        await Assert.That(index).IsEqualTo(1);
     }
 }

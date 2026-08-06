@@ -332,11 +332,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
     {
         SelectedItem = null;
         if (value is not null)
-        {
             AttachValidation(value);
-            foreach (var item in value.Items.DescendantsAndSelf())
-                AttachValidation(item);
-        }
     }
 
     partial void OnSelectedItemChanged(MenuItemViewModel? value)
@@ -387,7 +383,7 @@ public sealed partial class MenuEditorViewModel : ViewModelBase
         }
     }
 
-    private void OnItemValidationRequested()
+    private void OnItemValidationRequested(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(CanSave));
         SaveCommand.NotifyCanExecuteChanged();
