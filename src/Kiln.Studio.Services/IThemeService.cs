@@ -18,13 +18,3 @@ public interface IThemeService
 
     string GetThemeFilePath(string projectPath, string themeName, string relativePath);
 }
-
-public sealed record ThemeFileEntry(string RelativePath, bool IsDirectory, ThemeFileKind Kind);
-
-public enum ThemeFileKind
-{
-    Layout,
-    Partial,
-    Static,
-    Other
-}
