@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.8.0">
+    <PackageReference Update="Microsoft.Extensions.StaticAnalysis" Version="10.9.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
