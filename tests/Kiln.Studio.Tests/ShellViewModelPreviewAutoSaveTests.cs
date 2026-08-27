@@ -6,7 +6,8 @@ using ViewModels;
 
 public class ShellViewModelPreviewAutoSaveTests
 {
-    private const int AutoSaveSettleDelayMs = 2000;
+    private const int AutoSavePollDelayMs = 50;
+    private const int AutoSaveSettleTimeoutMs = 5000;
 
     [Test]
     public async Task StartFullPreview_WhenDirty_SavesBeforeStartingServer()
@@ -108,7 +109,9 @@ public class ShellViewModelPreviewAutoSaveTests
             vm.Editor.Body = newBody;
             await Assert.That(vm.Editor.IsDirty).IsTrue();
 
-            await Task.Delay(AutoSaveSettleDelayMs);
+            var deadline = DateTime.UtcNow.AddMilliseconds(AutoSaveSettleTimeoutMs);
+            while (DateTime.UtcNow < deadline && vm.Editor.IsDirty)
+                await Task.Delay(AutoSavePollDelayMs);
 
             await Assert.That(vm.Editor.IsDirty).IsFalse();
             var written = await File.ReadAllTextAsync(vm.Editor.FilePath!);
