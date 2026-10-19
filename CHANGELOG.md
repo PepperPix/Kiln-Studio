@@ -1,3 +1,10 @@
+# [1.0.0-beta.3](https://github.com/PepperPix/Kiln-Studio/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2026-10-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies and align Linux Skia assets ([#33](https://github.com/PepperPix/Kiln-Studio/issues/33)) ([d0f0001](https://github.com/PepperPix/Kiln-Studio/commit/d0f0001df457211c827eb44b8d0c759c017dd40f))
+
 # [1.0.0-beta.2](https://github.com/PepperPix/Kiln-Studio/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2026-08-05)
 
 
