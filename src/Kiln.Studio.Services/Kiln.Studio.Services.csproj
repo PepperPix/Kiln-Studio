@@ -8,6 +8,8 @@
     <PackageReference Include="Kiln.Abstractions" Version="1.2.0" />
     <PackageReference Include="Kiln.Core" Version="1.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <!-- Match Kiln.Core's managed Skia milestone in every consuming application and test output. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.151.1" />
     <!-- Override the vulnerable transitive version from Kiln.Core -> NuGet.Packaging. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageReference Include="YamlDotNet" Version="18.1.0" />

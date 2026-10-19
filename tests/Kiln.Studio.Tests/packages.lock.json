@@ -248,6 +248,11 @@
           "SkiaSharp.NativeAssets.macOS": "4.151.1"
         }
       },
+      "SkiaSharp.NativeAssets.Linux": {
+        "type": "Transitive",
+        "resolved": "4.151.1",
+        "contentHash": "4FM5fSV6W3nMOeawrxkgu3sf3uWUfQEizZ+ww6kcByf9XERiSbZftf5dyJxOUFDLcrtj9aslN2Jb7uZsO/lfWw=="
+      },
       "SkiaSharp.NativeAssets.Linux.NoDependencies": {
         "type": "Transitive",
         "resolved": "4.151.1",
@@ -310,6 +315,7 @@
           "Kiln.Abstractions": "[1.2.0, )",
           "Kiln.Core": "[1.2.0, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.13, )",
+          "SkiaSharp.NativeAssets.Linux": "[4.151.1, )",
           "System.Security.Cryptography.Pkcs": "[10.0.13, )",
           "YamlDotNet": "[18.1.0, )"
         }

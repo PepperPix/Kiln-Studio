@@ -49,6 +49,12 @@
           "SonarAnalyzer.CSharp": "10.16.0.128591"
         }
       },
+      "SkiaSharp.NativeAssets.Linux": {
+        "type": "Direct",
+        "requested": "[4.151.1, )",
+        "resolved": "4.151.1",
+        "contentHash": "4FM5fSV6W3nMOeawrxkgu3sf3uWUfQEizZ+ww6kcByf9XERiSbZftf5dyJxOUFDLcrtj9aslN2Jb7uZsO/lfWw=="
+      },
       "System.Security.Cryptography.Pkcs": {
         "type": "Direct",
         "requested": "[10.0.13, )",
