@@ -1,0 +1,38 @@
+schema: spec-driven
+
+context: |
+  Kiln Studio is a desktop content management application for Kiln sites.
+  It uses the Kiln engine in-process and treats the project file system as the
+  source of truth for site configuration, content, themes, and assets.
+  OpenSpec artifacts in this repository describe Kiln Studio only. This
+  repository is the planning and implementation root for its changes.
+  Write all artifacts in simple, formal technical English. Preserve API names,
+  paths, command-line options, configuration keys, and other technical
+  literals exactly. Keep technical reasons self-contained and do not rely on
+  external planning records.
+
+rules:
+  proposal:
+    - Use simple, formal technical English.
+    - State the reason, scope, capabilities, and impact.
+  design:
+    - Use simple, formal technical English.
+    - Record decisions, boundaries, and technical reasons in a self-contained form.
+  specs:
+    - Use simple, formal technical English.
+    - Preserve precise requirements, scenarios, and technical literals.
+    - Keep capability and requirement names stable when referring to them.
+  tasks:
+    - Use simple, formal technical English.
+    - Keep task identifiers, paths, commands, and checkbox state accurate.
+
+operations:
+  apply:
+    guidance:
+      - Apply changes only in this repository and keep task tracking here.
+      - Check the relevant requirements and run the smallest applicable validation.
+      - Do not change product behavior outside the approved change scope.
+  archive:
+    guidance:
+      - Archive only after implementation and review are complete.
+      - Confirm that the archived change and current specifications are consistent.
